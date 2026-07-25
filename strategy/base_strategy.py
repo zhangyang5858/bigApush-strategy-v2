@@ -109,6 +109,27 @@ class BaseStrategy(ABC):
 
         return True
     
+    def _slice_by_date(self, df, selection_date):
+        """
+        根据选股日期截断未来日期的K线数据，防止未来数据泄露到指标计算中
+
+        :param df: 股票数据DataFrame
+        :param selection_date: 选股日期（YYYY-MM-DD格式）
+        :return: 截断后的DataFrame
+        """
+        if not selection_date or df is None or df.empty:
+            return df
+
+        if 'date' not in df.columns:
+            return df
+
+        try:
+            sel_date_str = str(selection_date).split()[0]
+            df_filtered = df[df['date'].astype(str).str.split().str[0] <= sel_date_str].copy()
+            return df_filtered
+        except Exception:
+            return df
+
     @abstractmethod
     def calculate_indicators(self, df) -> pd.DataFrame:
         """
@@ -140,6 +161,7 @@ class BaseStrategy(ABC):
         标准化的选股执行过程
 
         执行流程：
+            0. 截断未来数据（按selection_date）
             1. 数据验证（包括检查已退市股票）
             2. 停牌股检查（当天没有K线数据的股票被过滤）
             3. 快速过滤（优先使用带lookback的版本）
@@ -152,6 +174,8 @@ class BaseStrategy(ABC):
         :param selection_date: 选股日期（YYYY-MM-DD格式），如果为None则使用今天
         :return: 选股信号列表
         """
+        df = self._slice_by_date(df, selection_date)
+
         if not self._validate_data(df):
             return []
 
