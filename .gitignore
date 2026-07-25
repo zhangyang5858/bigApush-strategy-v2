@@ -17,6 +17,8 @@ venv/
 
 # 临时文件
 test_*.py
+!tests/
+!tests/*.py
 *.tmp
 .DS_Store
 Thumbs.db
