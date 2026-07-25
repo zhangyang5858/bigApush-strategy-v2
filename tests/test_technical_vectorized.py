@@ -1,7 +1,7 @@
 """
 utils/technical.py 向量化重构单元测试
 """
-import pytest
+import unittest
 import pandas as pd
 import numpy as np
 from utils.technical import SMA, KDJ
@@ -62,72 +62,74 @@ def unvectorized_kdj(df, n=9, m1=3, m2=3):
     return result
 
 
-def test_sma_vectorized():
-    data = pd.Series([10.0, 12.0, 15.0, 14.0, 16.0, 18.0, 20.0])
-    expected = unvectorized_sma(data, 3, 1)
-    actual = SMA(data, 3, 1)
-    
-    assert len(actual) == len(data)
-    pd.testing.assert_series_equal(actual, expected, check_exact=False, rtol=1e-10)
-
-
-def test_sma_various_params():
-    data = pd.Series([5.0, 8.0, 12.0, 10.0, 15.0, 20.0, 18.0, 22.0, 25.0])
-    for n, m in [(3, 1), (5, 2), (10, 1), (14, 1)]:
-        expected = unvectorized_sma(data, n, m)
-        actual = SMA(data, n, m)
+class TestTechnicalVectorized(unittest.TestCase):
+    def test_sma_vectorized(self):
+        data = pd.Series([10.0, 12.0, 15.0, 14.0, 16.0, 18.0, 20.0])
+        expected = unvectorized_sma(data, 3, 1)
+        actual = SMA(data, 3, 1)
+        
+        self.assertEqual(len(actual), len(data))
         pd.testing.assert_series_equal(actual, expected, check_exact=False, rtol=1e-10)
 
+    def test_sma_various_params(self):
+        data = pd.Series([5.0, 8.0, 12.0, 10.0, 15.0, 20.0, 18.0, 22.0, 25.0])
+        for n, m in [(3, 1), (5, 2), (10, 1), (14, 1)]:
+            expected = unvectorized_sma(data, n, m)
+            actual = SMA(data, n, m)
+            pd.testing.assert_series_equal(actual, expected, check_exact=False, rtol=1e-10)
 
-def test_kdj_vectorized_ascending():
-    dates = pd.date_range('2026-01-01', periods=15).strftime('%Y-%m-%d').tolist()
-    df = pd.DataFrame({
-        'date': dates,
-        'high': [10, 11, 12, 11, 13, 14, 15, 14, 16, 17, 18, 17.5, 19, 20, 21],
-        'low': [9, 9.5, 10, 10.5, 11, 12, 13, 12.5, 14, 15, 15.5, 16, 17, 18, 19],
-        'close': [9.5, 10.5, 11, 10.8, 12.5, 13.5, 14.2, 13, 15.5, 16.5, 17, 16.8, 18.5, 19.2, 20.1]
-    })
+    def test_kdj_vectorized_ascending(self):
+        dates = pd.date_range('2026-01-01', periods=15).strftime('%Y-%m-%d').tolist()
+        df = pd.DataFrame({
+            'date': dates,
+            'high': [10, 11, 12, 11, 13, 14, 15, 14, 16, 17, 18, 17.5, 19, 20, 21],
+            'low': [9, 9.5, 10, 10.5, 11, 12, 13, 12.5, 14, 15, 15.5, 16, 17, 18, 19],
+            'close': [9.5, 10.5, 11, 10.8, 12.5, 13.5, 14.2, 13, 15.5, 16.5, 17, 16.8, 18.5, 19.2, 20.1]
+        })
 
-    expected = unvectorized_kdj(df)
-    actual = KDJ(df)
+        expected = unvectorized_kdj(df)
+        actual = KDJ(df)
 
-    assert set(actual.columns) == {'K', 'D', 'J'}
-    assert len(actual) == len(df)
-    pd.testing.assert_frame_equal(actual, expected, check_exact=False, rtol=1e-10)
+        self.assertEqual(set(actual.columns), {'K', 'D', 'J'})
+        self.assertEqual(len(actual), len(df))
+        pd.testing.assert_frame_equal(actual, expected, check_exact=False, rtol=1e-10)
+
+    def test_kdj_vectorized_descending(self):
+        dates = pd.date_range('2026-01-01', periods=15).strftime('%Y-%m-%d').tolist()[::-1]
+        df = pd.DataFrame({
+            'date': dates,
+            'high': [21, 20, 19, 17.5, 18, 17, 16, 14, 15, 14, 13, 11, 12, 11, 10],
+            'low': [19, 18, 17, 16, 15.5, 15, 14, 12.5, 13, 12, 11, 10.5, 10, 9.5, 9],
+            'close': [20.1, 19.2, 18.5, 16.8, 17, 16.5, 15.5, 13, 14.2, 13.5, 12.5, 10.8, 11, 10.5, 9.5]
+        })
+
+        expected = unvectorized_kdj(df)
+        actual = KDJ(df)
+
+        self.assertEqual(len(actual), len(df))
+        pd.testing.assert_frame_equal(actual, expected, check_exact=False, rtol=1e-10)
+
+    def test_kdj_empty_and_flat(self):
+        # 测试空 DataFrame
+        empty_df = pd.DataFrame()
+        res_empty = KDJ(empty_df)
+        self.assertTrue(res_empty.empty)
+        self.assertEqual(list(res_empty.columns), ['K', 'D', 'J'])
+
+        # 测试平盘数据（high == low）
+        dates = pd.date_range('2026-01-01', periods=10).strftime('%Y-%m-%d').tolist()
+        flat_df = pd.DataFrame({
+            'date': dates,
+            'high': [10.0] * 10,
+            'low': [10.0] * 10,
+            'close': [10.0] * 10
+        })
+
+        expected_flat = unvectorized_kdj(flat_df)
+        actual_flat = KDJ(flat_df)
+        pd.testing.assert_frame_equal(actual_flat, expected_flat, check_exact=False, rtol=1e-10)
 
 
-def test_kdj_vectorized_descending():
-    dates = pd.date_range('2026-01-01', periods=15).strftime('%Y-%m-%d').tolist()[::-1]
-    df = pd.DataFrame({
-        'date': dates,
-        'high': [21, 20, 19, 17.5, 18, 17, 16, 14, 15, 14, 13, 11, 12, 11, 10],
-        'low': [19, 18, 17, 16, 15.5, 15, 14, 12.5, 13, 12, 11, 10.5, 10, 9.5, 9],
-        'close': [20.1, 19.2, 18.5, 16.8, 17, 16.5, 15.5, 13, 14.2, 13.5, 12.5, 10.8, 11, 10.5, 9.5]
-    })
+if __name__ == '__main__':
+    unittest.main()
 
-    expected = unvectorized_kdj(df)
-    actual = KDJ(df)
-
-    assert len(actual) == len(df)
-    pd.testing.assert_frame_equal(actual, expected, check_exact=False, rtol=1e-10)
-
-
-def test_kdj_empty_and_flat():
-    # 测试空 DataFrame
-    empty_df = pd.DataFrame()
-    res_empty = KDJ(empty_df)
-    assert res_empty.empty
-    assert list(res_empty.columns) == ['K', 'D', 'J']
-
-    # 测试平盘数据（high == low）
-    dates = pd.date_range('2026-01-01', periods=10).strftime('%Y-%m-%d').tolist()
-    flat_df = pd.DataFrame({
-        'date': dates,
-        'high': [10.0] * 10,
-        'low': [10.0] * 10,
-        'close': [10.0] * 10
-    })
-
-    expected_flat = unvectorized_kdj(flat_df)
-    actual_flat = KDJ(flat_df)
-    pd.testing.assert_frame_equal(actual_flat, expected_flat, check_exact=False, rtol=1e-10)
