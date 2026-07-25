@@ -53,6 +53,11 @@ strategy_order:
     display_name: 涨停回马枪策略
     description: 基于涨停板后的回调机会的短线交易策略
 
+  - order: 11.5
+    name: LimitUpRelayAuctionStrategy
+    display_name: 首板接力竞价
+    description: 筛选昨日首板涨停且今日竞价高开放量抢筹的二板潜在龙头标的
+
   - order: 12
     name: ImmortalGuidanceStrategy
     display_name: 仙人指路策略
