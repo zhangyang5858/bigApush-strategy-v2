@@ -156,6 +156,48 @@ class TestLimitUpRelayAuctionStrategy(unittest.TestCase):
         self.assertEqual(strategy_instance.name, "首板接力竞价")
         self.assertEqual(strategy_instance.metadata.get('display_name'), "首板接力竞价")
 
+    def test_quality_score_calculation(self):
+        """测试多因子质量打分模型计算逻辑"""
+        # 黄金高开 4.0% (40分), 爆量比 15% (40分), 黄金换手 10.0% (20分) -> 100 分
+        score_full = self.strategy.calculate_quality_score(0.04, 0.15, 10.0)
+        self.assertEqual(score_full, 100.0)
+
+        # 衰减区间测试: 高开 2.75% (20分), 爆量比 7.5% (20分), 换手率 6.75% (10分) -> 50分
+        score_half = self.strategy.calculate_quality_score(0.0275, 0.075, 6.75)
+        self.assertEqual(score_half, 50.0)
+
+    def test_top_n_truncation_and_quality_score_ranking(self):
+        """测试包含多只候选股票时的 Top 5 截断与 Quality Score 排序断言"""
+        # 构造 7 只不同的候选股票结果字典
+        candidates = []
+        scores_expected = [100.0, 95.0, 85.0, 70.0, 60.0, 45.0, 30.0]
+        for i, score in enumerate(scores_expected):
+            candidates.append({
+                'code': f'60000{i}',
+                'name': f'测试股票{i}',
+                'quality_score': score,
+                'signals': [{'code': f'60000{i}', 'quality_score': score}]
+            })
+
+        # 逆序输入（故意将打分较低的排在前面）
+        input_candidates = list(reversed(candidates))
+
+        # 执行 post_process_selection
+        selected = self.strategy.post_process_selection(input_candidates)
+
+        # 断言结果数量被截截在 max_top_n (5只)
+        self.assertEqual(len(selected), 5)
+
+        # 断言结果按 quality_score 降序排列
+        scores_returned = [item['quality_score'] for item in selected]
+        self.assertEqual(scores_returned, [100.0, 95.0, 85.0, 70.0, 60.0])
+
+        # 测试自定义 max_top_n = 3
+        self.strategy.params['max_top_n'] = 3
+        selected_3 = self.strategy.post_process_selection(input_candidates)
+        self.assertEqual(len(selected_3), 3)
+        self.assertEqual([item['quality_score'] for item in selected_3], [100.0, 95.0, 85.0])
+
 
 if __name__ == '__main__':
     unittest.main()

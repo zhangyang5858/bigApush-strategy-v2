@@ -2001,8 +2001,16 @@ strategies:
         max: 20
         min: 5
         type: int
+      max_top_n:
+        default: 5
+        description: 精选选股结果最大限制数量
+        display_name: 精选股票上限
+        group: 精选选项
+        max: 20
+        min: 1
+        type: int
       open_ratio_max:
-        default: 0.06
+        default: 0.055
         description: 今日竞价高开比例最大值
         display_name: 竞价高开最大值
         group: 竞价抢筹条件
@@ -2010,7 +2018,7 @@ strategies:
         min: 0.03
         type: float
       open_ratio_min:
-        default: 0.02
+        default: 0.025
         description: 今日竞价高开比例最小值
         display_name: 竞价高开最小值
         group: 竞价抢筹条件
@@ -2026,7 +2034,7 @@ strategies:
         min: 10.0
         type: float
       turnover_min:
-        default: 5.0
+        default: 6.5
         description: 昨日换手率最小比例(%)
         display_name: 昨日换手率最小值(%)
         group: 首板过滤条件
@@ -2040,15 +2048,18 @@ strategies:
       name: 竞价抢筹条件
     - description: 控制均线支撑的参数
       name: 趋势过滤条件
+    - description: 控制选股结果截断的参数
+      name: 精选选项
     params:
       auction_amount_min: 15000000.0
       auction_vol_ratio_min: 0.05
       limit_up_threshold: 0.098
       ma_period: 5
-      open_ratio_max: 0.06
-      open_ratio_min: 0.02
+      max_top_n: 5
+      open_ratio_max: 0.055
+      open_ratio_min: 0.025
       turnover_max: 20.0
-      turnover_min: 5.0
+      turnover_min: 6.5
 strategy_runner:
   check_interval: 60
   max_position_size: 0.1

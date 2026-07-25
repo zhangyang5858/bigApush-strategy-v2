@@ -292,6 +292,9 @@ class StrategyRegistry:
             if processed % 100 == 0 or processed == total_stocks:
                 print(f"  进度: [{processed}/{total_stocks}] 已分析 {processed} 只，选出 {len(signals)} 只...")
         
+        if hasattr(strategy, 'post_process_selection'):
+            signals = strategy.post_process_selection(signals)
+
         print(f"{'-'*80}")
         print(f"✓ 选股完成: 共 {len(signals)} 只股票符合策略")
         print(f"{'='*80}\n")
@@ -368,6 +371,9 @@ class StrategyRegistry:
                 if processed % 100 == 0 or processed == total_stocks:
                     print(f"  进度: [{processed}/{total_stocks}] 已分析 {processed} 只，选出 {len(signals)} 只...")
             
+            if hasattr(strategy, 'post_process_selection'):
+                signals = strategy.post_process_selection(signals)
+
             results[strategy_name] = signals
             
             print(f"{'-'*80}")

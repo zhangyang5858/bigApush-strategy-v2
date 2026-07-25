@@ -27,13 +27,14 @@ class LimitUpRelayAuctionStrategy(BaseStrategy):
     def __init__(self, params=None):
         default_params = {
             'limit_up_threshold': 0.098,        # 涨停阈值（主板涨幅 >= 9.8%）
-            'turnover_min': 5.0,                # 昨日换手率最小值 (%)
+            'turnover_min': 6.5,                # 昨日换手率最小值 (%)
             'turnover_max': 20.0,               # 昨日换手率最大值 (%)
-            'open_ratio_min': 0.02,             # 今日竞价高开比例最小值 (2%)
-            'open_ratio_max': 0.06,             # 今日竞价高开比例最大值 (6%)
+            'open_ratio_min': 0.025,            # 今日竞价高开比例最小值 (2.5%)
+            'open_ratio_max': 0.055,            # 今日竞价高开比例最大值 (5.5%)
             'auction_amount_min': 15000000.0,   # 今日竞价金额最小值 (1500 万元)
             'auction_vol_ratio_min': 0.05,      # 竞价成交量/昨日成交量最小值 (5%)
             'ma_period': 5,                     # 均线周期 (5日均线)
+            'max_top_n': 5,                     # 最大精选股票数量 (默认 5 只)
         }
         if params:
             default_params.update(params)
@@ -88,25 +89,93 @@ class LimitUpRelayAuctionStrategy(BaseStrategy):
 
         return yesterday_pct >= limit_up_threshold
 
+    def calculate_quality_score(self, open_ratio: float, vol_ratio: float, yesterday_turnover: float) -> float:
+        """
+        多因子质量打分 (Quality Score: 0 ~ 100 分)
+        1. 黄金高开位置得分 (40分)：
+           高开在 +3.0% ~ +5.2% 区间获最高 40 分；高于 5.2% 或低于 3.0% 线性衰减。
+        2. 爆量抢筹比重得分 (40分)：
+           vol_ratio（今日/昨日成交量比）越高达分越高（最大占比 40 分，以 15% 为满分基准）。
+        3. 昨日换手率黄金区得分 (20分)：
+           昨日换手率在 7.0% ~ 15.0% 获得 20 分满分（排除缩量板与换手衰竭板）。
+        """
+        # 1. 黄金高开位置得分 (Max 40)
+        if 0.030 <= open_ratio <= 0.052:
+            score_open = 40.0
+        elif 0.025 <= open_ratio < 0.030:
+            score_open = (open_ratio - 0.025) / (0.030 - 0.025) * 40.0
+        elif 0.052 < open_ratio <= 0.055:
+            score_open = (0.055 - open_ratio) / (0.055 - 0.052) * 40.0
+        else:
+            score_open = 0.0
+
+        # 2. 爆量抢筹比重得分 (Max 40)
+        score_vol = min(40.0, (vol_ratio / 0.15) * 40.0)
+
+        # 3. 昨日换手率黄金区得分 (Max 20)
+        if 7.0 <= yesterday_turnover <= 15.0:
+            score_turnover = 20.0
+        elif 6.5 <= yesterday_turnover < 7.0:
+            score_turnover = (yesterday_turnover - 6.5) / (7.0 - 6.5) * 20.0
+        elif 15.0 < yesterday_turnover <= 20.0:
+            score_turnover = (20.0 - yesterday_turnover) / (20.0 - 15.0) * 20.0
+        else:
+            score_turnover = 0.0
+
+        return round(score_open + score_vol + score_turnover, 2)
+
+    def post_process_selection(self, signals: list) -> list:
+        """
+        根据 quality_score 降序排列选股结果，并截取前 max_top_n 只
+        支持单个信号字典列表或包含 'signals' 键的结构列表
+        """
+        if not signals or len(signals) <= 1:
+            return signals
+
+        max_top_n = int(self.params.get('max_top_n', 5))
+
+        def _get_score(item):
+            if isinstance(item, dict):
+                if 'quality_score' in item:
+                    return float(item['quality_score'])
+                if 'signals' in item and isinstance(item['signals'], list) and len(item['signals']) > 0:
+                    first_sig = item['signals'][0]
+                    if isinstance(first_sig, dict):
+                        return float(first_sig.get('quality_score', 0.0))
+            return 0.0
+
+        sorted_signals = sorted(signals, key=_get_score, reverse=True)
+        return sorted_signals[:max_top_n]
+
     def get_selection_criteria(self) -> list:
         """获取选股条件描述"""
+        turnover_min = float(self.params.get('turnover_min', 6.5))
+        turnover_max = float(self.params.get('turnover_max', 20.0))
+        open_ratio_min = float(self.params.get('open_ratio_min', 0.025)) * 100.0
+        open_ratio_max = float(self.params.get('open_ratio_max', 0.055)) * 100.0
+        max_top_n = int(self.params.get('max_top_n', 5))
+
         return [
             "1. 昨日收盘涨停（主板涨幅 >= 9.8%）",
             "2. 前日非涨停（涨幅 < 9.8%），确保为首板",
-            "3. 昨日换手率在 5%~20% 之间",
-            "4. 今日竞价高开比例在 2%~6% 之间",
+            f"3. 昨日换手率在 {turnover_min:.1f}%~{turnover_max:.1f}% 之间",
+            f"4. 今日竞价高开比例在 {open_ratio_min:.1f}%~{open_ratio_max:.1f}% 之间",
             "5. 今日竞价金额 >= 1500 万元，或竞价成交量/昨日成交量 >= 5%",
-            "6. 过滤 ST/退市股票，要求站在 5 日均线之上"
+            "6. 过滤 ST/退市股票，要求站在 5 日均线之上",
+            f"7. 按多因子 Quality Score 降序截取 Top {max_top_n} 只标的"
         ]
 
     def select_stocks(self, df: pd.DataFrame, stock_name: str = '', stock_code: str = '') -> list:
         """
         选股逻辑
-        :param df: 股票数据 DataFrame（支持升序或降序）
+        :param df: 股票数据 DataFrame（支持升序或降序）或已产生的选股列表
         :param stock_name: 股票名称
         :param stock_code: 股票代码
         :return: 选股信号列表
         """
+        if isinstance(df, list):
+            return self.post_process_selection(df)
+
         if df is None or len(df) < 3:
             return []
 
@@ -131,10 +200,10 @@ class LimitUpRelayAuctionStrategy(BaseStrategy):
 
         # 获取参数
         limit_up_threshold = float(self.params.get('limit_up_threshold', 0.098))
-        turnover_min = float(self.params.get('turnover_min', 5.0))
+        turnover_min = float(self.params.get('turnover_min', 6.5))
         turnover_max = float(self.params.get('turnover_max', 20.0))
-        open_ratio_min = float(self.params.get('open_ratio_min', 0.02))
-        open_ratio_max = float(self.params.get('open_ratio_max', 0.06))
+        open_ratio_min = float(self.params.get('open_ratio_min', 0.025))
+        open_ratio_max = float(self.params.get('open_ratio_max', 0.055))
         auction_amount_min = float(self.params.get('auction_amount_min', 15000000.0))
         auction_vol_ratio_min = float(self.params.get('auction_vol_ratio_min', 0.05))
 
@@ -158,7 +227,7 @@ class LimitUpRelayAuctionStrategy(BaseStrategy):
         if day_before_pct >= limit_up_threshold:
             return []
 
-        # c) 昨日换手率在 5%~20% 之间
+        # c) 昨日换手率在 turnover_min ~ turnover_max 之间
         turnover_val = yesterday.get('turnover_rate', None)
         if turnover_val is not None and not pd.isna(turnover_val):
             turnover_float = float(turnover_val)
@@ -170,7 +239,7 @@ class LimitUpRelayAuctionStrategy(BaseStrategy):
         else:
             yesterday_turnover_pct = 0.0
 
-        # d) 今日竞价高开比例在 2%~6% 之间 (open/prev_close - 1)
+        # d) 今日竞价高开比例在 open_ratio_min ~ open_ratio_max 之间 (open/prev_close - 1)
         today_open = float(today['open'])
         open_ratio = (today_open / yesterday_close) - 1.0
         if not (open_ratio_min <= open_ratio <= open_ratio_max):
@@ -192,6 +261,9 @@ class LimitUpRelayAuctionStrategy(BaseStrategy):
             if today_open < ma5_val and float(today['close']) < ma5_val:
                 return []
 
+        # 计算多因子质量打分
+        quality_score = self.calculate_quality_score(open_ratio, vol_ratio, yesterday_turnover_pct)
+
         # 满足所有条件，构建选股信号
         key_date_str = str(today['date']).split()[0]
         return [{
@@ -205,5 +277,7 @@ class LimitUpRelayAuctionStrategy(BaseStrategy):
             'auction_amount': today_amount,
             'auction_vol_ratio': vol_ratio,
             'yesterday_turnover': yesterday_turnover_pct,
+            'quality_score': quality_score,
             'reasons': ["首板涨停次日竞价高开抢筹"],
         }]
+

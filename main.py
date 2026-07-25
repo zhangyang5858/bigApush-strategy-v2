@@ -267,6 +267,8 @@ class QuantSystem:
                                     indicators_dict[code] = df_ind
                 except Exception:
                     pass
+            if hasattr(sobj, 'post_process_selection'):
+                sigs = sobj.post_process_selection(sigs)
             return sname, sigs
 
         print(f"并行执行 {len(self.registry.strategies)} 个策略 (workers={_max_workers})")
