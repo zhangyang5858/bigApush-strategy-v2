@@ -5,6 +5,9 @@ on:
     - cron: '30 14 * * *'
   workflow_dispatch:
 
+env:
+  TZ: Asia/Shanghai
+
 jobs:
   push-news:
     runs-on: ubuntu-latest
