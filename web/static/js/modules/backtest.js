@@ -583,6 +583,7 @@ async function loadBacktestResult(resultId) {
 function displayBacktestResult(result) {
     // 择时策略中文名称映射
     const timingStrategyNames = {
+        'short_term_auction': '超短线竞价择时',
         'turtle': '海龟策略',
         'rsi': 'RSI策略',
         'bollinger': '布林带策略',

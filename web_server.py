@@ -1724,6 +1724,7 @@ def get_timing_strategies():
         
         # 基础择时策略列表
         timing_strategies = [
+            {'name': 'short_term_auction', 'display_name': '超短线竞价择时'},
             {'name': 'turtle', 'display_name': '海龟策略'},
             {'name': 'support', 'display_name': '支撑位策略'},
             {'name': 'rsi', 'display_name': 'RSI策略'},

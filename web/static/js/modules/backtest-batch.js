@@ -206,6 +206,7 @@ class BacktestUIManager {
 
     // 择时策略映射
     const timingStrategyMap = {
+      'short_term_auction': '超短线竞价择时',
       'turtle': '海龟策略',
       'rsi': 'RSI策略',
       'bollinger': '布林带策略',
@@ -278,6 +279,7 @@ class BacktestUIManager {
   addResultTab(task, result) {
     // 择时策略中文名称映射
     const timingStrategyNames = {
+      'short_term_auction': '超短线竞价择时',
       'turtle': '海龟策略',
       'rsi': 'RSI策略',
       'bollinger': '布林带策略',
@@ -403,6 +405,7 @@ class BacktestUIManager {
   formatResultContent(task, result) {
     // 择时策略中文名称映射
     const timingStrategyNames = {
+      'short_term_auction': '超短线竞价择时',
       'turtle': '海龟策略',
       'rsi': 'RSI策略',
       'bollinger': '布林带策略',
