@@ -137,11 +137,23 @@ class BacktestTempConstraint:
             if len(trade_date) == 8 and trade_date.isdigit():
                 date_fmt = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]}"
             
-            sql = "SELECT open, close FROM stock_kline WHERE date = ?"
-            records = self.dao.db.query_all(sql, (date_fmt,))
-            if records:
-                total_cnt = len(records)
-                up_cnt = sum(1 for r in records if (r.get('close') or 0) > (r.get('open') or 0))
+            import sqlite3
+            import pandas as pd
+            
+            conn = getattr(self.dao, 'conn', None)
+            close_conn = False
+            if not conn:
+                db_path = getattr(self.dao, 'db_path', 'data/stock_selection.db')
+                conn = sqlite3.connect(db_path)
+                close_conn = True
+            
+            df_day = pd.read_sql(f"SELECT open, close FROM stock_kline WHERE date = '{date_fmt}'", conn)
+            if close_conn:
+                conn.close()
+                
+            if not df_day.empty:
+                total_cnt = len(df_day)
+                up_cnt = int((df_day['close'] > df_day['open']).sum())
                 temp_val = round((up_cnt / total_cnt) * 100.0, 1) if total_cnt > 0 else 50.0
                 
                 status = "活跃" if temp_val >= 65 else ("正常" if temp_val >= 50 else ("偏冷" if temp_val >= 35 else "冰封"))
