@@ -1330,7 +1330,13 @@ class BacktestEngine:
             if without_strategy in yaml_config:
                 return yaml_config[without_strategy]
         
-        raise KeyError(f"策略 {strategy_name} 未配置股票池移除参数，请在 config/pool_removal_config.yaml 中添加")
+        logger.warning(f"策略 {strategy_name} 未在 config/pool_removal_config.yaml 配置移除参数，使用默认防守配置")
+        return {
+            'display_name': strategy_name,
+            'min_hold_days': 5,
+            'is_enabled': True,
+            'remark': '默认防守配置'
+        }
 
     def _check_pool_removal(self, current_date, config):
         """检查股票池中需要移除的股票

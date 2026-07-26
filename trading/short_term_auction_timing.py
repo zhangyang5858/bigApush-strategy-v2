@@ -155,9 +155,10 @@ class ShortTermAuctionTimingStrategy(TimingStrategy):
                 return result
 
             # 3. 移动保盈检查 (冲高 >= trailing_stop_activation 后回落 >= trailing_stop_pullback)
-            buy_date_str = position.get('buy_date')
-            if buy_date_str and 'date' in df_sorted.columns:
-                holding_df = df_sorted[df_sorted['date'] >= buy_date_str]
+            buy_date_val = position.get('buy_date')
+            if buy_date_val and 'date' in df_sorted.columns:
+                buy_date_str = str(buy_date_val).split()[0] if not isinstance(buy_date_val, str) else buy_date_val.split()[0]
+                holding_df = df_sorted[df_sorted['date'].astype(str) >= buy_date_str]
                 if holding_df.empty:
                     holding_df = df_sorted
             else:

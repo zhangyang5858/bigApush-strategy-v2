@@ -117,3 +117,11 @@ removal_strategies:
     is_enabled: true
     remark: "加入股票池15天后验证上升趋势"
 
+  # 首板接力竞价
+  LimitUpRelayAuctionStrategy:
+    display_name: "首板接力竞价"
+    min_hold_days: 2
+    is_enabled: true
+    remark: "加入股票池2天后验证上升趋势"
+
+

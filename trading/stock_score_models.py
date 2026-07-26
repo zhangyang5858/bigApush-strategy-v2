@@ -50,7 +50,8 @@ STRATEGY_CLASS_NAME_MAP = {
     'GoldenTriangleStrategy': '金三角策略',
     'Strategy2560': '2560战法',
     'TrendStartStrategy': '趋势起点策略',
-    'ImmortalGuidanceStrategy': '仙人指路策略'
+    'ImmortalGuidanceStrategy': '仙人指路策略',
+    'LimitUpRelayAuctionStrategy': '首板接力竞价'
 }
 
 
