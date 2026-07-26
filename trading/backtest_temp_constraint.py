@@ -124,10 +124,50 @@ class BacktestTempConstraint:
                 'reason': None
             }
         
-        # 获取当日温度数据
+    def get_or_calculate_temperature(self, trade_date: str) -> Dict:
+        """获取或动态计算指定交易日期的市场温度与状态"""
+        # 1. 尝试从数据库查询
         temp_data = self.dao.query_by_date(trade_date)
-        if not temp_data:
-            logger.warning(f"未找到温度数据: {trade_date}")
+        if temp_data and temp_data.get('temperature') is not None:
+            return temp_data
+        
+        # 2. 如果数据库中为空，根据 stock_kline 实时计算市场阳光率/胜率温度
+        try:
+            date_fmt = trade_date
+            if len(trade_date) == 8 and trade_date.isdigit():
+                date_fmt = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]}"
+            
+            sql = "SELECT open, close FROM stock_kline WHERE date = ?"
+            records = self.dao.db.query_all(sql, (date_fmt,))
+            if records:
+                total_cnt = len(records)
+                up_cnt = sum(1 for r in records if (r.get('close') or 0) > (r.get('open') or 0))
+                temp_val = round((up_cnt / total_cnt) * 100.0, 1) if total_cnt > 0 else 50.0
+                
+                status = "活跃" if temp_val >= 65 else ("正常" if temp_val >= 50 else ("偏冷" if temp_val >= 35 else "冰封"))
+                return {
+                    'temperature': temp_val,
+                    'status': status,
+                    'trade_date': trade_date
+                }
+        except Exception as e:
+            logger.warning(f"动态计算市场温度失败: {e}")
+        
+        return {'temperature': 50.0, 'status': '正常', 'trade_date': trade_date}
+
+    def apply_constraints(
+        self, 
+        trade_date: str, 
+        candidates: List[Dict], 
+        position_ratio: float,
+        enable_temp_limit: bool = True,
+        temp_limit_mode: str = 'both'
+    ) -> Dict:
+        """
+        应用温度约束到候选股票
+        """
+        # 如果未启用温度限制，直接返回
+        if not enable_temp_limit:
             return {
                 'candidates': candidates,
                 'position_ratio': position_ratio,
@@ -135,8 +175,11 @@ class BacktestTempConstraint:
                 'temperature': None,
                 'status': None,
                 'constrained': False,
-                'reason': '无温度数据'
+                'reason': None
             }
+        
+        # 获取当日温度数据
+        temp_data = self.get_or_calculate_temperature(trade_date)
         
         temperature = temp_data['temperature']
         status = temp_data['status']

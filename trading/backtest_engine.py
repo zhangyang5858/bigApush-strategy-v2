@@ -264,6 +264,28 @@ class BacktestEngine:
                 daily_buys = 0
                 max_daily_buys = config.get('max_daily_buys', 5)
                 
+                # 检查市场温度避险限制
+                enable_temp_limit = config.get('enable_temp_limit', True)
+                if enable_temp_limit:
+                    try:
+                        from trading.backtest_temp_constraint import BacktestTempConstraint
+                        if not hasattr(self, '_temp_constraint_handler'):
+                            self._temp_constraint_handler = BacktestTempConstraint(dao=self.dao)
+                        
+                        date_str_temp = current_date.strftime('%Y-%m-%d') if hasattr(current_date, 'strftime') else str(current_date)
+                        temp_info = self._temp_constraint_handler.get_or_calculate_temperature(date_str_temp)
+                        current_temp = temp_info.get('temperature', 50.0)
+                        
+                        temp_max_buys = self._temp_constraint_handler._get_max_buy_count(current_temp)
+                        if temp_max_buys == 0 or current_temp < 35.0:
+                            logger.info(f"【大盘避险激活】日期: {current_date}, 市场温度: {current_temp}° (状态: {temp_info.get('status')})，防守暂停开仓！")
+                            max_daily_buys = 0
+                        elif temp_max_buys < max_daily_buys and temp_max_buys != float('inf'):
+                            max_daily_buys = int(temp_max_buys)
+                            logger.info(f"【大盘温度限制】日期: {current_date}, 市场温度: {current_temp}°，调整当日最大买入数为 {max_daily_buys} 只")
+                    except Exception as e:
+                        logger.warning(f"市场温度检查过程异常: {e}")
+                
                 # 记录当日卖出的股票（用于限制当天卖出的股票不买入）
                 today_sold_stocks = set()
                 
