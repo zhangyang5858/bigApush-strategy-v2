@@ -457,6 +457,10 @@ class BacktestEngine:
                     
                     # 检查当日最大买入限制
                     if daily_buys >= max_daily_buys:
+                        if max_daily_buys == 0:
+                            logger.info(f"【大盘避险拦截】{stock_code} {stock.get('stock_name', '')}: 市场温度低避险，丢弃过期竞价信号")
+                            # 避险拦截，不将候选标的移入次日池子
+                            continue
                         logger.info(f"【未执行买入】{stock_code} {stock.get('stock_name', '')}: 达到今日买入次数{max_daily_buys}次限制，未执行")
                         remaining_candidates.append(candidate)
                         continue
