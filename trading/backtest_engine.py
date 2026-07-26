@@ -227,9 +227,10 @@ class BacktestEngine:
             if not start_date or not end_date:
                 raise ValueError("回测开始日期和结束日期不能为空")
             
-            # 2. 确保策略已注册
+            # 2. 确保策略已注册并绑定当前策略实例
             if not self.strategy_registry.strategies:
                 self.strategy_registry.auto_register_from_directory("strategy")
+            self.current_strategy = self._resolve_strategy(strategy_name)
             
             # 3. 加载交易日历（在预加载数据之前，先确定交易日）
             self._load_trading_calendar(start_date, end_date)
@@ -1844,17 +1845,41 @@ class BacktestEngine:
 
         return scored_stocks
 
-    def _get_effective_max_daily_buys(self, config: Dict = None) -> int:
+    def _resolve_strategy(self, strategy_name: str):
+        """解析并获取最新的策略对象（支持中文显示名称与类名映射，重新从 strategy_params.yaml 加载）"""
+        if not strategy_name:
+            return None
+            
+        if not self.strategy_registry.strategies:
+            self.strategy_registry.auto_register_from_directory("strategy")
+            
+        # 1. 尝试按类名直接获取
+        strategy = self.strategy_registry.get_strategy(strategy_name)
+        if strategy is not None:
+            return strategy
+            
+        # 2. 尝试按中文 display_name / name 遍历匹配
+        for class_name, strat_obj in list(self.strategy_registry.strategies.items()):
+            if getattr(strat_obj, 'name', '') == strategy_name or getattr(strat_obj, 'display_name', '') == strategy_name:
+                return self.strategy_registry.get_strategy(class_name)
+                
+        return None
+
+    def _get_effective_max_daily_buys(self, strategy_name: str = None, config: Dict = None) -> int:
         """获取生效的每日最大买入数限制
         
         优先级：
-        1. 策略自身的 max_top_n 参数（在【策略参数管理】界面保存修改的数值，例如 3 只）
+        1. 策略自身最新的 max_top_n 参数（在【策略参数管理】界面保存修改的数值，例如 3 只）
         2. config 配置中的 max_top_n / max_daily_buys
         3. 默认 2 只
         """
+        strat_obj = getattr(self, 'current_strategy', None)
+        if strat_obj is None and strategy_name:
+            strat_obj = self._resolve_strategy(strategy_name)
+            
         strat_max_n = None
-        if hasattr(self, 'strategy') and hasattr(self.strategy, 'params'):
-            strat_max_n = self.strategy.params.get('max_top_n')
+        if strat_obj and hasattr(strat_obj, 'params'):
+            strat_max_n = strat_obj.params.get('max_top_n')
             
         if strat_max_n is not None and int(strat_max_n) > 0:
             return int(strat_max_n)
@@ -1895,7 +1920,7 @@ class BacktestEngine:
         
         # 按照打分与质量得分降序排序，严格截取 Top N 股票
         candidate_stocks.sort(key=lambda s: (s.get('signal', {}).get('quality_score', 0), s.get('score', 0)), reverse=True)
-        max_top_n = self._get_effective_max_daily_buys(config)
+        max_top_n = self._get_effective_max_daily_buys(strategy_name, config)
             
         if max_top_n and len(candidate_stocks) > max_top_n:
             logger.info(f"按综合打分降序截取前 {max_top_n} 只股票")
