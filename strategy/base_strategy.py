@@ -232,3 +232,11 @@ class BaseStrategy(ABC):
             logger = logging.getLogger(__name__)
             logger.debug(f"分析股票 {stock_code} 失败: {str(e)}")
             return None
+
+    def post_process_selection(self, signals: list) -> list:
+        """
+        选股结果后处理
+        默认直接返回原信号列表，子类可覆盖实现排序与 Top N 截断
+        """
+        return signals
+

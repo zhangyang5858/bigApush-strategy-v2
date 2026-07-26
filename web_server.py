@@ -978,6 +978,9 @@ def run_selection():
                     strategy_time = (dt.now() - strategy_start_time).total_seconds()
                     func_logger.info(f"策略 {strategy_name} 执行完成: 选中 {len(signals)} 只股票，分析成功 {success_count} 只，失败 {error_count} 只，耗时 {strategy_time:.1f}秒")
                     
+                    if hasattr(strategy, 'post_process_selection'):
+                        signals = strategy.post_process_selection(signals)
+
                     results[strategy_name] = signals
                     
                     # 计算交集
@@ -1060,6 +1063,10 @@ def run_selection():
                                 })
                         except Exception:
                             errs += 1
+                    
+                    if hasattr(sobj, 'post_process_selection'):
+                        sigs = sobj.post_process_selection(sigs)
+
                     func_logger.info(f"策略 {sname} 完成 - 选中 {len(sigs)} 只，耗时 {(dt.now()-t0).total_seconds():.1f}秒")
                     return sname, sigs, errs
 

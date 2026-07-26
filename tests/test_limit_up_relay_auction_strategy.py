@@ -198,6 +198,24 @@ class TestLimitUpRelayAuctionStrategy(unittest.TestCase):
         self.assertEqual(len(selected_3), 3)
         self.assertEqual([item['quality_score'] for item in selected_3], [100.0, 95.0, 85.0])
 
+    def test_web_server_format_truncation(self):
+        """测试 Web Server 返回结构 (含 strategy_display_name 包装) 下的 Top 5 截断"""
+        web_candidates = []
+        for i in range(10):
+            score = float(100 - i * 5)
+            web_candidates.append({
+                'code': f'6000{i:02d}',
+                'name': f'测试股票{i}',
+                'signals': [{'code': f'6000{i:02d}', 'quality_score': score}],
+                'strategy_display_name': '首板接力竞价'
+            })
+        self.strategy.params['max_top_n'] = 5
+        selected = self.strategy.post_process_selection(web_candidates)
+        self.assertEqual(len(selected), 5)
+        top_scores = [item['signals'][0]['quality_score'] for item in selected]
+        self.assertEqual(top_scores, [100.0, 95.0, 90.0, 85.0, 80.0])
+
 
 if __name__ == '__main__':
     unittest.main()
+
