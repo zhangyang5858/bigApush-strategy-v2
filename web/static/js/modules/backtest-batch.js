@@ -534,19 +534,43 @@ class BacktestUIManager {
                 </tr>
               </thead>
               <tbody>
-                ${trades.length > 0 ? trades.map(trade => `
-                  <tr style="border-bottom: 1px solid #e5e7eb;">
-                    <td style="padding: 8px; font-size: 12px;"><a href="${trade.detail_url || 'javascript:void(0)'}" onclick="viewStockDetail('${trade.stock_code}'); return false;" style="color: #2563eb; text-decoration: none; cursor: pointer; font-weight: 600;">${trade.stock_code || ''}</a></td>
-                    <td style="padding: 8px; font-size: 12px;">${trade.stock_name || ''}</td>
-                    <td style="padding: 8px; font-size: 12px;">${trade.buy_date || ''}</td>
-                    <td style="padding: 8px; font-size: 12px;">${(trade.buy_price || 0).toFixed(2)}</td>
-                    <td style="padding: 8px; font-size: 12px;">${trade.sell_date || ''}</td>
-                    <td style="padding: 8px; font-size: 12px;">${(trade.sell_price || 0).toFixed(2)}</td>
-                    <td style="padding: 8px; font-size: 12px; color: ${(trade.return_rate || 0) >= 0 ? '#22c55e' : '#ef4444'};">
-                      ${(trade.return_rate || 0).toFixed(2)}%
-                    </td>
-                  </tr>
-                `).join('') : '<tr><td colspan="7" style="padding: 16px; text-align: center; font-size: 12px; color: #6b7280;">暂无交易记录</td></tr>'}
+                ${(() => {
+                  const displayTrades = trades.filter(t => t.sell_date || (t.sell_price && t.sell_price > 0) || t.return_rate !== undefined);
+                  if (displayTrades.length === 0) {
+                    return '<tr><td colspan="7" style="padding: 16px; text-align: center; font-size: 12px; color: #6b7280;">暂无交易记录</td></tr>';
+                  }
+                  // 去重：对于同一股票同一买入日期的记录，优先保留已卖出交割的记录
+                  const uniqueTrades = [];
+                  const seen = new Set();
+                  for (let i = displayTrades.length - 1; i >= 0; i--) {
+                    const t = displayTrades[i];
+                    const key = `${t.stock_code}_${t.buy_date}`;
+                    if (t.sell_date && t.sell_price > 0) {
+                      uniqueTrades.unshift(t);
+                      seen.add(key);
+                    } else if (!seen.has(key)) {
+                      uniqueTrades.unshift(t);
+                      seen.add(key);
+                    }
+                  }
+                  return uniqueTrades.map(trade => {
+                    const isCompleted = trade.sell_date && trade.sell_price > 0;
+                    const returnRate = trade.return_rate || 0;
+                    return `
+                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                      <td style="padding: 8px; font-size: 12px;"><a href="${trade.detail_url || 'javascript:void(0)'}" onclick="viewStockDetail('${trade.stock_code}'); return false;" style="color: #2563eb; text-decoration: none; cursor: pointer; font-weight: 600;">${trade.stock_code || ''}</a></td>
+                      <td style="padding: 8px; font-size: 12px;">${trade.stock_name || ''}</td>
+                      <td style="padding: 8px; font-size: 12px;">${trade.buy_date || ''}</td>
+                      <td style="padding: 8px; font-size: 12px;">${(trade.buy_price || 0).toFixed(2)}</td>
+                      <td style="padding: 8px; font-size: 12px;">${isCompleted ? trade.sell_date : '<span style="color:#6b7280;">持仓中</span>'}</td>
+                      <td style="padding: 8px; font-size: 12px;">${isCompleted ? (trade.sell_price || 0).toFixed(2) : '-'}</td>
+                      <td style="padding: 8px; font-size: 12px; color: ${isCompleted ? (returnRate >= 0 ? '#22c55e' : '#ef4444') : '#6b7280'};">
+                        ${isCompleted ? returnRate.toFixed(2) + '%' : '0.00%'}
+                      </td>
+                    </tr>
+                  `;
+                  }).join('');
+                })()}
               </tbody>
             </table>
           </div>
