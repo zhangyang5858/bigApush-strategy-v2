@@ -262,16 +262,8 @@ class BacktestEngine:
                 
                 # 初始化当日买入计数
                 daily_buys = 0
-                # 确定每日最大买入数：优先使用前端/配置传入的 max_daily_buys
-                user_daily_buys = config.get('max_daily_buys')
-                strat_max_n = self.strategy.params.get('max_top_n') if hasattr(self, 'strategy') and hasattr(self.strategy, 'params') else None
-                
-                if user_daily_buys is not None and int(user_daily_buys) > 0:
-                    max_daily_buys = int(user_daily_buys)
-                elif strat_max_n is not None and int(strat_max_n) > 0:
-                    max_daily_buys = int(strat_max_n)
-                else:
-                    max_daily_buys = 2
+                # 确定每日最大买入数（优先策略参数管理的 max_top_n，其次回测配置）
+                max_daily_buys = self._get_effective_max_daily_buys(config)
                 
                 # 检查市场温度避险限制
                 enable_temp_limit = config.get('enable_temp_limit', True)
@@ -1852,19 +1844,30 @@ class BacktestEngine:
 
         return scored_stocks
 
-    def _select_and_score_stocks(self, strategy_name: str, date: date, config: Dict) -> List[Dict]:
-        """执行选股、评分、筛选，得到候选股票池
+    def _get_effective_max_daily_buys(self, config: Dict = None) -> int:
+        """获取生效的每日最大买入数限制
         
-        封装选股流程，返回通过评分的候选股票列表。
-        
-        Args:
-            strategy_name: 策略名称
-            date: 选股日期
-            config: 回测配置
-            
-        Returns:
-            候选股票列表（已评分且通过筛选）
+        优先级：
+        1. 策略自身的 max_top_n 参数（在【策略参数管理】界面保存修改的数值，例如 3 只）
+        2. config 配置中的 max_top_n / max_daily_buys
+        3. 默认 2 只
         """
+        strat_max_n = None
+        if hasattr(self, 'strategy') and hasattr(self.strategy, 'params'):
+            strat_max_n = self.strategy.params.get('max_top_n')
+            
+        if strat_max_n is not None and int(strat_max_n) > 0:
+            return int(strat_max_n)
+            
+        if config:
+            user_buys = config.get('max_daily_buys') or config.get('max_top_n')
+            if user_buys is not None and int(user_buys) > 0:
+                return int(user_buys)
+                
+        return 2
+
+    def _select_and_score_stocks(self, strategy_name: str, date: date, config: Dict) -> List[Dict]:
+        """执行选股、评分、筛选，得到候选股票池"""
         logger.info(f"开始执行选股，策略: {strategy_name}，择时策略: {self.timing_strategy_name}，日期: {date}")
         
         # 执行选股
@@ -1892,15 +1895,7 @@ class BacktestEngine:
         
         # 按照打分与质量得分降序排序，严格截取 Top N 股票
         candidate_stocks.sort(key=lambda s: (s.get('signal', {}).get('quality_score', 0), s.get('score', 0)), reverse=True)
-        user_daily_buys = config.get('max_daily_buys') or config.get('max_top_n')
-        strat_max_n = self.strategy.params.get('max_top_n') if hasattr(self, 'strategy') and hasattr(self.strategy, 'params') else None
-            
-        if user_daily_buys is not None and int(user_daily_buys) > 0:
-            max_top_n = int(user_daily_buys)
-        elif strat_max_n is not None and int(strat_max_n) > 0:
-            max_top_n = int(strat_max_n)
-        else:
-            max_top_n = 2
+        max_top_n = self._get_effective_max_daily_buys(config)
             
         if max_top_n and len(candidate_stocks) > max_top_n:
             logger.info(f"按综合打分降序截取前 {max_top_n} 只股票")
