@@ -22,6 +22,7 @@ strategy_names:
   TrendStartStrategy: 趋势起点策略
   GoldenTriangleStrategy: 金三角策略
   GoldenCrossNotGreenStrategy: 金叉不绿策略
+  LimitUpRelayAuctionStrategy: 首板接力竞价
 
 # 反向映射（中文名称到英文类名）
 # 自动生成，不需要手动维护
@@ -44,3 +45,4 @@ reverse_mapping:
   趋势起点策略: TrendStartStrategy
   金三角策略: GoldenTriangleStrategy
   金叉不绿策略: GoldenCrossNotGreenStrategy
+  首板接力竞价: LimitUpRelayAuctionStrategy
