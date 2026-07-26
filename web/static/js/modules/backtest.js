@@ -10,7 +10,7 @@ let backtestConfig = {
     initial_capital: 300000,
     score_threshold: 60,
     buy_amount: 100000,
-    max_daily_buys: 8,
+    max_daily_buys: 2,
     support_level_method: 'ma20',
     timing_strategy: 'support',
     timing_params: {
@@ -311,7 +311,7 @@ async function saveBacktestParams() {
             take_profit: parseFloat(takeProfitInput?.value) * 100, // 转换为百分比
             initial_capital: parseFloat(initialCapitalInput?.value) || 300000,
             buy_amount: parseFloat(buyAmountInput?.value) || 100000,
-            max_daily_buys: parseInt(maxDailyBuysInput?.value) || 5
+            max_daily_buys: parseInt(maxDailyBuysInput?.value) || 2
         };
         
         // 调用后端API保存配置
@@ -367,7 +367,7 @@ async function loadBacktestParams() {
             if (initialCapitalInput) initialCapitalInput.value = params.initial_capital || 300000;
             if (scoreThresholdInput) scoreThresholdInput.value = params.score_threshold || 60;
             if (buyAmountInput) buyAmountInput.value = params.buy_amount || 100000;
-            if (maxDailyBuysInput) maxDailyBuysInput.value = params.max_daily_buys || 5;
+            if (maxDailyBuysInput) maxDailyBuysInput.value = params.max_daily_buys || 2;
             if (stopLossInput) stopLossInput.value = (params.stop_loss || -5) / 100; // 转换为小数
             if (takeProfitInput) takeProfitInput.value = (params.take_profit || 15) / 100; // 转换为小数
             if (maxHoldDaysInput) maxHoldDaysInput.value = params.hold_period || 10;
@@ -423,7 +423,7 @@ async function runBacktest() {
             initial_capital: 300000,
             score_threshold: 60,
             buy_amount: 100000,
-            max_daily_buys: 8,
+            max_daily_buys: 2,
             stop_loss: 0.05,
             take_profit: 0.15,
             max_hold_days: 10,
@@ -442,7 +442,7 @@ async function runBacktest() {
                         initial_capital: config.initial_capital || 300000,
                         score_threshold: config.score_threshold || 60,
                         buy_amount: config.buy_amount || 100000,
-                        max_daily_buys: config.max_daily_buys || 5,
+                        max_daily_buys: config.max_daily_buys || 2,
                         stop_loss: (config.stop_loss || -5) / 100, // 转换为小数
                         take_profit: (config.take_profit || 15) / 100, // 转换为小数
                         max_hold_days: config.hold_period || 10,

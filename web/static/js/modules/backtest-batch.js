@@ -1113,7 +1113,7 @@ async function executeBacktestBatch() {
       initial_capital: 1000000,
       score_threshold: 60,
       buy_amount: 100000,
-      max_daily_buys: 5,
+      max_daily_buys: 2,
       stop_loss: -0.05,
       take_profit: 0.15,
       max_hold_days: 10
@@ -1130,7 +1130,7 @@ async function executeBacktestBatch() {
             initial_capital: config.initial_capital || 1000000,
             score_threshold: config.score_threshold || 60,
             buy_amount: config.buy_amount || 100000,
-            max_daily_buys: config.max_daily_buys || 5,
+            max_daily_buys: config.max_daily_buys || 2,
             stop_loss: config.stop_loss || -5,  // 数据库存的是百分比，直接使用
             take_profit: config.take_profit || 15,  // 数据库存的是百分比，直接使用
             max_hold_days: config.hold_period || 10
