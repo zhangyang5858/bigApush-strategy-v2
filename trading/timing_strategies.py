@@ -158,6 +158,10 @@ class TimingStrategyFactory:
             logger.info("创建顺势宝策略实例")
             from trading.macd_bollinger_strategy import ShunShiBaoStrategy
             return ShunShiBaoStrategy(config)
+        elif strategy_name == "short_term_auction":
+            logger.info("创建超短线竞价择时策略实例")
+            from trading.short_term_auction_timing import ShortTermAuctionTimingStrategy
+            return ShortTermAuctionTimingStrategy(config)
         else:
             logger.error(f"未知的择时策略: {strategy_name}")
             raise ValueError(f"Unknown timing strategy: {strategy_name}")
