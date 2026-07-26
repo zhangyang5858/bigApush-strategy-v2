@@ -750,7 +750,7 @@ function displayBacktestTrades(trades) {
                                             <td>${trade.buy_price || 0}</td>
                                             <td>${trade.sell_date || ''}</td>
                                             <td>${trade.sell_price || 0}</td>
-                                            <td class="${(trade.return_rate || 0) >= 0 ? 'text-green-500' : 'text-red-500'}">
+                                            <td class="${(trade.return_rate || 0) >= 0 ? 'text-red-500' : 'text-green-500'}">
                                                 ${(trade.return_rate || 0).toFixed(2)}%
                                             </td>
                                             <td>${trade.sell_type || trade.trade_type || 'normal'}</td>
@@ -824,7 +824,7 @@ function displayBacktestHistory(results) {
                     <td>${result.start_date || ''}</td>
                     <td>${result.end_date || ''}</td>
                     <td>${result.created_at ? formatDateTime(result.created_at) : ''}</td>
-                    <td class="${result.total_return >= 0 ? 'text-green-500' : 'text-red-500'}">
+                    <td class="${result.total_return >= 0 ? 'text-red-500' : 'text-green-500'}">
                         ${(result.total_return || 0).toFixed(2)}%
                     </td>
                     <td>${(result.win_rate || 0).toFixed(2)}%</td>
@@ -1176,7 +1176,7 @@ function displayBacktestTradesInModal(trades) {
                                             <td>${trade.buy_price}</td>
                                             <td>${trade.sell_date}</td>
                                             <td>${trade.sell_price}</td>
-                                            <td class="${trade.return_rate >= 0 ? 'text-green-500' : 'text-red-500'}">
+                                            <td class="${trade.return_rate >= 0 ? 'text-red-500' : 'text-green-500'}">
                                                 ${trade.return_rate.toFixed(2)}%
                                             </td>
                                             <td>${trade.sell_type}</td>
@@ -1570,7 +1570,7 @@ function displayBacktestTradesOnConfigPage(trades) {
                 let returnRateClass = '';
                 let returnRateText = '-';
                 if (returnRate !== null && returnRate !== undefined) {
-                    returnRateClass = returnRate >= 0 ? 'text-green-500' : 'text-red-500';
+                    returnRateClass = returnRate >= 0 ? 'text-red-500' : 'text-green-500';
                     returnRateText = returnRate.toFixed(2) + '%';
                 }
                 
