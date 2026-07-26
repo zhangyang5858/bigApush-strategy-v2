@@ -2002,7 +2002,7 @@ strategies:
         min: 5
         type: int
       max_top_n:
-        default: 2
+        default: 5
         description: 精选选股结果最大限制数量
         display_name: 精选股票上限
         group: 精选选项
@@ -2055,7 +2055,7 @@ strategies:
       auction_vol_ratio_min: 0.05
       limit_up_threshold: 0.098
       ma_period: 5
-      max_top_n: 2
+      max_top_n: 5
       open_ratio_max: 0.055
       open_ratio_min: 0.025
       turnover_max: 20.0

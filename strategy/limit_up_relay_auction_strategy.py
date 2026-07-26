@@ -34,7 +34,7 @@ class LimitUpRelayAuctionStrategy(BaseStrategy):
             'auction_amount_min': 15000000.0,   # 今日竞价金额最小值 (1500 万元)
             'auction_vol_ratio_min': 0.05,      # 竞价成交量/昨日成交量最小值 (5%)
             'ma_period': 5,                     # 均线周期 (5日均线)
-            'max_top_n': 2,                     # 最大精选股票数量 (默认 2 只精英标的)
+            'max_top_n': 5,                     # 最大精选股票数量 (默认 5 只)
         }
         if params:
             default_params.update(params)
