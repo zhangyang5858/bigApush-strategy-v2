@@ -1,4 +1,46 @@
 strategies:
+  LimitUpNewHighSidewaysStrategy:
+    color: '#ec4899'
+    description: 涨停/连板后缩量平台整理蓄势，突破创近250日历史新高（星网锐捷形态）
+    display_name: 涨停新高横盘选股
+    icon: 🚀
+    param_details:
+      new_high_lookback:
+        default: 250
+        description: 突破历史新高的回溯交易日天数
+        display_name: 新高回溯天数
+        group: 突破条件
+        max: 500
+        min: 60
+        type: int
+      sideways_days_max:
+        default: 12
+        description: 平台横盘震荡的最大交易日数
+        display_name: 最大横盘天数
+        group: 平台整理条件
+        max: 20
+        min: 3
+        type: int
+      max_top_n:
+        default: 2
+        description: 每日精选买入的最大股票数量
+        display_name: 每日精选股票数
+        group: 精选选项
+        max: 10
+        min: 1
+        type: int
+    param_groups:
+    - description: 控制新高与突破确认的参数
+      name: 突破条件
+    - description: 控制平台震荡的参数
+      name: 平台整理条件
+    - description: 控制精选筛选的参数
+      name: 精选选项
+    params:
+      new_high_lookback: 250
+      sideways_days_max: 12
+      max_top_n: 2
+    support_method: key_close_5
   BottomTrendInflectionStrategy:
     color: '#10b981'
     description: 识别深度下跌后的底部反转拐点，通过深度下跌、MACD底背离、放量反弹的组合判断
@@ -629,6 +671,103 @@ strategies:
       volume_ratio_threshold: 2.2
       volume_shrinkage_ratio: 0.5
     support_method: key_close_5
+  LimitUpRelayAuctionStrategy:
+    color: '#f59e0b'
+    description: 筛选昨日首板涨停且今日竞价高开放量抢筹的二板潜在龙头标的
+    display_name: 首板接力竞价
+    icon: ⚡
+    param_details:
+      auction_amount_min:
+        default: 15000000.0
+        description: 今日竞价金额最小值（元）
+        display_name: 竞价金额最小值
+        group: 竞价抢筹条件
+        max: 50000000.0
+        min: 1000000.0
+        type: float
+      auction_vol_ratio_min:
+        default: 0.05
+        description: 竞价成交量占昨日成交量最小比例
+        display_name: 竞价成交量占比
+        group: 竞价抢筹条件
+        max: 0.2
+        min: 0.01
+        type: float
+      limit_up_threshold:
+        default: 0.098
+        description: 涨停阈值（主板涨幅 >= 9.8%）
+        display_name: 涨停阈值
+        group: 首板过滤条件
+        max: 0.2
+        min: 0.05
+        type: float
+      ma_period:
+        default: 5
+        description: 均线过滤周期
+        display_name: 均线周期
+        group: 趋势过滤条件
+        max: 20
+        min: 5
+        type: int
+      max_top_n:
+        default: 2
+        description: 精选选股结果最大限制数量
+        display_name: 精选股票上限
+        group: 精选选项
+        max: 20
+        min: 1
+        type: int
+      open_ratio_max:
+        default: 0.055
+        description: 今日竞价高开比例最大值
+        display_name: 竞价高开最大值
+        group: 竞价抢筹条件
+        max: 0.1
+        min: 0.03
+        type: float
+      open_ratio_min:
+        default: 0.025
+        description: 今日竞价高开比例最小值
+        display_name: 竞价高开最小值
+        group: 竞价抢筹条件
+        max: 0.05
+        min: 0.0
+        type: float
+      turnover_max:
+        default: 20.0
+        description: 昨日换手率最大比例(%)
+        display_name: 昨日换手率最大值(%)
+        group: 首板过滤条件
+        max: 30.0
+        min: 10.0
+        type: float
+      turnover_min:
+        default: 6.5
+        description: 昨日换手率最小比例(%)
+        display_name: 昨日换手率最小值(%)
+        group: 首板过滤条件
+        max: 10.0
+        min: 1.0
+        type: float
+    param_groups:
+    - description: 控制昨日首板涨停及换手率过滤的参数
+      name: 首板过滤条件
+    - description: 控制今日竞价高开及成交量/金额抢筹的参数
+      name: 竞价抢筹条件
+    - description: 控制均线支撑的参数
+      name: 趋势过滤条件
+    - description: 控制选股结果截断的参数
+      name: 精选选项
+    params:
+      auction_amount_min: 15000000.0
+      auction_vol_ratio_min: 0.05
+      limit_up_threshold: 0.098
+      ma_period: 5
+      max_top_n: 2
+      open_ratio_max: 0.045
+      open_ratio_min: 0.025
+      turnover_max: 20.0
+      turnover_min: 6.5
   LimitUpSidewaysStrategy:
     color: '#8b5cf6'
     description: 识别涨停后横盘整理的形态，通过涨停、横盘、缩量、KDJ/MACD金叉等条件的组合判断
@@ -1959,107 +2098,10 @@ strategies:
       pattern_days: 40
       short_ma_period: 10
       support_days: 3
+      support_method: ma20
       support_ratio: 0.02
       volume_expand_ratio: 1.5
       volume_ma_period: 5
-      support_method: ma20
-  LimitUpRelayAuctionStrategy:
-    color: '#f59e0b'
-    description: 筛选昨日首板涨停且今日竞价高开放量抢筹的二板潜在龙头标的
-    display_name: 首板接力竞价
-    icon: ⚡
-    param_details:
-      auction_amount_min:
-        default: 15000000.0
-        description: 今日竞价金额最小值（元）
-        display_name: 竞价金额最小值
-        group: 竞价抢筹条件
-        max: 50000000.0
-        min: 1000000.0
-        type: float
-      auction_vol_ratio_min:
-        default: 0.05
-        description: 竞价成交量占昨日成交量最小比例
-        display_name: 竞价成交量占比
-        group: 竞价抢筹条件
-        max: 0.2
-        min: 0.01
-        type: float
-      limit_up_threshold:
-        default: 0.098
-        description: 涨停阈值（主板涨幅 >= 9.8%）
-        display_name: 涨停阈值
-        group: 首板过滤条件
-        max: 0.2
-        min: 0.05
-        type: float
-      ma_period:
-        default: 5
-        description: 均线过滤周期
-        display_name: 均线周期
-        group: 趋势过滤条件
-        max: 20
-        min: 5
-        type: int
-      max_top_n:
-        default: 2
-        description: 精选选股结果最大限制数量
-        display_name: 精选股票上限
-        group: 精选选项
-        max: 20
-        min: 1
-        type: int
-      open_ratio_max:
-        default: 0.055
-        description: 今日竞价高开比例最大值
-        display_name: 竞价高开最大值
-        group: 竞价抢筹条件
-        max: 0.1
-        min: 0.03
-        type: float
-      open_ratio_min:
-        default: 0.025
-        description: 今日竞价高开比例最小值
-        display_name: 竞价高开最小值
-        group: 竞价抢筹条件
-        max: 0.05
-        min: 0.0
-        type: float
-      turnover_max:
-        default: 20.0
-        description: 昨日换手率最大比例(%)
-        display_name: 昨日换手率最大值(%)
-        group: 首板过滤条件
-        max: 30.0
-        min: 10.0
-        type: float
-      turnover_min:
-        default: 6.5
-        description: 昨日换手率最小比例(%)
-        display_name: 昨日换手率最小值(%)
-        group: 首板过滤条件
-        max: 10.0
-        min: 1.0
-        type: float
-    param_groups:
-    - description: 控制昨日首板涨停及换手率过滤的参数
-      name: 首板过滤条件
-    - description: 控制今日竞价高开及成交量/金额抢筹的参数
-      name: 竞价抢筹条件
-    - description: 控制均线支撑的参数
-      name: 趋势过滤条件
-    - description: 控制选股结果截断的参数
-      name: 精选选项
-    params:
-      auction_amount_min: 15000000.0
-      auction_vol_ratio_min: 0.05
-      limit_up_threshold: 0.098
-      ma_period: 5
-      max_top_n: 2
-      open_ratio_max: 0.055
-      open_ratio_min: 0.025
-      turnover_max: 20.0
-      turnover_min: 6.5
 strategy_runner:
   check_interval: 60
   max_position_size: 0.1

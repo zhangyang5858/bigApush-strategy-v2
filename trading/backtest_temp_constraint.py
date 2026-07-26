@@ -127,7 +127,12 @@ class BacktestTempConstraint:
     def get_or_calculate_temperature(self, trade_date: str) -> Dict:
         """获取或动态计算指定交易日期的市场温度与状态"""
         # 1. 尝试从数据库查询
-        temp_data = self.dao.query_by_date(trade_date)
+        temp_data = None
+        if hasattr(self.dao, 'query_by_date'):
+            try:
+                temp_data = self.dao.query_by_date(trade_date)
+            except Exception:
+                temp_data = None
         if temp_data and temp_data.get('temperature') is not None:
             return temp_data
         

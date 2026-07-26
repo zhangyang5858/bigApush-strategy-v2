@@ -583,6 +583,8 @@ async function loadBacktestResult(resultId) {
 function displayBacktestResult(result) {
     // 择时策略中文名称映射
     const timingStrategyNames = {
+        'strong_limit_up_sideways': '强势涨停横盘分步择时',
+        'limit_up_sideways': '涨停横盘专属择时',
         'short_term_auction': '超短线竞价择时',
         'turtle': '海龟策略',
         'rsi': 'RSI策略',

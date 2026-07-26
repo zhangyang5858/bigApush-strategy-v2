@@ -12,6 +12,11 @@
 # - key_close: 使用关键日收盘价作为支撑位
 
 strategies:
+  # 涨停新高横盘选股策略
+  LimitUpNewHighSidewaysStrategy:
+    support_method: key_close_5
+    description: 涨停/连板新高横盘，使用关键日收盘价下跌5%作为支撑位
+
   # 仙人指路策略
   ImmortalGuidanceStrategy:
     support_method: key_close_5

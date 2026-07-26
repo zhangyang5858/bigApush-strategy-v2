@@ -1724,6 +1724,8 @@ def get_timing_strategies():
         
         # 基础择时策略列表
         timing_strategies = [
+            {'name': 'strong_limit_up_sideways', 'display_name': '强势涨停横盘分步择时'},
+            {'name': 'limit_up_sideways', 'display_name': '涨停横盘专属择时'},
             {'name': 'short_term_auction', 'display_name': '超短线竞价择时'},
             {'name': 'turtle', 'display_name': '海龟策略'},
             {'name': 'support', 'display_name': '支撑位策略'},

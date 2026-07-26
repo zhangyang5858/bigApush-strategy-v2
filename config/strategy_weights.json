@@ -65,6 +65,11 @@
       "description": "正向信号，涨停后横盘"
     },
     {
+      "name": "涨停新高横盘选股",
+      "weight": 70,
+      "description": "正向信号，涨停连板突破近250日历史新高"
+    },
+    {
       "name": "仙人指路策略",
       "weight": 50,
       "description": "正向信号，仙人指路形态识别"

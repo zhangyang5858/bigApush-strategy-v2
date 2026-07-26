@@ -1,0 +1,13 @@
+{
+  "batch_id": "batch_20260726_120702_0d1d4b",
+  "status": "running",
+  "total_tasks": 1,
+  "completed_tasks": 0,
+  "failed_tasks": 0,
+  "current_task": {
+    "index": 0,
+    "strategy_name": "涨停横盘策略",
+    "status": "running"
+  },
+  "task_results": []
+}

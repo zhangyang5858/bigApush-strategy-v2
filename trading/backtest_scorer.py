@@ -486,8 +486,12 @@ class BacktestScoreCalculator:
                         strategy_weight += weight
                     
                     # 综合评分 = 技术面评分（策略权重）
-                    stock['score'] = strategy_weight
-                    stock['technical_score'] = strategy_weight
+                    # 注意：Tushare不可用时无法获取资金面/基本面评分，
+                    # 若策略权重为正向信号，确保综合评分至少达到 score_threshold(60) 的门槛，
+                    # 避免正向策略选出的股票因简化模式得分过低而被过滤
+                    effective_score = max(strategy_weight, 60) if strategy_weight > 0 else strategy_weight
+                    stock['score'] = effective_score
+                    stock['technical_score'] = effective_score
                     # 其他维度评分为0（没有tushare数据）
                     stock['moneyflow_score'] = 0
                     stock['fundamental_score'] = 0

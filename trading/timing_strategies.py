@@ -162,6 +162,14 @@ class TimingStrategyFactory:
             logger.info("创建超短线竞价择时策略实例")
             from trading.short_term_auction_timing import ShortTermAuctionTimingStrategy
             return ShortTermAuctionTimingStrategy(config)
+        elif strategy_name in ["limit_up_sideways", "limit_up_sideways_timing"]:
+            logger.info("创建涨停横盘专属择时策略实例")
+            from trading.limit_up_sideways_timing import LimitUpSidewaysTimingStrategy
+            return LimitUpSidewaysTimingStrategy(config)
+        elif strategy_name in ["strong_limit_up_sideways", "strong_limit_up_sideways_timing"]:
+            logger.info("创建强势涨停横盘分步建仓择时策略实例")
+            from trading.strong_limit_up_sideways_timing import StrongLimitUpSidewaysTimingStrategy
+            return StrongLimitUpSidewaysTimingStrategy(config)
         else:
             logger.error(f"未知的择时策略: {strategy_name}")
             raise ValueError(f"Unknown timing strategy: {strategy_name}")

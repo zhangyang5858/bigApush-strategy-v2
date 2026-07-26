@@ -206,6 +206,8 @@ class BacktestUIManager {
 
     // 择时策略映射
     const timingStrategyMap = {
+      'strong_limit_up_sideways': '强势涨停横盘分步择时',
+      'limit_up_sideways': '涨停横盘专属择时',
       'short_term_auction': '超短线竞价择时',
       'turtle': '海龟策略',
       'rsi': 'RSI策略',
@@ -888,20 +890,18 @@ class BacktestUIManager {
    * 结束日期：重置为今天
    */
   clearForm() {
-    // 策略选择：重置为第一个选项
-    if (this.elements.strategySelect.options.length > 0) {
-      this.elements.strategySelect.selectedIndex = 0;
-    }
-    
-    // 获取当前日期
+    // 保持用户上次选择的策略和择时策略，便于连续添加和修改回测
+    // 仅格式化/保持日期
     const today = new Date();
     
-    // 开始日期：重置为上个月1日
-    const startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    this.elements.startDate.value = this._formatDate(startDate);
-    
-    // 结束日期：重置为今天
-    this.elements.endDate.value = this._formatDate(today);
+    // 如果日期为空，重置为上个月1日和今天
+    if (!this.elements.startDate.value) {
+      const startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      this.elements.startDate.value = this._formatDate(startDate);
+    }
+    if (!this.elements.endDate.value) {
+      this.elements.endDate.value = this._formatDate(today);
+    }
   }
 
   /**

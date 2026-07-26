@@ -1738,14 +1738,8 @@ class BacktestEngine:
             if not self.strategy_registry.strategies:
                 self.strategy_registry.auto_register_from_directory("strategy")
             
-            # 获取策略 - 策略注册时使用类名（如ContinuousRisingWithVolumeStrategyV2）
-            # 需要先尝试映射为中文名称再转类名
-            mapped_name = get_english_name(strategy_name)
-            strategy = self.strategy_registry.get_strategy(mapped_name)
-            
-            if not strategy:
-                # 尝试直接用原始名称查找
-                strategy = self.strategy_registry.get_strategy(strategy_name)
+            # 使用 _resolve_strategy 统一解析中文显示名与类名
+            strategy = self._resolve_strategy(strategy_name)
             
             if not strategy:
                 raise ValueError(f"策略 {strategy_name} 不存在")
