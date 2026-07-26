@@ -262,11 +262,16 @@ class BacktestEngine:
                 
                 # 初始化当日买入计数
                 daily_buys = 0
-                max_daily_buys = config.get('max_daily_buys', 5)
-                if hasattr(self, 'strategy') and hasattr(self.strategy, 'params'):
-                    strat_max_n = self.strategy.params.get('max_top_n')
-                    if strat_max_n is not None and int(strat_max_n) > 0:
-                        max_daily_buys = min(max_daily_buys, int(strat_max_n))
+                # 确定每日最大买入数：优先使用前端/配置传入的 max_daily_buys
+                user_daily_buys = config.get('max_daily_buys')
+                strat_max_n = self.strategy.params.get('max_top_n') if hasattr(self, 'strategy') and hasattr(self.strategy, 'params') else None
+                
+                if user_daily_buys is not None and int(user_daily_buys) > 0:
+                    max_daily_buys = int(user_daily_buys)
+                elif strat_max_n is not None and int(strat_max_n) > 0:
+                    max_daily_buys = int(strat_max_n)
+                else:
+                    max_daily_buys = 2
                 
                 # 检查市场温度避险限制
                 enable_temp_limit = config.get('enable_temp_limit', True)
@@ -1887,17 +1892,18 @@ class BacktestEngine:
         
         # 按照打分与质量得分降序排序，严格截取 Top N 股票
         candidate_stocks.sort(key=lambda s: (s.get('signal', {}).get('quality_score', 0), s.get('score', 0)), reverse=True)
-        strat_max_n = None
-        if hasattr(self, 'strategy') and hasattr(self.strategy, 'params'):
-            strat_max_n = self.strategy.params.get('max_top_n')
+        user_daily_buys = config.get('max_daily_buys') or config.get('max_top_n')
+        strat_max_n = self.strategy.params.get('max_top_n') if hasattr(self, 'strategy') and hasattr(self.strategy, 'params') else None
             
-        if strat_max_n is not None and int(strat_max_n) > 0:
+        if user_daily_buys is not None and int(user_daily_buys) > 0:
+            max_top_n = int(user_daily_buys)
+        elif strat_max_n is not None and int(strat_max_n) > 0:
             max_top_n = int(strat_max_n)
         else:
-            max_top_n = config.get('max_top_n') or config.get('max_daily_buys') or 2
+            max_top_n = 2
             
         if max_top_n and len(candidate_stocks) > max_top_n:
-            logger.info(f"按综合打分降序截取前 {max_top_n} 只精英股票")
+            logger.info(f"按综合打分降序截取前 {max_top_n} 只股票")
             candidate_stocks = candidate_stocks[:int(max_top_n)]
             
         logger.info(f"\n筛选后待买入股票数: {len(candidate_stocks)}")
