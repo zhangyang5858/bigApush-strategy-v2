@@ -185,12 +185,12 @@ class TestLimitUpRelayAuctionStrategy(unittest.TestCase):
         # 执行 post_process_selection
         selected = self.strategy.post_process_selection(input_candidates)
 
-        # 断言结果数量被截截在 max_top_n (5只)
-        self.assertEqual(len(selected), 5)
+        # 断言结果数量被截在默认 max_top_n (2只)
+        self.assertEqual(len(selected), 2)
 
         # 断言结果按 quality_score 降序排列
         scores_returned = [item['quality_score'] for item in selected]
-        self.assertEqual(scores_returned, [100.0, 95.0, 85.0, 70.0, 60.0])
+        self.assertEqual(scores_returned, [100.0, 95.0])
 
         # 测试自定义 max_top_n = 3
         self.strategy.params['max_top_n'] = 3

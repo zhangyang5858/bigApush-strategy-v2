@@ -1881,6 +1881,18 @@ class BacktestEngine:
             if not stock.get('veto_flag', False) and stock['score'] >= score_threshold
         ]
         
+        # 按照打分与质量得分降序排序，严格截取 Top N 股票
+        candidate_stocks.sort(key=lambda s: (s.get('signal', {}).get('quality_score', 0), s.get('score', 0)), reverse=True)
+        max_top_n = config.get('max_daily_buys') or config.get('max_top_n')
+        if max_top_n is None and hasattr(self, 'strategy') and hasattr(self.strategy, 'params'):
+            max_top_n = self.strategy.params.get('max_top_n')
+        if max_top_n is None:
+            max_top_n = 2  # 默认严格限制 2 只
+            
+        if max_top_n and len(candidate_stocks) > max_top_n:
+            logger.info(f"按综合打分降序截取前 {max_top_n} 只精英股票")
+            candidate_stocks = candidate_stocks[:int(max_top_n)]
+            
         logger.info(f"\n筛选后待买入股票数: {len(candidate_stocks)}")
         if candidate_stocks:
             logger.info("待买入股票列表:")
