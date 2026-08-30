@@ -94,7 +94,8 @@ def get_news(count=10):
 
 def send_feishu(msg):
     """发送飞书消息"""
-    webhook = os.environ.get("FEISHU_WEBHOOK", "")
+    default_webhook = "https://open.feishu.cn/open-apis/bot/v2/hook/ef0d8206-3c26-4fa0-9401-138f997db920"
+    webhook = os.environ.get("FEISHU_WEBHOOK", "") or default_webhook
     if not webhook:
         print("FEISHU_WEBHOOK 未设置")
         return False

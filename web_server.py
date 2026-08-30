@@ -1291,8 +1291,9 @@ def run_selection():
             import yaml as _yaml
             with open('config/config.yaml', 'r', encoding='utf-8') as _f:
                 _cfg = _yaml.safe_load(_f)
-            _feishu_cfg = _cfg.get('feishu', {})
-            _webhook_url = os.environ.get('FEISHU_WEBHOOK') or _feishu_cfg.get('webhook_url', '')
+            _feishu_cfg = _cfg.get('feishu', {}) if _cfg else {}
+            _default_webhook = "https://open.feishu.cn/open-apis/bot/v2/hook/ef0d8206-3c26-4fa0-9401-138f997db920"
+            _webhook_url = os.environ.get('FEISHU_WEBHOOK') or _feishu_cfg.get('webhook_url', '') or _default_webhook
             _notifier = FeishuNotifier(_webhook_url)
             _lines = [f"📊 缅A每日推送 ({dt.now().strftime('%Y-%m-%d %H:%M:%S')})", ""]
             _total = 0
