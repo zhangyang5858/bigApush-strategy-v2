@@ -755,20 +755,25 @@ B1完美图形匹配:
                 lines = [f"📊 缅A每日推送 ({datetime.now().strftime('%Y-%m-%d %H:%M:%S')})", ""]
                 total = 0
                 all_stocks = []
+                strategy_groups = []
                 if isinstance(result, dict):
                     for strategy_name, signals in result.items():
                         if signals:
                             cn_name = display_names.get(strategy_name, strategy_name)
-                            lines.append(f"【{cn_name}】: {len(signals)} 只")
+                            group_stocks = []
                             for s in signals:
                                 name = s.get('name', '')
                                 code = s.get('code', '')
                                 sig = s.get('signals', [])
-                                if sig:
-                                    lines.append(f"  {code} {name} 价格:{sig[0].get('close','-')}")
-                                else:
-                                    lines.append(f"  {code} {name}")
-                                all_stocks.append({'code': code, 'name': name})
+                                price = sig[0].get('close', '-') if sig else '-'
+                                item = {'code': code, 'name': name, 'price': price, 'strategy': cn_name}
+                                all_stocks.append(item)
+                                group_stocks.append(item)
+                            strategy_groups.append({'name': cn_name, 'stocks': group_stocks})
+                            lines.append(f"【{cn_name}】: {len(signals)} 只")
+                            for st in group_stocks:
+                                p_str = f" 价格:{st['price']}" if st['price'] != '-' else ""
+                                lines.append(f"  {st['code']} {st['name']}{p_str}")
                             lines.append("")
                             total += len(signals)
 
@@ -776,7 +781,6 @@ B1完美图形匹配:
                 if total > 0:
                     try:
                         from utils.selection_record_manager import SelectionRecordManager
-                        from datetime import date as _date
                         _srm = SelectionRecordManager()
                         _today_codes = {s['code'] for s in all_stocks}
                         _today_str = datetime.now().strftime('%Y-%m-%d')
@@ -805,7 +809,7 @@ B1完美图形匹配:
                                 if _new_codes:
                                     _new_names = [f"{s['code']} {s['name']}" for s in all_stocks if s['code'] in _new_codes]
                                     lines.append(f"  🟢 新增 ({len(_new_codes)}只):")
-                                    for _n in _new_names:
+                                    for _n in set(_new_names):
                                         lines.append(f"    + {_n}")
                                 if _removed_codes:
                                     lines.append(f"  🔴 去除 ({len(_removed_codes)}只):")
@@ -815,23 +819,23 @@ B1完美图形匹配:
                     except Exception as _diff_err:
                         print(f"  ⚠️ 对比历史选股失败: {_diff_err}")
 
-                # ─── 买入建议分析 ───
+                # ─── 买入建议分析（去重） ───
+                _dedup_analyses = []
                 if all_stocks:
                     try:
-                        from simple_analyzer import analyze_stock, format_analysis_message
-                        _analyses = []
-                        for _stock in all_stocks:
-                            _a = analyze_stock(_stock['code'], _stock['name'])
-                            if _a['score'] > 0:
-                                _analyses.append(_a)
-                        if _analyses:
-                            _analysis_msg = format_analysis_message(_analyses)
+                        from simple_analyzer import aggregate_and_analyze_stocks, format_analysis_message, build_feishu_card
+                        _dedup_analyses = aggregate_and_analyze_stocks(all_stocks)
+                        if _dedup_analyses:
+                            _analysis_msg = format_analysis_message(_dedup_analyses)
                             if _analysis_msg:
                                 lines.append(_analysis_msg)
                     except Exception as _a_err:
                         print(f"  ⚠️ 买入建议分析失败: {_a_err}")
 
                 # ─── 每日大盘复盘 + 新闻 ───
+                _idx_lines = []
+                _sector_text = ""
+                _news_list = []
                 try:
                     import requests as _req
 
@@ -842,7 +846,6 @@ B1完美图形匹配:
                         ('sz399006', '创业板指'),
                         ('sh000688', '科创50'),
                     ]
-                    _idx_lines = []
                     for _code, _name in _index_codes:
                         try:
                             _url = f"https://qt.gtimg.cn/q={_code}"
@@ -870,9 +873,8 @@ B1完美图形匹配:
 
                     # 2) 板块涨跌热力图
                     try:
-                        import re as _re, json as _json
                         from sector_data import format_sector_message as _sector_msg
-                        _sector_text = _sector_msg()
+                        _sector_text = _sector_msg() or ""
                         if _sector_text:
                             lines.append("━━━━━━━━━━━━━━━━━━━━")
                             lines.append(_sector_text)
@@ -891,12 +893,16 @@ B1完美图形匹配:
                             lines.append("━━━━━━━━━━━━━━━━━━━━")
                             lines.append("📰 今日财经要闻")
                             lines.append("")
-                            for _n in _news_list[:8]:
-                                _title = _n.get('title', '')[:50]
-                                _intro = _n.get('intro', '')
+                            for _n in _news_list[:6]:
+                                _title = _n.get('title', '').strip()
+                                _intro = _n.get('intro', '').strip()
                                 if _title:
+                                    if len(_title) > 45:
+                                        _title = _title[:45] + '...'
                                     lines.append(f"  • {_title}")
                                     if _intro:
+                                        if len(_intro) > 60:
+                                            _intro = _intro[:60] + '...'
                                         lines.append(f"    {_intro}")
                             lines.append("")
                     except Exception:
@@ -905,8 +911,27 @@ B1完美图形匹配:
                 except Exception as _idx_err:
                     print(f"  ⚠️ 获取大盘数据失败: {_idx_err}")
 
-                lines.insert(1, f"共 {total} 只股票入选")
-                notifier.send_text("\n".join(lines))
+                lines.insert(1, f"共 {total} 只股票入选 (去重后 {len(_dedup_analyses)} 只)")
+
+                # 优先推送交互式卡片，失败则降级为文本推送
+                card_sent = False
+                try:
+                    from simple_analyzer import build_feishu_card
+                    _card_json = build_feishu_card(
+                        total_count=total,
+                        strategy_grouped_stocks=strategy_groups,
+                        deduplicated_analyses=_dedup_analyses,
+                        market_lines=_idx_lines,
+                        sector_text=_sector_text,
+                        news_list=_news_list
+                    )
+                    card_sent = notifier.send_card(_card_json)
+                except Exception as _card_err:
+                    print(f"  ⚠️ 发送卡片异常，尝试纯文本降级: {_card_err}")
+
+                if not card_sent:
+                    notifier.send_text("\n".join(lines))
+
     
     elif args.command == 'web':
         # 启动Web服务器

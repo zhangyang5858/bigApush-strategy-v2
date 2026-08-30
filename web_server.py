@@ -1297,19 +1297,24 @@ def run_selection():
             _lines = [f"📊 缅A每日推送 ({dt.now().strftime('%Y-%m-%d %H:%M:%S')})", ""]
             _total = 0
             _all_stocks = []
+            _strategy_groups = []
 
             for _sname, _signals in cleaned_results.items():
                 if isinstance(_signals, list) and _signals:
-                    _lines.append(f"【{_sname}】: {len(_signals)} 只")
+                    _group_stocks = []
                     for _s in _signals:
                         _name = _s.get('name', '')
                         _code = _s.get('code', '')
                         _sig = _s.get('signals', [])
-                        if _sig:
-                            _lines.append(f"  {_code} {_name} 价格:{_sig[0].get('close','-')}")
-                        else:
-                            _lines.append(f"  {_code} {_name}")
-                        _all_stocks.append({'code': _code, 'name': _name})
+                        _price = _sig[0].get('close', '-') if _sig else '-'
+                        _item = {'code': _code, 'name': _name, 'price': _price, 'strategy': _sname}
+                        _all_stocks.append(_item)
+                        _group_stocks.append(_item)
+                    _strategy_groups.append({'name': _sname, 'stocks': _group_stocks})
+                    _lines.append(f"【{_sname}】: {len(_signals)} 只")
+                    for _st in _group_stocks:
+                        _p_str = f" 价格:{_st['price']}" if _st['price'] != '-' else ""
+                        _lines.append(f"  {_st['code']} {_st['name']}{_p_str}")
                     _lines.append("")
                     _total += len(_signals)
 
@@ -1345,7 +1350,7 @@ def run_selection():
                             if _new_codes:
                                 _new_names = [f"{s['code']} {s['name']}" for s in _all_stocks if s['code'] in _new_codes]
                                 _lines.append(f"  🟢 新增 ({len(_new_codes)}只):")
-                                for _n in _new_names:
+                                for _n in set(_new_names):
                                     _lines.append(f"    + {_n}")
                             if _removed_codes:
                                 _lines.append(f"  🔴 去除 ({len(_removed_codes)}只):")
@@ -1355,26 +1360,23 @@ def run_selection():
                 except Exception as _diff_err:
                     func_logger.warning(f"对比历史选股失败: {_diff_err}")
 
-            if _total > 0:
-                _lines.insert(1, f"共 {_total} 只股票入选")
-
-            # ─── 买入建议分析 ───
+            # ─── 买入建议分析（去重） ───
+            _dedup_analyses = []
             if _all_stocks:
                 try:
-                    from simple_analyzer import analyze_stock, format_analysis_message
-                    _analyses = []
-                    for _stock in _all_stocks:
-                        _a = analyze_stock(_stock['code'], _stock['name'])
-                        if _a['score'] > 0:
-                            _analyses.append(_a)
-                    if _analyses:
-                        _analysis_msg = format_analysis_message(_analyses)
+                    from simple_analyzer import aggregate_and_analyze_stocks, format_analysis_message, build_feishu_card
+                    _dedup_analyses = aggregate_and_analyze_stocks(_all_stocks)
+                    if _dedup_analyses:
+                        _analysis_msg = format_analysis_message(_dedup_analyses)
                         if _analysis_msg:
                             _lines.append(_analysis_msg)
                 except Exception as _a_err:
                     func_logger.warning(f"买入建议分析失败: {_a_err}")
 
             # ─── 每日大盘复盘 + 新闻 ───
+            _idx_lines = []
+            _sector_text = ""
+            _news_list = []
             try:
                 import requests as _req
 
@@ -1385,7 +1387,6 @@ def run_selection():
                     ('sz399006', '创业板指'),
                     ('sh000688', '科创50'),
                 ]
-                _idx_lines = []
                 for _code, _name in _index_codes:
                     try:
                         _url = f"https://qt.gtimg.cn/q={_code}"
@@ -1413,13 +1414,8 @@ def run_selection():
 
                 # 2) 板块涨跌热力图
                 try:
-                    _sec_resp = _req.get(
-                        'https://vip.stock.finance.sina.com.cn/q/view/newSinaHy.php',
-                        timeout=8, headers={'User-Agent': 'Mozilla/5.0'}
-                    )
-                    import re as _re, json as _json
                     from sector_data import format_sector_message as _sector_msg
-                    _sector_text = _sector_msg()
+                    _sector_text = _sector_msg() or ""
                     if _sector_text:
                         _lines.append("━━━━━━━━━━━━━━━━━━━━")
                         _lines.append(_sector_text)
@@ -1438,12 +1434,16 @@ def run_selection():
                         _lines.append("━━━━━━━━━━━━━━━━━━━━")
                         _lines.append("📰 今日财经要闻")
                         _lines.append("")
-                        for _n in _news_list[:8]:
-                            _title = _n.get('title', '')[:50]
-                            _intro = _n.get('intro', '')
+                        for _n in _news_list[:6]:
+                            _title = _n.get('title', '').strip()
+                            _intro = _n.get('intro', '').strip()
                             if _title:
+                                if len(_title) > 45:
+                                    _title = _title[:45] + '...'
                                 _lines.append(f"  • {_title}")
                                 if _intro:
+                                    if len(_intro) > 60:
+                                        _intro = _intro[:60] + '...'
                                     _lines.append(f"    {_intro}")
                         _lines.append("")
                 except Exception:
@@ -1453,10 +1453,28 @@ def run_selection():
                 func_logger.warning(f"获取大盘数据失败: {_idx_err}")
 
             if _total > 0:
-                _notifier.send_text("\n".join(_lines))
+                _lines.insert(1, f"共 {_total} 只股票入选 (去重后 {len(_dedup_analyses)} 只)")
+                card_sent = False
+                try:
+                    from simple_analyzer import build_feishu_card
+                    _card_json = build_feishu_card(
+                        total_count=_total,
+                        strategy_grouped_stocks=_strategy_groups,
+                        deduplicated_analyses=_dedup_analyses,
+                        market_lines=_idx_lines,
+                        sector_text=_sector_text,
+                        news_list=_news_list
+                    )
+                    card_sent = _notifier.send_card(_card_json)
+                except Exception as _card_err:
+                    func_logger.warning(f"发送卡片异常，尝试纯文本降级: {_card_err}")
+
+                if not card_sent:
+                    _notifier.send_text("\n".join(_lines))
                 func_logger.info(f"飞书推送完成，共 {_total} 只股票入选")
             else:
                 func_logger.info("选股结果为空，跳过飞书推送")
+
         except Exception as _fe:
             func_logger.warning(f"飞书推送失败: {_fe}")
 

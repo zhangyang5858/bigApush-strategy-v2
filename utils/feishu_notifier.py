@@ -56,3 +56,25 @@ class FeishuNotifier:
         except Exception as e:
             logger.error("飞书推送异常: %s", e)
             return False
+
+    def send_card(self, card_json: dict) -> bool:
+        """发送飞书交互式卡片"""
+        if not self.webhook_url:
+            logger.warning("飞书 webhook_url 未配置")
+            return False
+        payload = {
+            "msg_type": "interactive",
+            "card": card_json
+        }
+        try:
+            resp = requests.post(self.webhook_url, json=payload, timeout=10)
+            result = resp.json()
+            if result.get("code") == 0:
+                logger.info("飞书卡片推送成功")
+                return True
+            logger.error("飞书卡片推送失败: %s", result)
+            return False
+        except Exception as e:
+            logger.error("飞书卡片推送异常: %s", e)
+            return False
+
