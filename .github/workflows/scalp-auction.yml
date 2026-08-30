@@ -1,0 +1,25 @@
+name: 早盘竞价初筛推送 (09:26)
+
+on:
+  schedule:
+    - cron: '26 1 * * 1-5'
+  workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  push-scalp-auction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install requests pyyaml
+      - name: Run scalp auction push
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+        run: python scalp_push.py --stage auction
