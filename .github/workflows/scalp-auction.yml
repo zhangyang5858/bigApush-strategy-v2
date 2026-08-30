@@ -1,9 +1,8 @@
 name: 早盘竞价初筛推送 (09:26)
 
 on:
-  schedule:
-    - cron: '26 1 * * 1-5'
   workflow_dispatch:
+
 
 env:
   TZ: Asia/Shanghai

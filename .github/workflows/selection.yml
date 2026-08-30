@@ -1,9 +1,8 @@
 name: 收盘选股
 
 on:
-  schedule:
-    - cron: '22 7 * * 1-5'
   workflow_dispatch:
+
 
 env:
   TZ: Asia/Shanghai

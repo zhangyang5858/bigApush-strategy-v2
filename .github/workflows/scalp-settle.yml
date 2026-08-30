@@ -1,9 +1,8 @@
 name: 早盘定势封板推送 (09:55)
 
 on:
-  schedule:
-    - cron: '55 1 * * 1-5'
   workflow_dispatch:
+
 
 env:
   TZ: Asia/Shanghai

@@ -1,9 +1,8 @@
 name: 开盘承接确认推送 (09:35)
 
 on:
-  schedule:
-    - cron: '35 1 * * 1-5'
   workflow_dispatch:
+
 
 env:
   TZ: Asia/Shanghai
