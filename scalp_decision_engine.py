@@ -1,8 +1,9 @@
 """
 短线决策台 V2 量化计算引擎 (Scalp Decision Engine V2)
-集成多战法分型：
-- 09:26 竞价初筛: 聚焦【🔥 竞价爆量弱转强】与【🎯 综合短线先锋】
-- 09:35 开盘确认: 输出【💥 强攻打板突破】与【🛡️ 稳健回踩VWAP低吸】分类买点
+三阶段早盘超短线量化推送体系：
+1. 09:26 竞价初筛 (`stage="auction"`): 聚焦【🔥 竞价爆量弱转强】与【🎯 综合短线先锋】
+2. 09:35 开盘确认 (`stage="confirm"`): 聚焦【💥 强攻打板先锋】与【🛡️ 稳健回踩VWAP低吸】
+3. 09:55 早盘定势 (`stage="settle"`): 聚焦【🏆 主线封板龙头确认/排板】与【🌊 二波回踩蓄势低吸】
 """
 import math
 import time
@@ -77,7 +78,7 @@ def load_market_pages(max_pages=12, timeout=9):
 
 
 def load_limit_pools():
-    """获取涨跌停池与连板天梯"""
+    """获取涨停池详情（包含连板数、封单金额）"""
     today_str = datetime.now().strftime("%Y%m%d")
     url_zt = f"{EM_POOL_URL}/getTopicZTPool"
     params = {
@@ -126,7 +127,6 @@ def build_sector_map(raw_stocks):
         cnt = sec["count"] or 1
         avg_pct = sec["sum_pct"] / cnt
         breadth = sec["up"] / cnt
-        # 行业热度得分 (0-100)
         score = clamp(avg_pct * 12 + breadth * 45 + sec["strong"] * 4 + 30, 10, 100)
         sectors.append({
             "name": sec["name"],
@@ -149,23 +149,22 @@ def get_demo_stocks():
     demo = []
     for i in range(80):
         is_strong = i < 24
-        chg = 2.5 + (i % 8) * 0.95 if is_strong else -3.0 + (i % 15) * 0.55
+        is_zt = (i < 4)  # 模拟前4只涨停
+        chg = 9.98 if is_zt else (2.5 + (i % 8) * 0.95 if is_strong else -3.0 + (i % 15) * 0.55)
         pre = round(7.0 + (i % 38) * 1.85, 2)
-        open_p = round(pre * (1 + chg / 100), 2)
-        # 现价与均线偏离
-        now_p = round(open_p * (1 + (0.015 if is_strong else -0.015) + (i % 5 - 2) * 0.004), 2)
-        now_chg = round((now_p / pre - 1) * 100, 2)
-        amt = (3200 if is_strong else 400) * (1 + (i % 9) * 0.6) * 10000
+        open_p = round(pre * (1 + (0.035 if is_zt else chg / 100)), 2)
+        now_p = round(pre * (1 + chg / 100), 2)
+        amt = (4500 if is_strong else 400) * (1 + (i % 9) * 0.6) * 10000
         cap = (18 + (i % 70) * 1.6) * 1e8
         demo.append({
             "f12": f"{'60' if i % 2 == 0 else '00'}{1000 + i:04d}"[-6:],
             "f14": prefix[i % len(prefix)] + prefix[(i + 3) % len(prefix)] + suffix[i % len(suffix)] + (str(i) if i > 8 else ""),
             "f2": now_p,
-            "f3": now_chg,
+            "f3": chg,
             "f5": amt / now_p / 100,
             "f6": amt,
-            "f8": 1.5 + (i % 12) * 0.7,
-            "f10": 1.2 + (i % 8) * 0.8,
+            "f8": 2.5 + (i % 12) * 0.7,
+            "f10": 1.5 + (i % 8) * 0.8,
             "f17": open_p,
             "f18": pre,
             "f20": cap * 1.3,
@@ -186,7 +185,7 @@ def score_auction_amount(amt):
 
 
 def score_auction_change(chg):
-    if 2.0 <= chg <= 5.5: return 95  # 黄金高开区间
+    if 2.0 <= chg <= 5.5: return 95
     if 1.0 <= chg < 2.0: return 82
     if 5.5 < chg <= 7.5: return 78
     if 0 <= chg < 1.0: return 62
@@ -237,10 +236,14 @@ def score_liquidity(amt):
     return 35
 
 
-def analyze_scalp_market_v2(raw_stocks=None, is_confirm_stage=False, is_demo=False, min_score=60, min_cap=15, max_cap=160, min_amount_wan=500):
+def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min_score=60, min_cap=15, max_cap=160, min_amount_wan=500):
     """
     短线决策台 V2 全市场量化多因子评分引擎
+    stage: 'auction' (09:26 竞价初筛) | 'confirm' (09:35 开盘确认) | 'settle' (09:55 早盘定势)
     """
+    is_confirm_stage = (stage in ["confirm", "settle"])
+    is_settle_stage = (stage == "settle")
+
     if not raw_stocks:
         if is_demo:
             raw_stocks = get_demo_stocks()
@@ -248,10 +251,14 @@ def analyze_scalp_market_v2(raw_stocks=None, is_confirm_stage=False, is_demo=Fal
             raw_stocks = load_market_pages()
 
     if not raw_stocks:
-        return {"stocks": [], "sectors": [], "regime": "等待", "summary": {}, "ladder": {}}
+        return {"stocks": [], "sectors": [], "regime": "等待", "summary": {}, "zt_count": 0}
 
     zt_pool = load_limit_pools() if not is_demo else []
-    zt_codes = {str(item.get("c") or item.get("f12") or "") for item in zt_pool}
+    zt_dict = {str(item.get("c") or item.get("f12") or ""): item for item in zt_pool}
+    if is_demo:
+        for idx in range(min(4, len(raw_stocks))):
+            c = str(raw_stocks[idx].get("f12"))
+            zt_dict[c] = {"c": c, "lbc": 1 if idx > 1 else 2, "fund": 58000000}
 
     sec_dict, sec_list = build_sector_map(raw_stocks)
 
@@ -294,7 +301,7 @@ def analyze_scalp_market_v2(raw_stocks=None, is_confirm_stage=False, is_demo=Fal
         reasons = []
         risks = []
 
-        # ── 1. 竞价阶段 5 大因子加权打分 (权重: 25%, 20%, 20%, 20%, 15%) ──
+        # ── 1. 竞价阶段 5 大因子加权打分 ──
         f_amt = score_auction_amount(auction_amt)
         f_chg = score_auction_change(auction_chg)
         f_vol = score_volume_ratio(vol_ratio, turnover)
@@ -304,7 +311,7 @@ def analyze_scalp_market_v2(raw_stocks=None, is_confirm_stage=False, is_demo=Fal
         auction_score_raw = (f_amt * 25 + f_chg * 20 + f_vol * 20 + f_sec * 20 + f_cap * 15) / 100.0
         auction_score = clamp(auction_score_raw + market_bonus, 0, 100)
 
-        # ── 2. 开盘确认阶段 4 大因子打分 (权重: 30%, 30%, 25%, 15%) ──
+        # ── 2. 开盘承接确认各因子 ──
         hold_diff = (cur_price / open_price - 1) if open_price > 0 else 0
         f_hold = score_price_hold(hold_diff)
         trend_diff = cur_chg - auction_chg
@@ -319,16 +326,30 @@ def analyze_scalp_market_v2(raw_stocks=None, is_confirm_stage=False, is_demo=Fal
 
         # 综合总分：35% 竞价分 + 65% 开盘承接分
         final_score = (auction_score * 0.35 + confirm_score * 0.65) if is_confirm_stage else auction_score
+
+        # 涨停判定与连板数
+        is_zt = (code in zt_dict) or (cur_chg >= 9.85 and (cur_price == n(x.get("f2"))))
+        zt_info = zt_dict.get(code, {})
+        lbc = zt_info.get("lbc") or zt_info.get("lb") or 1
+        seal_fund = zt_info.get("fund") or (amt * 0.15 if is_zt else 0)
+
+        if is_zt:
+            final_score = clamp(final_score + 10, 0, 100)  # 涨停标的额外加分
+
         final_score = clamp(final_score, 0, 100)
 
         # ── 战法形态识别 ──
-        # 1. 爆量弱转强
         is_breakthrough = (vol_ratio >= 1.8 and 1.5 <= auction_chg <= 6.5 and f_amt >= 75)
-        # 2. 开盘VWAP低吸
+        # 二波回踩/低吸形态 (09:55 专属：开盘冲高后平稳缩量横盘蓄势，稳居 VWAP 均线之上)
+        is_wave2_absorb = (vwap_diff >= 0 and hold_diff >= 0 and 2.5 <= cur_chg <= 7.5 and not is_zt and f_vwap >= 75)
         is_low_absorb = (vwap_diff >= 0 and hold_diff >= 0 and auction_chg <= 3.5 and f_hold >= 75)
 
-        if is_breakthrough:
+        if is_zt:
+            strategy_tag = f"🏆 主线封板 ({lbc}连板)" if lbc > 1 else "🏆 主线首板"
+        elif is_breakthrough:
             strategy_tag = "🔥 竞价爆量弱转强"
+        elif is_wave2_absorb:
+            strategy_tag = "🌊 二波回踩蓄势低吸"
         elif is_low_absorb:
             strategy_tag = "🛡️ VWAP低吸承接"
         else:
@@ -344,7 +365,9 @@ def analyze_scalp_market_v2(raw_stocks=None, is_confirm_stage=False, is_demo=Fal
         if f_sec >= 70:
             reasons.append(f"{sector_name}主线领涨(+{sec_info['avg_pct']:.1f}%)")
         if is_confirm_stage:
-            if f_hold >= 75:
+            if is_zt:
+                reasons.append(f"早盘坚决封涨停(封单约{fmt_amount(seal_fund)})")
+            elif f_hold >= 75:
                 reasons.append(f"站稳开盘价(偏离{hold_diff * 100:+.1f}%)")
             if f_vwap >= 75:
                 reasons.append(f"稳居VWAP均线上方({vwap_diff:+.1f}%)")
@@ -356,10 +379,10 @@ def analyze_scalp_market_v2(raw_stocks=None, is_confirm_stage=False, is_demo=Fal
             risks.append(f"流通值{float_cap:.1f}亿超出设定")
         if auction_amt < min_amt:
             risks.append(f"竞价成交{fmt_amount(auction_amt)}不足")
-        if hold_diff < -0.02:
+        if hold_diff < -0.02 and not is_zt:
             risks.append(f"开盘跌破竞价价2%({hold_diff * 100:.1f}%)")
-        if trend_diff < -3.0:
-            risks.append("冲高回落走弱超3%")
+        if trend_diff < -3.5 and not is_zt:
+            risks.append("冲高回落走弱超3.5%")
 
         is_hard_veto = len(risks) > 0
         grade = "S" if final_score >= 82 else "A" if final_score >= 70 else "B" if final_score >= 58 else "C"
@@ -391,11 +414,14 @@ def analyze_scalp_market_v2(raw_stocks=None, is_confirm_stage=False, is_demo=Fal
             "hard_veto": is_hard_veto,
             "strategy_tag": strategy_tag,
             "is_breakthrough": is_breakthrough,
+            "is_wave2_absorb": is_wave2_absorb,
             "is_low_absorb": is_low_absorb,
             "is_leader": is_leader,
+            "is_zt": is_zt,
+            "lbc": lbc,
+            "seal_fund": seal_fund,
             "reasons": reasons,
             "risks": risks,
-            "is_zt": code in zt_codes,
         })
 
     analyzed_stocks.sort(key=lambda s: s["score"], reverse=True)
@@ -404,6 +430,7 @@ def analyze_scalp_market_v2(raw_stocks=None, is_confirm_stage=False, is_demo=Fal
         "stocks": analyzed_stocks,
         "sectors": sec_list[:8],
         "regime": regime,
+        "zt_count": len(zt_dict),
         "summary": {
             "ups": ups,
             "downs": downs,
@@ -418,18 +445,26 @@ def analyze_scalp_market_v2(raw_stocks=None, is_confirm_stage=False, is_demo=Fal
 def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
     """
     短线决策台 V2 专属分时段智能飞书卡片
-    - 09:26 竞价阶段: 聚焦【🔥 竞价爆量弱转强】
-    - 09:35 确认阶段: 分组呈现【💥 强攻打板先锋】与【🛡️ 稳健回踩VWAP低吸】
+    - 09:26 竞价阶段 (`stage="auction"`): 聚焦【🔥 竞价爆量弱转强】
+    - 09:35 确认阶段 (`stage="confirm"`): 分组呈现【💥 强攻打板先锋】与【🛡️ 稳健回踩VWAP低吸】
+    - 09:55 定势阶段 (`stage="settle"`): 分组呈现【🏆 主线封板龙头】与【🌊 二波蓄势企稳低吸】
     """
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     summary = analysis_res.get("summary", {})
     regime = analysis_res.get("regime", "中性")
     sectors = analysis_res.get("sectors", [])
     stocks = analysis_res.get("stocks", [])
+    zt_cnt = analysis_res.get("zt_count", 0)
 
-    is_confirm = (stage == "confirm")
-    title_text = f"🚀 缅A开盘承接强攻榜 ({now_str[11:16]})" if is_confirm else f"☀️ 缅A早盘竞价初筛榜 ({now_str[11:16]})"
-    header_color = "red" if is_confirm else "orange"
+    if stage == "settle":
+        title_text = f"🏆 缅A早盘定势封板榜 ({now_str[11:16]})"
+        header_color = "purple"
+    elif stage == "confirm":
+        title_text = f"🚀 缅A开盘承接强攻榜 ({now_str[11:16]})"
+        header_color = "red"
+    else:
+        title_text = f"☀️ 缅A早盘竞价初筛榜 ({now_str[11:16]})"
+        header_color = "orange"
 
     card = {
         "config": {"wide_screen_mode": True},
@@ -443,16 +478,18 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
     # 1. 市场环境与领涨主线
     regime_emoji = "🔥" if regime == "进攻" else "🛡️" if regime == "防守" else "⚖️"
     lead_sec_str = " | ".join([f"{s['name']}(+{s['avg_pct']:.1f}%{(' 👑' + s['leader']) if s.get('leader') else ''})" for s in sectors[:3]]) if sectors else "暂无"
+    
+    extra_stat = f" | 封板家数: **{zt_cnt}家**" if stage == "settle" else ""
     market_md = (
         f"{regime_emoji} **大盘姿态**: 【**{regime}模式**】 (上涨: {summary.get('ups', 0)} / 下跌: {summary.get('downs', 0)} | 占比 {summary.get('up_ratio', '0%')})\n"
-        f"📊 全市场成交: **{summary.get('total_amount', '--')}** | 领涨主线: **{lead_sec_str}**"
+        f"📊 全市场成交: **{summary.get('total_amount', '--')}**{extra_stat} | 领涨主线: **{lead_sec_str}**"
     )
     card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": market_md}})
     card["elements"].append({"tag": "hr"})
 
     qualified_stocks = [s for s in stocks if s["qualified"]]
 
-    if not is_confirm:
+    if stage == "auction":
         # ── 09:26 竞价初筛阶段 ──
         section_title = "🎯 **【竞价高分先锋 · 锁定今日观察池】**"
         card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": section_title}})
@@ -480,8 +517,8 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
 
         card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(stock_md_list) if stock_md_list else "⚠️ 今日早盘竞价无达到合格门槛的标的，建议防守观望。"}})
 
-    else:
-        # ── 09:35 开盘确认阶段 (强攻打板 + 回踩低吸 分组呈现) ──
+    elif stage == "confirm":
+        # ── 09:35 开盘确认阶段 (强攻打板 + 回踩低吸) ──
         break_picks = [s for s in qualified_stocks if s["is_breakthrough"] or s["score"] >= 82][:2]
         absorb_picks = [s for s in qualified_stocks if s["is_low_absorb"] and s not in break_picks][:2]
 
@@ -529,10 +566,59 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
         else:
             card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "暂无明显均线低吸标的"}})
 
+    else:
+        # ── 09:55 早盘定势阶段 (`stage="settle"`) ──
+        zt_picks = [s for s in qualified_stocks if s["is_zt"]][:2]
+        wave2_picks = [s for s in qualified_stocks if s["is_wave2_absorb"] and not s["is_zt"]][:2]
+
+        if not zt_picks and not wave2_picks:
+            zt_picks = [s for s in stocks if s["is_zt"]][:2]
+            wave2_picks = qualified_stocks[:2]
+
+        # 1. 封板龙头打板确认
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "🏆 **【主线封板先锋 · 封板/排板确认】**"}})
+        if zt_picks:
+            zt_md = []
+            for s in zt_picks:
+                leader_tag = " 👑板块龙头" if s["is_leader"] else ""
+                seal_str = f"封单约 {fmt_amount(s['seal_fund'])}" if s.get("seal_fund") else "封单坚挺"
+                zt_md.append(
+                    f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}% 涨停板){leader_tag}\n"
+                    f"> 梯队: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
+                    f"> 行业: `{s['sector']}` | 成交额: `{fmt_amount(s['amount'])}` | {seal_str}\n"
+                    f"> 💡 **排单操作**: 主线最强龙头，若有炸板回封机会可直接排单打板"
+                )
+            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(zt_md)}})
+        else:
+            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "早盘暂无核心涨停标的"}})
+
+        card["elements"].append({"tag": "hr"})
+
+        # 2. 二波回踩蓄势低吸
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "🌊 **【二波回踩蓄势 · VWAP企稳低吸】**"}})
+        if wave2_picks:
+            wave2_md = []
+            for s in wave2_picks:
+                leader_tag = " 👑板块龙头" if s["is_leader"] else ""
+                reasons_str = "、".join(s["reasons"][:3]) if s["reasons"] else "冲高后缩量横盘蓄势"
+                wave2_md.append(
+                    f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
+                    f"> 战法: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
+                    f"> 行业: `{s['sector']}` | 均线偏离: `VWAP {s['vwap_diff']:+.1f}%`\n"
+                    f"> 依据: {reasons_str}\n"
+                    f"> 💡 **二波低吸点**: `￥{s['open_price']:.2f} ~ ￥{s['price']:.2f}` (回踩黄线吸筹博弈二波拉升)\n"
+                    f"> 🚨 **防守止损线**: `￥{s['stop_loss']:.2f}`"
+                )
+            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(wave2_md)}})
+        else:
+            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "暂无明显二波回踩标的"}})
+
     card["elements"].append({"tag": "hr"})
 
     # 3. 底部短线纪律提示
-    if is_confirm:
+    if stage == "settle":
+        tips_md = "💡 **早盘定势提醒**: 开盘半小时已过，主要主线已明朗，切忌追高无资金承接的后排杂毛股！"
+    elif stage == "confirm":
         tips_md = "⚠️ **短线买入铁律**: 单只标的仓位 $\\le 30\\%$，盘中若跌破防守线且3分钟无法收回，无条件执行止损！"
     else:
         tips_md = "💡 **竞价操作提醒**: 9:25-9:30 为锁单期不可撤单，请在 9:30 开盘后根据分时承接决定是否买入。"
