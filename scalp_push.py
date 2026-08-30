@@ -10,7 +10,7 @@ import sys
 import argparse
 from datetime import datetime
 from utils.feishu_notifier import FeishuNotifier
-from scalp_decision_engine import analyze_scalp_market, build_scalp_feishu_card
+from scalp_decision_engine import analyze_scalp_market_v2, build_scalp_feishu_card_v2
 from utils.trade_date_utils import is_trading_day
 
 DEFAULT_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/ef0d8206-3c26-4fa0-9401-138f997db920"
@@ -40,11 +40,11 @@ def get_feishu_webhook():
 
 def run_scalp_push(stage="auction", is_demo=False, force=False):
     """
-    执行短线决策台推送
+    执行短线决策台 V2 推送
     stage: 'auction' | 'confirm'
     """
     today_str = datetime.now().strftime("%Y-%m-%d")
-    print(f"🚀 开始执行短线决策台推送 [{stage}] - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"🚀 开始执行短线决策台 V2 推送 [{stage}] - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     # 交易日校验 (演示模式或强制模式跳过)
     if not is_demo and not force:
@@ -56,15 +56,15 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
     notifier = FeishuNotifier(webhook_url)
 
     is_confirm = (stage == "confirm")
-    print(f"  📊 正在拉取全市场行情并执行打分计算 (阶段: {stage})...")
-    res = analyze_scalp_market(is_confirm_stage=is_confirm, is_demo=is_demo)
+    print(f"  📊 正在运行 V2 量化多因子与多战法计算引擎 (阶段: {stage})...")
+    res = analyze_scalp_market_v2(is_confirm_stage=is_confirm, is_demo=is_demo)
 
     qualified_cnt = res.get("summary", {}).get("qualified_count", 0)
     total_cnt = res.get("summary", {}).get("total_count", 0)
     print(f"  ✓ 分析完成: 全市场扫描 {total_cnt} 只，合格优选 {qualified_cnt} 只，市场处于【{res.get('regime')}】模式")
 
     # 构建飞书交互式卡片
-    card_json = build_scalp_feishu_card(res, stage=stage)
+    card_json = build_scalp_feishu_card_v2(res, stage=stage)
 
     # 发送推送
     print("  📤 正在向飞书推送卡片...")
