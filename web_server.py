@@ -230,6 +230,13 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/short-term-desk')
+def short_term_desk():
+    """短线决策台独立页面"""
+    return render_template('short_term_desk.html')
+
+
+
 @app.route('/api/stocks')
 def get_stocks():
     """获取股票列表 - 从 stock_basic 表获取基础数据"""

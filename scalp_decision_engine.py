@@ -16,7 +16,7 @@ EM_HOSTS = [
     "https://82.push2.eastmoney.com"
 ]
 EM_POOL_URL = "https://push2ex.eastmoney.com"
-FIELDS = "f2,f3,f5,f6,f8,f10,f12,f14,f17,f18,f20,f21,f31,f32,f33,f34,f35,f36,f37,f38,f39,f40,f62,f100"
+FIELDS = "f2,f3,f5,f6,f8,f10,f12,f14,f15,f16,f17,f18,f20,f21,f31,f32,f33,f34,f35,f36,f37,f38,f39,f40,f62,f100"
 
 
 def n(v):
@@ -78,7 +78,7 @@ def load_market_pages(max_pages=12, timeout=9):
 
 
 def load_limit_pools():
-    """获取涨停池详情（包含连板数、封单金额）"""
+    """获取涨跌停池详情（包含连板数、封单金额）"""
     today_str = datetime.now().strftime("%Y%m%d")
     url_zt = f"{EM_POOL_URL}/getTopicZTPool"
     params = {
@@ -149,7 +149,7 @@ def get_demo_stocks():
     demo = []
     for i in range(80):
         is_strong = i < 24
-        is_zt = (i < 4)  # 模拟前4只涨停
+        is_zt = (i < 4)
         chg = 9.98 if is_zt else (2.5 + (i % 8) * 0.95 if is_strong else -3.0 + (i % 15) * 0.55)
         pre = round(7.0 + (i % 38) * 1.85, 2)
         open_p = round(pre * (1 + (0.035 if is_zt else chg / 100)), 2)
@@ -165,6 +165,8 @@ def get_demo_stocks():
             "f6": amt,
             "f8": 2.5 + (i % 12) * 0.7,
             "f10": 1.5 + (i % 8) * 0.8,
+            "f15": max(now_p, open_p * 1.02),
+            "f16": min(now_p, open_p * 0.99),
             "f17": open_p,
             "f18": pre,
             "f20": cap * 1.3,
@@ -242,7 +244,6 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
     stage: 'auction' (09:26 竞价初筛) | 'confirm' (09:35 开盘确认) | 'settle' (09:55 早盘定势)
     """
     is_confirm_stage = (stage in ["confirm", "settle"])
-    is_settle_stage = (stage == "settle")
 
     if not raw_stocks:
         if is_demo:
@@ -334,13 +335,12 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
         seal_fund = zt_info.get("fund") or (amt * 0.15 if is_zt else 0)
 
         if is_zt:
-            final_score = clamp(final_score + 10, 0, 100)  # 涨停标的额外加分
+            final_score = clamp(final_score + 10, 0, 100)
 
         final_score = clamp(final_score, 0, 100)
 
         # ── 战法形态识别 ──
         is_breakthrough = (vol_ratio >= 1.8 and 1.5 <= auction_chg <= 6.5 and f_amt >= 75)
-        # 二波回踩/低吸形态 (09:55 专属：开盘冲高后平稳缩量横盘蓄势，稳居 VWAP 均线之上)
         is_wave2_absorb = (vwap_diff >= 0 and hold_diff >= 0 and 2.5 <= cur_chg <= 7.5 and not is_zt and f_vwap >= 75)
         is_low_absorb = (vwap_diff >= 0 and hold_diff >= 0 and auction_chg <= 3.5 and f_hold >= 75)
 
@@ -372,9 +372,9 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
             if f_vwap >= 75:
                 reasons.append(f"稳居VWAP均线上方({vwap_diff:+.1f}%)")
 
-        # 硬性否决
-        if "ST" in name.upper() or "退" in name:
-            risks.append("ST/退市风险")
+        # 硬性否决：排除新股(N/C前缀)、ST、退市股
+        if name.startswith(("N", "C", "ST", "*ST")) or "ST" in name.upper() or "退" in name:
+            risks.append("新股/ST/退市风险")
         if float_cap < min_cap or float_cap > max_cap:
             risks.append(f"流通值{float_cap:.1f}亿超出设定")
         if auction_amt < min_amt:
@@ -394,11 +394,19 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
         stop_loss_price = open_price * 0.98
         is_leader = (sec_info["leader"] == name)
 
+        # 根据阶段设定入场推荐基准价 push_price
+        if stage == "auction":
+            push_price = open_price
+        else:
+            push_price = cur_price
+
         analyzed_stocks.append({
             "code": code,
             "name": name,
             "price": cur_price,
             "open_price": open_price,
+            "pre_close": pre_close,
+            "push_price": push_price,
             "stop_loss": stop_loss_price,
             "change": cur_chg,
             "auction_change": auction_chg,
@@ -442,7 +450,37 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
     }
 
 
-def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
+def get_stage_pushed_stocks(analysis_res, stage="auction"):
+    """获取指定时段真正推荐上榜的个股列表（供卡片展示与每日复盘统一读取）"""
+    stocks = analysis_res.get("stocks", [])
+    qualified_stocks = [s for s in stocks if s.get("qualified")]
+
+    if stage == "auction":
+        picks = [s for s in qualified_stocks if s.get("is_breakthrough")][:3]
+        if not picks:
+            picks = qualified_stocks[:4] or stocks[:3]
+        return picks
+
+    elif stage == "confirm":
+        break_picks = [s for s in qualified_stocks if s.get("is_breakthrough") or s.get("score", 0) >= 82][:2]
+        absorb_picks = [s for s in qualified_stocks if s.get("is_low_absorb") and s not in break_picks][:2]
+        if not break_picks and not absorb_picks:
+            break_picks = qualified_stocks[:2]
+            absorb_picks = qualified_stocks[2:4]
+        return break_picks + absorb_picks
+
+    elif stage == "settle":
+        zt_picks = [s for s in qualified_stocks if s.get("is_zt")][:2]
+        wave2_picks = [s for s in qualified_stocks if s.get("is_wave2_absorb") and not s.get("is_zt")][:2]
+        if not zt_picks and not wave2_picks:
+            zt_picks = [s for s in stocks if s.get("is_zt")][:2]
+            wave2_picks = qualified_stocks[:2]
+        return zt_picks + wave2_picks
+
+    return qualified_stocks[:4] or stocks[:3]
+
+
+def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None):
     """
     短线决策台 V2 专属分时段智能飞书卡片
     - 09:26 竞价阶段 (`stage="auction"`): 聚焦【🔥 竞价爆量弱转强】
@@ -453,8 +491,10 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
     summary = analysis_res.get("summary", {})
     regime = analysis_res.get("regime", "中性")
     sectors = analysis_res.get("sectors", [])
-    stocks = analysis_res.get("stocks", [])
     zt_cnt = analysis_res.get("zt_count", 0)
+
+    if pushed_stocks is None:
+        pushed_stocks = get_stage_pushed_stocks(analysis_res, stage=stage)
 
     if stage == "settle":
         title_text = f"🏆 缅A早盘定势封板榜 ({now_str[11:16]})"
@@ -487,25 +527,17 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
     card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": market_md}})
     card["elements"].append({"tag": "hr"})
 
-    qualified_stocks = [s for s in stocks if s["qualified"]]
-
     if stage == "auction":
         # ── 09:26 竞价初筛阶段 ──
         section_title = "🎯 **【竞价高分先锋 · 锁定今日观察池】**"
         card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": section_title}})
 
-        top_auction_picks = (
-            [s for s in qualified_stocks if s["is_breakthrough"]][:3] or
-            qualified_stocks[:4] or
-            stocks[:3]
-        )
-
         stock_md_list = []
-        for s in top_auction_picks:
+        for s in pushed_stocks:
             grade_badge = f"【{s['grade']}级 {s['score']}分】"
-            leader_tag = " 👑板块龙头" if s["is_leader"] else ""
-            zt_tag = " [涨停板]" if s["is_zt"] else ""
-            reasons_str = "、".join(s["reasons"][:3]) if s["reasons"] else "符合竞价动能模型"
+            leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
+            zt_tag = " [涨停板]" if s.get("is_zt") else ""
+            reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "符合竞价动能模型"
 
             stock_md_list.append(
                 f"🟢 **{s['code']} {s['name']}** (竞价开盘: **￥{s['open_price']:.2f}** | {s['auction_change']:+.2f}%){leader_tag}{zt_tag}\n"
@@ -518,21 +550,17 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
         card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(stock_md_list) if stock_md_list else "⚠️ 今日早盘竞价无达到合格门槛的标的，建议防守观望。"}})
 
     elif stage == "confirm":
-        # ── 09:35 开盘确认阶段 (强攻打板 + 回踩低吸) ──
-        break_picks = [s for s in qualified_stocks if s["is_breakthrough"] or s["score"] >= 82][:2]
-        absorb_picks = [s for s in qualified_stocks if s["is_low_absorb"] and s not in break_picks][:2]
-
-        if not break_picks and not absorb_picks:
-            break_picks = qualified_stocks[:2]
-            absorb_picks = qualified_stocks[2:4]
+        # ── 09:35 开盘确认阶段 ──
+        break_picks = [s for s in pushed_stocks if s.get("is_breakthrough") or s.get("score", 0) >= 82]
+        absorb_picks = [s for s in pushed_stocks if s not in break_picks]
 
         # 1. 强攻打板先锋
         card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "💥 **【强攻打板 / 弱转强先锋】**"}})
         if break_picks:
             break_md = []
             for s in break_picks:
-                leader_tag = " 👑板块龙头" if s["is_leader"] else ""
-                reasons_str = "、".join(s["reasons"][:3]) if s["reasons"] else "开盘资金持续抢筹"
+                leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
+                reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "开盘资金持续抢筹"
                 break_md.append(
                     f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
                     f"> 战法: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
@@ -552,8 +580,8 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
         if absorb_picks:
             absorb_md = []
             for s in absorb_picks:
-                leader_tag = " 👑板块龙头" if s["is_leader"] else ""
-                reasons_str = "、".join(s["reasons"][:3]) if s["reasons"] else "稳稳站上分时均线"
+                leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
+                reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "稳稳站上分时均线"
                 absorb_md.append(
                     f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
                     f"> 战法: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
@@ -567,20 +595,16 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
             card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "暂无明显均线低吸标的"}})
 
     else:
-        # ── 09:55 早盘定势阶段 (`stage="settle"`) ──
-        zt_picks = [s for s in qualified_stocks if s["is_zt"]][:2]
-        wave2_picks = [s for s in qualified_stocks if s["is_wave2_absorb"] and not s["is_zt"]][:2]
-
-        if not zt_picks and not wave2_picks:
-            zt_picks = [s for s in stocks if s["is_zt"]][:2]
-            wave2_picks = qualified_stocks[:2]
+        # ── 09:55 早盘定势阶段 ──
+        zt_picks = [s for s in pushed_stocks if s.get("is_zt")]
+        wave2_picks = [s for s in pushed_stocks if not s.get("is_zt")]
 
         # 1. 封板龙头打板确认
         card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "🏆 **【主线封板先锋 · 封板/排板确认】**"}})
         if zt_picks:
             zt_md = []
             for s in zt_picks:
-                leader_tag = " 👑板块龙头" if s["is_leader"] else ""
+                leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
                 seal_str = f"封单约 {fmt_amount(s['seal_fund'])}" if s.get("seal_fund") else "封单坚挺"
                 zt_md.append(
                     f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}% 涨停板){leader_tag}\n"
@@ -599,8 +623,8 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction"):
         if wave2_picks:
             wave2_md = []
             for s in wave2_picks:
-                leader_tag = " 👑板块龙头" if s["is_leader"] else ""
-                reasons_str = "、".join(s["reasons"][:3]) if s["reasons"] else "冲高后缩量横盘蓄势"
+                leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
+                reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "冲高后缩量横盘蓄势"
                 wave2_md.append(
                     f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
                     f"> 战法: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"

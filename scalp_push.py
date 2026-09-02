@@ -68,15 +68,19 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
     total_cnt = res.get("summary", {}).get("total_count", 0)
     print(f"  ✓ 分析完成: 全市场扫描 {total_cnt} 只，合格优选 {qualified_cnt} 只，市场处于【{res.get('regime')}】模式")
 
+    # 提取真正上榜推荐的标的
+    from scalp_decision_engine import get_stage_pushed_stocks
+    pushed_stocks = get_stage_pushed_stocks(res, stage=stage)
+
     # 保存阶段推送记录以供收盘 15:30 自动复盘
     try:
         from scalp_daily_review import save_stage_push_record
-        save_stage_push_record(stage, res, date_str=today_str)
+        save_stage_push_record(stage, pushed_stocks, res=res, date_str=today_str)
     except Exception as e:
         print(f"  ⚠️ 保存推送记录异常: {e}")
 
     # 构建飞书交互式卡片
-    card_json = build_scalp_feishu_card_v2(res, stage=stage)
+    card_json = build_scalp_feishu_card_v2(res, stage=stage, pushed_stocks=pushed_stocks)
 
     # 发送推送
     print("  📤 正在向飞书推送卡片...")
@@ -87,17 +91,15 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
     else:
         print("  ⚠️ 卡片推送失败，尝试降级文本推送...")
         text_lines = [
-            f"⚡ 短线决策台 {'开盘确认' if is_confirm else '竞价初筛'} ({today_str})",
-            f"市场状态: {res.get('regime')}模式 | 合格标的: {qualified_cnt}只",
+            f"⚡ 短线决策台 {stage_label} ({today_str})",
+            f"市场状态: {res.get('regime')}模式 | 优选标的: {len(pushed_stocks)}只",
             ""
         ]
-        for s in res.get("stocks", [])[:5]:
+        for s in pushed_stocks:
             text_lines.append(f"🟢 {s['code']} {s['name']} (￥{s['price']:.2f} {s['change']:+.2f}%) - {s['grade']}级 {s['score']}分")
-            if is_confirm:
-                text_lines.append(f"   买入区间: {s['open_price']:.2f}~{s['price']:.2f} | 止损: {s['stop_loss']:.2f}")
-            else:
-                text_lines.append(f"   竞价开盘: {s['open_price']:.2f} | 成交: {s['amount']}")
+            text_lines.append(f"   战法: {s['strategy_tag']} | 买入参考: ￥{s['push_price']:.2f} | 止损: ￥{s['stop_loss']:.2f}")
         return notifier.send_text("\n".join(text_lines))
+
 
 
 def main():

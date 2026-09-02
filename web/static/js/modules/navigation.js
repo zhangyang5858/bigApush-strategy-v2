@@ -48,6 +48,7 @@ export function switchPage(page) {
         'backtest-history': '回测历史',
         'khunter': '狩猎场',
         'khunter-track': '狩猎跟踪',
+        'short-term-desk': '短线决策台',
         'strategy-runner': '策略执行器'
     };
     
