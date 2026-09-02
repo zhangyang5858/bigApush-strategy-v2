@@ -24,10 +24,10 @@ jobs:
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
         run: python scalp_push.py --stage settle
-      - name: Commit and push daily push records
+      - name: Commit and push daily records
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main || true
-          git add data/scalp_records/
-          git diff --staged --quiet || (git commit -m "chore(scalp): save 09:55 settle push records [skip ci]" && git push origin main)
+          git add data/scalp_records/ data/scalp_account.json
+          git diff --staged --quiet || (git commit -m "chore(scalp): save 09:55 settle push & account [skip ci]" && git push origin main)

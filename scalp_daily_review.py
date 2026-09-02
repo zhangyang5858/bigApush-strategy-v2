@@ -1,10 +1,12 @@
 """
-短线决策台每日收盘复盘与评估引擎 (Scalp Daily Review Engine)
+短线决策台每日收盘复盘与 10 万元模拟账户结算引擎
+(Scalp Daily Review & 100k Account Settlement Engine)
+
 每天 15:30 自动执行：
-1. 读取今日 09:26、09:35、09:55 推送的实际候选标的记录
-2. 获取全市场收盘真实数据（收盘价、最终涨跌幅、是否涨停、分时最高最低价）
-3. 计算核心量化评估指标：封板成功率、日内真实浮盈、止损触发率、各战法表现
-4. 生成精美的飞书复盘评估卡片并推送
+1. 结算 10 万元模拟账户全天资产（更新持仓市值、计算今日盈亏金额 ￥、总资产与累计收益率）
+2. 读取今日 09:26、09:35、09:55 实际推送与实盘买入的标的记录
+3. 计算核心量化胜率指标：封板成功率、日内真实浮盈、止损触发率、各战法表现
+4. 生成包含【💰 10万实盘模拟账户日结】与【📊 策略时段复盘】的飞书全景卡片并推送
 """
 import os
 import json
@@ -13,6 +15,9 @@ from datetime import datetime
 from scalp_decision_engine import (
     load_market_pages, load_limit_pools, get_demo_stocks,
     fmt_amount, n, clamp
+)
+from scalp_account_manager import (
+    load_account, save_account, settle_daily_account, INITIAL_CAPITAL
 )
 
 REVIEW_CACHE_DIR = "data/scalp_records"
@@ -96,7 +101,7 @@ def load_today_push_records(date_str=None, is_demo=False):
 
 
 def generate_self_consistent_demo_records(date_str):
-    """生成用于自洽测试的模拟推送记录（严格保持价格自洽，杜绝离谱浮盈）"""
+    """生成用于自洽测试的模拟推送记录"""
     return {
         "auction": {
             "date": date_str,
@@ -131,17 +136,15 @@ def generate_self_consistent_demo_records(date_str):
     }
 
 
-def evaluate_daily_scalp(date_str=None, is_demo=False):
+def evaluate_daily_scalp(date_str=None, is_demo=False, account=None):
     """
-    收盘复盘评估核心算法
+    收盘复盘评估核心算法 (包含 10 万模拟盘结算)
     """
     if not date_str:
         date_str = datetime.now().strftime("%Y-%m-%d")
 
-    records = load_today_push_records(date_str, is_demo=is_demo)
-    if not records:
-        print(f"  ℹ️ {date_str} 没有找到任何短线推送快照记录。")
-        return None
+    if account is None:
+        account = load_account()
 
     # 获取收盘实时全市场数据
     if not is_demo:
@@ -154,6 +157,11 @@ def evaluate_daily_scalp(date_str=None, is_demo=False):
     price_map = {str(x.get("f12")): x for x in (raw_stocks or [])}
     zt_set = {str(x.get("c") or x.get("f12") or "") for x in (zt_pool or [])}
 
+    # 1. 执行模拟账户收盘日结
+    settle_info = settle_daily_account(account, price_map, zt_set, today_str=date_str)
+
+    # 2. 读取今日推荐记录评估
+    records = load_today_push_records(date_str, is_demo=is_demo)
     evaluated_stages = {}
     all_evaluated_stocks = {}
     total_recs = 0
@@ -161,90 +169,88 @@ def evaluate_daily_scalp(date_str=None, is_demo=False):
     total_intraday_profit = 0.0
     stop_loss_count = 0
 
-    for stage_key, rec in records.items():
-        stg_stocks = rec.get("stocks", [])
-        eval_list = []
+    if records:
+        for stage_key, rec in records.items():
+            stg_stocks = rec.get("stocks", [])
+            eval_list = []
 
-        for item in stg_stocks:
-            code = str(item.get("code") or "")
-            name = item.get("name") or ""
-            push_price = n(item.get("push_price") or item.get("price") or item.get("open_price"))
-            open_price = n(item.get("open_price") or push_price)
-            pre_close = n(item.get("pre_close") or open_price)
-            stop_loss = n(item.get("stop_loss") or (open_price * 0.98))
+            for item in stg_stocks:
+                code = str(item.get("code") or "")
+                name = item.get("name") or ""
+                push_price = n(item.get("push_price") or item.get("price") or item.get("open_price"))
+                open_price = n(item.get("open_price") or push_price)
+                pre_close = n(item.get("pre_close") or open_price)
+                stop_loss = n(item.get("stop_loss") or (open_price * 0.98))
 
-            live_info = price_map.get(code)
-            if live_info:
-                close_price = n(live_info.get("f2")) or push_price
-                final_chg = n(live_info.get("f3"))
-                high_price = n(live_info.get("f15")) or close_price
-                low_price = n(live_info.get("f16")) or close_price
-            else:
-                # 模拟测试或无法拉取收盘数据时的自洽计算
-                if item.get("is_zt"):
-                    close_price = round(pre_close * 1.10, 2)
-                    final_chg = 10.0
+                live_info = price_map.get(code)
+                if live_info:
+                    close_price = n(live_info.get("f2") or push_price)
+                    final_chg = n(live_info.get("f3"))
+                    high_price = n(live_info.get("f15")) or close_price
+                    low_price = n(live_info.get("f16")) or close_price
                 else:
-                    close_price = round(push_price * 1.035, 2)
-                    final_chg = round((close_price / pre_close - 1) * 100, 2) if pre_close > 0 else 3.5
-                high_price = close_price
-                low_price = min(open_price, close_price)
+                    if item.get("is_zt"):
+                        close_price = round(pre_close * 1.10, 2)
+                        final_chg = 10.0
+                    else:
+                        close_price = round(push_price * 1.035, 2)
+                        final_chg = round((close_price / pre_close - 1) * 100, 2) if pre_close > 0 else 3.5
+                    high_price = close_price
+                    low_price = min(open_price, close_price)
 
-            # 计算真实的日内买入浮盈 (严格限制在合理短线范围)
-            if push_price > 0:
-                intraday_profit = ((close_price - push_price) / push_price) * 100
-            else:
-                intraday_profit = 0.0
-            intraday_profit = clamp(intraday_profit, -25.0, 25.0)
+                if push_price > 0:
+                    intraday_profit = ((close_price - push_price) / push_price) * 100
+                else:
+                    intraday_profit = 0.0
+                intraday_profit = clamp(intraday_profit, -25.0, 25.0)
 
-            is_closed_zt = (code in zt_set) or (final_chg >= 9.85 and close_price >= high_price)
-            is_hit_stop_loss = (low_price <= stop_loss) and not is_closed_zt
+                is_closed_zt = (code in zt_set) or (final_chg >= 9.85 and close_price >= high_price)
+                is_hit_stop_loss = (low_price <= stop_loss) and not is_closed_zt
 
-            if is_closed_zt:
-                status_desc = "🎯 收盘封板"
-            elif intraday_profit >= 3.0:
-                status_desc = "🟢 大涨盈利"
-            elif intraday_profit > 0:
-                status_desc = "🟡 小幅盈利"
-            elif is_hit_stop_loss:
-                status_desc = "🔴 触发止损"
-            else:
-                status_desc = "⚪ 平收震荡"
-
-            eval_item = {
-                "code": code,
-                "name": name,
-                "strategy_tag": item.get("strategy_tag", "🎯 综合短线"),
-                "push_price": push_price,
-                "close_price": close_price,
-                "final_chg": final_chg,
-                "intraday_profit": intraday_profit,
-                "is_closed_zt": is_closed_zt,
-                "is_hit_stop_loss": is_hit_stop_loss,
-                "status_desc": status_desc
-            }
-            eval_list.append(eval_item)
-
-            # 按股票代码全局去重统计每日总体表现
-            if code not in all_evaluated_stocks:
-                all_evaluated_stocks[code] = eval_item
-                total_recs += 1
                 if is_closed_zt:
-                    zt_success_count += 1
-                if is_hit_stop_loss:
-                    stop_loss_count += 1
-                total_intraday_profit += intraday_profit
+                    status_desc = "🎯 收盘封板"
+                elif intraday_profit >= 3.0:
+                    status_desc = "🟢 大涨盈利"
+                elif intraday_profit > 0:
+                    status_desc = "🟡 小幅盈利"
+                elif is_hit_stop_loss:
+                    status_desc = "🔴 触发止损"
+                else:
+                    status_desc = "⚪ 平收震荡"
 
-        stage_titles = {
-            "auction": "09:26 竞价初筛",
-            "confirm": "09:35 开盘确认",
-            "settle": "09:55 早盘定势"
-        }
-        evaluated_stages[stage_key] = {
-            "title": stage_titles.get(stage_key, stage_key),
-            "time": rec.get("time", ""),
-            "stocks": eval_list
-        }
+                eval_item = {
+                    "code": code,
+                    "name": name,
+                    "strategy_tag": item.get("strategy_tag", "🎯 综合短线"),
+                    "push_price": push_price,
+                    "close_price": close_price,
+                    "final_chg": final_chg,
+                    "intraday_profit": intraday_profit,
+                    "is_closed_zt": is_closed_zt,
+                    "is_hit_stop_loss": is_hit_stop_loss,
+                    "status_desc": status_desc
+                }
+                eval_list.append(eval_item)
+
+                if code not in all_evaluated_stocks:
+                    all_evaluated_stocks[code] = eval_item
+                    total_recs += 1
+                    if is_closed_zt:
+                        zt_success_count += 1
+                    if is_hit_stop_loss:
+                        stop_loss_count += 1
+                    total_intraday_profit += intraday_profit
+
+            stage_titles = {
+                "auction": "09:26 竞价初筛",
+                "confirm": "09:35 开盘确认",
+                "settle": "09:55 早盘定势"
+            }
+            evaluated_stages[stage_key] = {
+                "title": stage_titles.get(stage_key, stage_key),
+                "time": rec.get("time", ""),
+                "stocks": eval_list
+            }
 
     zt_rate = (zt_success_count / total_recs * 100) if total_recs > 0 else 0.0
     avg_profit = (total_intraday_profit / total_recs) if total_recs > 0 else 0.0
@@ -254,6 +260,8 @@ def evaluate_daily_scalp(date_str=None, is_demo=False):
 
     return {
         "date": date_str,
+        "account": account,
+        "settle_info": settle_info,
         "metrics": {
             "total_picks": total_recs,
             "win_rate": f"{win_rate:.1f}%",
@@ -269,48 +277,93 @@ def evaluate_daily_scalp(date_str=None, is_demo=False):
 
 def build_daily_review_card(review_data):
     """
-    生成收盘复盘飞书卡片 JSON
+    生成收盘复盘与 10 万元模拟盘日结飞书卡片 JSON
     """
     date_str = review_data["date"]
-    metrics = review_data["metrics"]
-    stages = review_data["stages"]
+    account = review_data.get("account", {})
+    settle = review_data.get("settle_info", {})
+    metrics = review_data.get("metrics", {})
+    stages = review_data.get("stages", {})
 
     card = {
         "config": {"wide_screen_mode": True},
         "header": {
-            "title": {"tag": "plain_text", "content": f"📊 缅A短线决策每日收盘复盘评估 ({date_str})"},
+            "title": {"tag": "plain_text", "content": f"📊 缅A短线决策 · 10万实盘模拟日结报告 ({date_str})"},
             "template": "blue"
         },
         "elements": []
     }
 
-    # 1. 核心战绩数据面板
-    overview_md = (
-        f"🏆 **今日战报总结**: 推送标的 **{metrics['total_picks']} 只** | 胜率: **{metrics['win_rate']}** ({metrics.get('win_count', 0)}只收红)\n"
-        f"🎯 **涨停封板率**: **{metrics['zt_rate']}** ({metrics['zt_count']}只封死涨停) | 日内平均浮盈: **{metrics['avg_intraday_profit']}**\n"
-        f"🛡️ **止损触发率**: **{metrics['stop_loss_rate']}** (开盘-2%防守线)"
+    # 1. 10 万元实盘模拟账户全天资产结算看板
+    total_assets = settle.get("total_assets", account.get("total_assets", INITIAL_CAPITAL))
+    daily_profit = settle.get("daily_profit", 0.0)
+    daily_ret = settle.get("daily_return_pct", 0.0)
+    total_profit = settle.get("total_profit", 0.0)
+    total_ret = settle.get("total_return_pct", 0.0)
+    cash = account.get("cash", INITIAL_CAPITAL)
+    pos_val = settle.get("position_market_value", 0.0)
+
+    profit_color = "🟢" if daily_profit >= 0 else "🔴"
+    account_md = (
+        f"💰 **账户总资产**: **￥{total_assets:,.2f}** (初始: `￥100,000.00`)\n"
+        f"{profit_color} **今日盈亏**: **{daily_profit:+,.2f}元 ({daily_ret:+.2f}%)** | 累计收益: **{total_profit:+,.2f}元 ({total_ret:+.2f}%)**\n"
+        f"💵 **可用现金**: `￥{cash:,.2f}` | **持仓市值**: `￥{pos_val:,.2f}` (持仓 {len(account.get('positions', []))} 只)"
     )
-    card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": overview_md}})
+    card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": account_md}})
     card["elements"].append({"tag": "hr"})
 
-    # 2. 各时段明细复盘
-    for stg_key, stg_info in stages.items():
-        stg_title = f"⏰ **【{stg_info['title']} 表现复盘】**"
-        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": stg_title}})
-
-        stock_lines = []
-        for s in stg_info.get("stocks", []):
-            zt_tag = " 🏆" if s["is_closed_zt"] else ""
-            stock_lines.append(
-                f"• **{s['code']} {s['name']}**{zt_tag} (买入参考: `￥{s['push_price']:.2f}` ➔ 收盘: `￥{s['close_price']:.2f}` | 全天: `{s['final_chg']:+.2f}%`)\n"
-                f"  > 战法: `{s['strategy_tag']}` | 日内浮盈: **{s['intraday_profit']:+.2f}%** | 状态: **{s['status_desc']}**"
+    # 2. 当前持仓明细 (含 T+1 状态与浮动盈亏)
+    positions = account.get("positions", [])
+    if positions:
+        pos_lines = ["📋 **【当前持仓明细与 T+1 状态】**"]
+        for p in positions:
+            zt_badge = " 🏆" if p.get("is_zt") else ""
+            t_str = "今日建仓(T日锁定)" if p.get("buy_date") == date_str else "次日可卖(T+1)"
+            pos_lines.append(
+                f"• **{p['code']} {p['name']}**{zt_badge} ({p['shares']}股 | 成本: `￥{p['buy_price']:.2f}` ➔ 收盘: `￥{p['current_price']:.2f}`)\n"
+                f"  > 市值: `￥{p.get('market_value', 0):,.2f}` | 浮动盈亏: **{p.get('unrealized_profit_amount', 0):+,.2f}元 ({p.get('unrealized_profit_pct', 0):+.2f}%)** | 状态: `{t_str}`"
             )
-
-        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n".join(stock_lines) if stock_lines else "暂无推送记录"}})
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n".join(pos_lines)}})
         card["elements"].append({"tag": "hr"})
 
-    # 3. 底部总结
-    footer_md = "💡 **超短线复盘纪律**: 涨停标的明日早盘冲高兑现溢价，未涨停标的严格按均线纪律止盈或止损！"
+    # 3. 今日已平仓交易战绩 (如果有)
+    today_closed = [c for c in account.get("closed_trades", []) if c.get("sell_date") == date_str]
+    if today_closed:
+        closed_lines = ["💸 **【今日已平仓清算战绩】**"]
+        for c in today_closed:
+            closed_lines.append(
+                f"• **{c['code']} {c['name']}** ({c['shares']}股 | 买入: `￥{c['buy_price']:.2f}` ➔ 卖出: `￥{c['sell_price']:.2f}`)\n"
+                f"  > 平仓净收益: **{c['realized_profit']:+,.2f}元 ({c['realized_profit_pct']:+.2f}%)** | 操作: `{c['action']}`"
+            )
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n".join(closed_lines)}})
+        card["elements"].append({"tag": "hr"})
+
+    # 4. 核心战报指标总结
+    if metrics.get("total_picks", 0) > 0:
+        overview_md = (
+            f"🎯 **今日策略胜率**: **{metrics['win_rate']}** ({metrics.get('win_count', 0)}/{metrics['total_picks']}只收红) | **涨停封板率**: **{metrics['zt_rate']}**\n"
+            f"📈 **标的平均日内浮盈**: **{metrics['avg_intraday_profit']}** | 止损触发率: **{metrics['stop_loss_rate']}**"
+        )
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": overview_md}})
+        card["elements"].append({"tag": "hr"})
+
+        # 各时段明细复盘
+        for stg_key, stg_info in stages.items():
+            stg_title = f"⏰ **【{stg_info['title']} 表现复盘】**"
+            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": stg_title}})
+
+            stock_lines = []
+            for s in stg_info.get("stocks", []):
+                zt_tag = " 🏆" if s["is_closed_zt"] else ""
+                stock_lines.append(
+                    f"• **{s['code']} {s['name']}**{zt_tag} (买入参考: `￥{s['push_price']:.2f}` ➔ 收盘: `￥{s['close_price']:.2f}` | 全天: `{s['final_chg']:+.2f}%`)\n"
+                    f"  > 战法: `{s['strategy_tag']}` | 日内浮盈: **{s['intraday_profit']:+.2f}%** | 状态: **{s['status_desc']}**"
+                )
+            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n".join(stock_lines) if stock_lines else "暂无推送记录"}})
+            card["elements"].append({"tag": "hr"})
+
+    # 5. 底部总结
+    footer_md = "💡 **超短线实战纪律**: 严格遵循 T+1，次日冲高滞涨及时止盈锁定利润，跌破防守线坚决执行止损！"
     card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": footer_md}})
 
     return card

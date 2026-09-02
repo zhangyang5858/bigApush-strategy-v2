@@ -394,7 +394,6 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
         stop_loss_price = open_price * 0.98
         is_leader = (sec_info["leader"] == name)
 
-        # 根据阶段设定入场推荐基准价 push_price
         if stage == "auction":
             push_price = open_price
         else:
@@ -480,12 +479,12 @@ def get_stage_pushed_stocks(analysis_res, stage="auction"):
     return qualified_stocks[:4] or stocks[:3]
 
 
-def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None):
+def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None, sell_actions=None, buy_records=None, account_data=None):
     """
-    短线决策台 V2 专属分时段智能飞书卡片
-    - 09:26 竞价阶段 (`stage="auction"`): 聚焦【🔥 竞价爆量弱转强】
-    - 09:35 确认阶段 (`stage="confirm"`): 分组呈现【💥 强攻打板先锋】与【🛡️ 稳健回踩VWAP低吸】
-    - 09:55 定势阶段 (`stage="settle"`): 分组呈现【🏆 主线封板龙头】与【🌊 二波蓄势企稳低吸】
+    短线决策台 V2 专属分时段智能飞书卡片（支持 10万模拟盘买卖指令融合）
+    - 09:26 竞价阶段 (`stage="auction"`): 聚焦【🔥 竞价爆量弱转强】+【昨日持仓竞价预警】
+    - 09:35 确认阶段 (`stage="confirm"`): 分组呈现【💥 强攻打板先锋】+【🛡️ VWAP低吸】+【持仓止盈止损执行】
+    - 09:55 定势阶段 (`stage="settle"`): 分组呈现【🏆 主线封板龙头】+【🌊 二波低吸】+【调仓处置】
     """
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     summary = analysis_res.get("summary", {})
@@ -515,7 +514,7 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
         "elements": []
     }
 
-    # 1. 市场环境与领涨主线
+    # 1. 市场大盘姿态
     regime_emoji = "🔥" if regime == "进攻" else "🛡️" if regime == "防守" else "⚖️"
     lead_sec_str = " | ".join([f"{s['name']}(+{s['avg_pct']:.1f}%{(' 👑' + s['leader']) if s.get('leader') else ''})" for s in sectors[:3]]) if sectors else "暂无"
     
@@ -525,8 +524,48 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
         f"📊 全市场成交: **{summary.get('total_amount', '--')}**{extra_stat} | 领涨主线: **{lead_sec_str}**"
     )
     card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": market_md}})
+
+    # 2. 模拟账户当前资金小看板 (如果提供了账户信息)
+    if account_data:
+        total_assets = account_data.get("total_assets", 100000.0)
+        cash = account_data.get("cash", 100000.0)
+        pos_cnt = len(account_data.get("positions", []))
+        total_ret = ((total_assets - 100000.0) / 100000.0) * 100
+        account_md = f"💼 **10万模拟账户**: 总资产 **￥{total_assets:,.2f}** (累计: `{total_ret:+.2f}%`) | 可用现金: **￥{cash:,.2f}** | 当前持仓: **{pos_cnt}只**"
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": account_md}})
+
     card["elements"].append({"tag": "hr"})
 
+    # 3. 【📦 昨日持仓监控与 T+1 卖出操作指引】(如果有持仓或卖出动作)
+    if sell_actions:
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "📦 **【昨日持仓监控与 T+1 处置指令】**"}})
+        sell_lines = []
+        for sa in sell_actions:
+            code = sa["code"]
+            name = sa["name"]
+            action = sa["action"]
+            reason = sa["reason"]
+            shares = sa["shares"]
+            cur_p = sa["cur_price"]
+            buy_p = sa["buy_price"]
+            profit_pct = sa["profit_pct"]
+            profit_amt = sa.get("profit_amount", 0.0)
+
+            exec_tag = " (✅ 已模拟市价卖出回收现金)" if sa.get("is_executed") else ""
+            t_tag = "" if sa.get("is_t_plus_1", True) else " [T日锁定]"
+
+            sell_lines.append(
+                f"• **{code} {name}**{t_tag} ({shares}股 | 买入 `￥{buy_p:.2f}` ➔ 现价 `￥{cur_p:.2f}` | 浮动: **{profit_pct:+.2f}% / {profit_amt:+.0f}元**)\n"
+                f"  > 指令: **`{action}`**{exec_tag}\n"
+                f"  > 依据: {reason}"
+            )
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n".join(sell_lines)}})
+        card["elements"].append({"tag": "hr"})
+
+    # 4. 构建买入匹配映射 (方便将 10 万模拟买入信息与标的绑定)
+    buy_map = {b["code"]: b for b in (buy_records or [])}
+
+    # 5. 今日推荐标的列表
     if stage == "auction":
         # ── 09:26 竞价初筛阶段 ──
         section_title = "🎯 **【竞价高分先锋 · 锁定今日观察池】**"
@@ -539,11 +578,16 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
             zt_tag = " [涨停板]" if s.get("is_zt") else ""
             reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "符合竞价动能模型"
 
+            buy_info_str = ""
+            if s["code"] in buy_map:
+                b = buy_map[s["code"]]
+                buy_info_str = f"\n> 💼 **【10万实盘模拟买入】**: 买入 **{b['shares']}股** | 占用现金: **￥{b['cost_amount']:,.2f}** (仓位 {b['pos_ratio']:.1f}%)"
+
             stock_md_list.append(
                 f"🟢 **{s['code']} {s['name']}** (竞价开盘: **￥{s['open_price']:.2f}** | {s['auction_change']:+.2f}%){leader_tag}{zt_tag}\n"
                 f"> 战法: **`{s['strategy_tag']}`** | 评级: **{grade_badge}**\n"
                 f"> 行业: `{s['sector']}` | 竞价成交: `{fmt_amount(s['amount'])}` | 流通: `{s['float_cap']:.1f}亿`\n"
-                f"> 特征: {reasons_str}\n"
+                f"> 特征: {reasons_str}{buy_info_str}\n"
                 f"> 🎯 **盯盘策略**: 9:30开盘观察分时承接，不破 ￥{s['open_price']:.2f} 即可择机买入"
             )
 
@@ -561,13 +605,19 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
             for s in break_picks:
                 leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
                 reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "开盘资金持续抢筹"
+
+                buy_info_str = ""
+                if s["code"] in buy_map:
+                    b = buy_map[s["code"]]
+                    buy_info_str = f"\n> 💼 **【10万实盘模拟买入】**: 买入 **{b['shares']}股** | 占用现金: **￥{b['cost_amount']:,.2f}** (仓位 {b['pos_ratio']:.1f}%)"
+
                 break_md.append(
                     f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
                     f"> 战法: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
                     f"> 行业: `{s['sector']}` | 均线偏离: `VWAP {s['vwap_diff']:+.1f}%`\n"
-                    f"> 依据: {reasons_str}\n"
+                    f"> 依据: {reasons_str}{buy_info_str}\n"
                     f"> 💡 **强攻买入**: 现价或开盘价上方挂单抢筹\n"
-                    f"> 🚨 **防守止损线**: `￥{s['stop_loss']:.2f}` (跌破开盘2%坚决止损)"
+                    f"> 🚨 **防守止损线**: `￥{s['stop_loss']:.2f}` (次日T+1跌破开盘2%坚决止损)"
                 )
             card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(break_md)}})
         else:
@@ -582,11 +632,17 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
             for s in absorb_picks:
                 leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
                 reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "稳稳站上分时均线"
+
+                buy_info_str = ""
+                if s["code"] in buy_map:
+                    b = buy_map[s["code"]]
+                    buy_info_str = f"\n> 💼 **【10万实盘模拟买入】**: 买入 **{b['shares']}股** | 占用现金: **￥{b['cost_amount']:,.2f}** (仓位 {b['pos_ratio']:.1f}%)"
+
                 absorb_md.append(
                     f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
                     f"> 战法: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
                     f"> 行业: `{s['sector']}` | 均线偏离: `VWAP {s['vwap_diff']:+.1f}%`\n"
-                    f"> 依据: {reasons_str}\n"
+                    f"> 依据: {reasons_str}{buy_info_str}\n"
                     f"> 💡 **低吸区间**: `￥{s['open_price']:.2f} ~ ￥{s['price']:.2f}` (回踩均线买入)\n"
                     f"> 🚨 **防守止损线**: `￥{s['stop_loss']:.2f}`"
                 )
@@ -606,10 +662,16 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
             for s in zt_picks:
                 leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
                 seal_str = f"封单约 {fmt_amount(s['seal_fund'])}" if s.get("seal_fund") else "封单坚挺"
+
+                buy_info_str = ""
+                if s["code"] in buy_map:
+                    b = buy_map[s["code"]]
+                    buy_info_str = f"\n> 💼 **【10万实盘模拟买入】**: 买入 **{b['shares']}股** | 占用现金: **￥{b['cost_amount']:,.2f}** (仓位 {b['pos_ratio']:.1f}%)"
+
                 zt_md.append(
                     f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}% 涨停板){leader_tag}\n"
                     f"> 梯队: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
-                    f"> 行业: `{s['sector']}` | 成交额: `{fmt_amount(s['amount'])}` | {seal_str}\n"
+                    f"> 行业: `{s['sector']}` | 成交额: `{fmt_amount(s['amount'])}` | {seal_str}{buy_info_str}\n"
                     f"> 💡 **排单操作**: 主线最强龙头，若有炸板回封机会可直接排单打板"
                 )
             card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(zt_md)}})
@@ -625,11 +687,17 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
             for s in wave2_picks:
                 leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
                 reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "冲高后缩量横盘蓄势"
+
+                buy_info_str = ""
+                if s["code"] in buy_map:
+                    b = buy_map[s["code"]]
+                    buy_info_str = f"\n> 💼 **【10万实盘模拟买入】**: 买入 **{b['shares']}股** | 占用现金: **￥{b['cost_amount']:,.2f}** (仓位 {b['pos_ratio']:.1f}%)"
+
                 wave2_md.append(
                     f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
                     f"> 战法: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
                     f"> 行业: `{s['sector']}` | 均线偏离: `VWAP {s['vwap_diff']:+.1f}%`\n"
-                    f"> 依据: {reasons_str}\n"
+                    f"> 依据: {reasons_str}{buy_info_str}\n"
                     f"> 💡 **二波低吸点**: `￥{s['open_price']:.2f} ~ ￥{s['price']:.2f}` (回踩黄线吸筹博弈二波拉升)\n"
                     f"> 🚨 **防守止损线**: `￥{s['stop_loss']:.2f}`"
                 )
@@ -639,11 +707,11 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
 
     card["elements"].append({"tag": "hr"})
 
-    # 3. 底部短线纪律提示
+    # 6. 底部短线纪律提示
     if stage == "settle":
         tips_md = "💡 **早盘定势提醒**: 开盘半小时已过，主要主线已明朗，切忌追高无资金承接的后排杂毛股！"
     elif stage == "confirm":
-        tips_md = "⚠️ **短线买入铁律**: 单只标的仓位 $\\le 30\\%$，盘中若跌破防守线且3分钟无法收回，无条件执行止损！"
+        tips_md = "⚠️ **短线实战铁律**: A股严格执行 T+1 制度，买入当日锁定不可卖出，次日若破防守线且无法收回坚决止损！"
     else:
         tips_md = "💡 **竞价操作提醒**: 9:25-9:30 为锁单期不可撤单，请在 9:30 开盘后根据分时承接决定是否买入。"
 

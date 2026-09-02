@@ -29,5 +29,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main || true
-          git add data/scalp_records/
-          git diff --staged --quiet || (git commit -m "chore(scalp): save 15:30 review report [skip ci]" && git push origin main)
+          git add data/scalp_records/ data/scalp_account.json
+          git diff --staged --quiet || (git commit -m "chore(scalp): save 15:30 review report & settled account [skip ci]" && git push origin main)
