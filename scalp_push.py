@@ -89,10 +89,12 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
     # 保存账户最新状态
     save_account(account)
 
-    # 保存阶段推送记录以供收盘 15:30 自动复盘
+    # 保存阶段推送记录以供收盘 15:30 自动复盘及 SQLite 存档
     try:
         from scalp_daily_review import save_stage_push_record
         save_stage_push_record(stage, pushed_stocks, res=res, date_str=today_str)
+        from scalp_trade_db import record_push_signals
+        record_push_signals(stage, pushed_stocks, date_str=today_str)
     except Exception as e:
         print(f"  ⚠️ 保存推送记录异常: {e}")
 

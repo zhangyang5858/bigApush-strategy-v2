@@ -262,6 +262,35 @@ def api_scalp_push():
         return jsonify({"code": 500, "message": f"执行异常: {str(e)}", "stage": stage}), 500
 
 
+@app.route('/api/scalp/export-excel', methods=['GET'])
+def api_scalp_export_excel():
+    """生成并下载短线交易与策略透视 Excel 报表"""
+    try:
+        from scalp_trade_db import export_trades_to_excel, EXCEL_REPORT_PATH
+        export_trades_to_excel()
+        data_dir = str(Path(project_root) / "data")
+        return send_from_directory(data_dir, "短线决策收益与战法透视报表.xlsx", as_attachment=True)
+    except Exception as e:
+        return jsonify({"code": 500, "message": f"导出失败: {str(e)}"}), 500
+
+
+@app.route('/api/scalp/stats', methods=['GET'])
+def api_scalp_stats():
+    """获取各战法策略历史胜率、盈亏比与收益数据"""
+    try:
+        from scalp_trade_db import get_strategy_performance_df, get_daily_settlement_df
+        df_strat = get_strategy_performance_df()
+        df_daily = get_daily_settlement_df()
+        return jsonify({
+            "code": 200,
+            "strategies": df_strat.to_dict(orient="records"),
+            "daily_history": df_daily.to_dict(orient="records")
+        })
+    except Exception as e:
+        return jsonify({"code": 500, "message": f"获取统计失败: {str(e)}"}), 500
+
+
+
 
 
 

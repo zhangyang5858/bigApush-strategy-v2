@@ -76,6 +76,16 @@ def save_account(account_data):
     with open(ACCOUNT_FILE, "w", encoding="utf-8") as f:
         json.dump(account_data, f, ensure_ascii=False, indent=2)
 
+    # 自动同步至 SQLite 数据库
+    try:
+        from scalp_trade_db import sync_active_positions, record_closed_trade
+        sync_active_positions(account_data.get("positions", []))
+        for trade in account_data.get("closed_trades", []):
+            record_closed_trade(trade)
+    except Exception as e:
+        pass
+
+
 
 def calc_buy_fee(gross_amount):
     """计算买入手续费 (佣金 + 过户费)"""
@@ -416,4 +426,13 @@ def settle_daily_account(account, live_price_map, zt_set, today_str=None):
         account["daily_history"].append(history_entry)
 
     save_account(account)
+
+    # 同步日结记录到 SQLite 并自动刷新 Excel 报表
+    try:
+        from scalp_trade_db import record_daily_settlement, export_trades_to_excel
+        record_daily_settlement(history_entry)
+        export_trades_to_excel()
+    except Exception:
+        pass
+
     return history_entry
