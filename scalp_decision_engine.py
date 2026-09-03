@@ -601,9 +601,10 @@ def get_stage_pushed_stocks(analysis_res, stage="auction"):
         return picks[:3]
 
     elif stage == "auction":
-        picks = [s for s in qualified_stocks if s.get("is_breakthrough") or s.get("net_flow", 0) > 1e7][:3]
+        sorted_qualified = sorted(qualified_stocks, key=lambda s: (s.get("score", 0) + (10 if s.get("net_flow", 0) > 1e7 else 0)), reverse=True)
+        picks = [s for s in sorted_qualified if s.get("is_breakthrough") or s.get("net_flow", 0) > 1e7][:2]
         if not picks:
-            picks = qualified_stocks[:4] or stocks[:3]
+            picks = sorted_qualified[:2] or stocks[:2]
         return picks
 
     elif stage == "confirm":

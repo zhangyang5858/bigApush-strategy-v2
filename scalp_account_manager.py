@@ -276,9 +276,22 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
     return sell_actions
 
 
+STAGE_MAX_BUYS = {
+    "auction": 1,   # 09:26 竞价阶段：严格限购 1 只（探针试错，仓位上限 25%，防大额诱多）
+    "instant": 1,   # 09:31:30 极速秒板：限购 1 只（专抓开盘 90 秒主力闪电封板龙头）
+    "confirm": 2,   # 09:35/09:38 开盘确认：核心主战场，允许买入 1~2 只（确定性最高）
+    "settle": 1     # 09:55 早盘定势：机动补仓 1 只
+}
+
+
 def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, max_positions=4, target_pos_ratio=0.25):
     """
     执行早盘新推荐标的的模拟买入建仓
+    - 阶段控仓配额：
+      * auction (09:26): 最多买 1 只 (25%)，避免过早打光子弹
+      * instant (09:31:30): 最多买 1 只 (25%)
+      * confirm (09:35/09:38): 最多买 2 只 (50%)，确定性最高的主战场
+      * settle (09:55): 机动买 1 只
     - target_pos_ratio: 单只标的分配总资产的 25%（约 2.5 万元）
     - 检查现金是否充足
     - 股数严格向下取整到 100 股（1手）
@@ -286,10 +299,16 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
     if not today_str:
         today_str = datetime.now().strftime("%Y-%m-%d")
 
+    stage_limit = STAGE_MAX_BUYS.get(stage, 2)
     existing_codes = {p["code"] for p in account.get("positions", [])}
     buy_records = []
 
     for stock in pushed_stocks:
+        if len(buy_records) >= stage_limit:
+            break
+        if len(account.get("positions", [])) >= max_positions:
+            break
+
         code = str(stock.get("code") or "")
         name = stock.get("name") or ""
         push_price = n(stock.get("push_price") or stock.get("price") or stock.get("open_price"))
@@ -299,8 +318,6 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
 
         if code in existing_codes:
             continue
-        if len(account.get("positions", [])) >= max_positions:
-            break
         if push_price <= 0:
             continue
 
