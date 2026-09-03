@@ -81,7 +81,7 @@ def load_today_push_records(date_str=None, is_demo=False):
         date_str = datetime.now().strftime("%Y-%m-%d")
 
     records = {}
-    stages = ["auction", "confirm", "settle"]
+    stages = ["auction", "instant", "confirm", "settle"]
 
     for stg in stages:
         file_path = os.path.join(REVIEW_CACHE_DIR, f"push_{date_str}_{stg}.json")
@@ -243,6 +243,7 @@ def evaluate_daily_scalp(date_str=None, is_demo=False, account=None):
 
             stage_titles = {
                 "auction": "09:26 竞价初筛",
+                "instant": "09:31 极速秒板",
                 "confirm": "09:35 开盘确认",
                 "settle": "09:55 早盘定势"
             }

@@ -50,6 +50,7 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
     today_str = datetime.now().strftime("%Y-%m-%d")
     stage_name_map = {
         "auction": "早盘竞价初筛 (09:26)",
+        "instant": "开盘极速秒板 (09:31:30)",
         "confirm": "开盘承接确认 (09:35)",
         "settle": "早盘定势封板与二波 (09:55)"
     }
@@ -135,8 +136,8 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
 
 def main():
     parser = argparse.ArgumentParser(description="短线决策台飞书自动推送脚本")
-    parser.add_argument("--stage", choices=["auction", "confirm", "settle"], default="auction",
-                        help="推送阶段: auction(09:26 竞价初筛), confirm(09:35 开盘确认), settle(09:55 早盘定势与二波)")
+    parser.add_argument("--stage", choices=["auction", "instant", "confirm", "settle"], default="auction",
+                        help="推送阶段: auction(09:26 竞价初筛), instant(09:31:30 极速秒板), confirm(09:35 开盘确认), settle(09:55 早盘定势与二波)")
     parser.add_argument("--demo", action="store_true", help="使用演示模拟数据运行（非交易日测试）")
     parser.add_argument("--force", action="store_true", help="忽略交易日判断强制执行")
 

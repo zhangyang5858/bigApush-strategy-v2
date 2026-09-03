@@ -202,7 +202,7 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
                 reason = f"稳居买入价上方({unrealized_profit_pct:+.2f}%)，继续观察"
                 should_sell = False
 
-        if should_sell and stage in ["confirm", "settle"]:
+        if should_sell and stage in ["instant", "confirm", "settle"]:
             # 执行卖出结算
             gross_sell_amount = shares * cur_price
             sell_fee = calc_sell_fee(gross_sell_amount)

@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>板块实时资金流向</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f0f14;
+            --card-bg: #1a1a24;
+            --card-bg-hover: #22222e;
+            --text: #e0e0e0;
+            --sub: #8b8b9e;
+            --up: #ff5252;
+            --down: #4caf50;
+            --accent: #ff5252;
+            --border: #2a2a38;
+            --radius: 12px;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
+            padding: 12px;
+        }
+        .main-layout {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .plate-panel {
+            width: 320px;
+            min-width: 320px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            height: calc(100vh - 24px);
+            overflow-y: auto;
+            position: sticky;
+            top: 12px;
+        }
+        .panel-header {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ff9800;
+            margin-bottom: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .panel-sub {
+            font-size: 11px;
+            color: var(--sub);
+            margin-bottom: 6px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .sort-btn {
+            font-size: 11px;
+            color: #aaa;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .sort-btn:hover {
+            color: #ff9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+        .sort-btn.active {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .refresh-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: var(--sub);
+            gap: 8px;
+        }
+        .select-all-btn {
+            font-size: 11px;
+            color: #aaa;
+            cursor: pointer;
+            padding: 3px 10px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: transparent;
+            transition: all 0.15s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .select-all-btn:hover {
+            color: #ff9800;
+            border-color: #ff9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+        .select-all-btn.all-selected {
+            color: #ff9800;
+            border-color: #ff9800;
+        }
+        .flow-list {
+            list-style: none;
+        }
+        .flow-group-title {
+            font-size: 11px;
+            font-weight: bold;
+            padding: 8px 8px 4px;
+            margin-top: 6px;
+            color: var(--sub);
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .flow-group-title.in {
+            color: var(--up);
+        }
+        .flow-group-title.out {
+            color: var(--down);
+        }
+        .flow-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 8px;
+            border-radius: 6px;
+            transition: all 0.15s;
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+        .flow-item:hover {
+            background: var(--card-bg-hover);
+        }
+        .flow-item.active {
+            background: rgba(255, 82, 82, 0.12);
+            border-left: 3px solid var(--up);
+        }
+        .flow-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            flex: 1;
+            min-width: 0;
+        }
+        .flow-check {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: 2px solid #555;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+            line-height: 1;
+        }
+        .flow-check.checked {
+            border-width: 0;
+        }
+        .flow-check:hover {
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+        .flow-name {
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+        .flow-change-col {
+            font-size: 11px;
+            font-weight: 600;
+            flex-shrink: 0;
+            width: 60px;
+            text-align: right;
+        }
+        .flow-change-col.up {
+            color: var(--up);
+        }
+        .flow-change-col.down {
+            color: var(--down);
+        }
+        .flow-value-col {
+            font-size: 11px;
+            font-weight: 600;
+            flex-shrink: 0;
+            width: 62px;
+            text-align: right;
+        }
+        .flow-value-col.up {
+            color: var(--up);
+        }
+        .flow-value-col.down {
+            color: var(--down);
+        }
+        .right-content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chart-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px 12px;
+        }
+        #barChart {
+            width: 100%;
+            height: 380px;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 380px;
+        }
+        .chart-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 15, 20, 0.8);
+            z-index: 10;
+            border-radius: var(--radius);
+        }
+        .chart-loading .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 152, 0, 0.2);
+            border-top-color: #ff9800;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+        .chart-loading span {
+            color: #ff9800;
+            font-size: 14px;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .member-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+        .member-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .member-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff9800;
+            line-height: 1.4;
+        }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            background: rgba(255, 82, 82, 0.15);
+            border: 1px solid rgba(255, 82, 82, 0.3);
+            color: #ff8a80;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background: rgba(255, 82, 82, 0.25);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--sub);
+        }
+        .member-table-wrapper {
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--sub);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .stock-row {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .stock-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .stock-code {
+            color: #64b5f6;
+        }
+        .loading-text {
+            text-align: center;
+            padding: 40px;
+            color: var(--sub);
+        }
+        .stock-tooltip {
+            position: fixed;
+            background: #1a1a2e;
+            border: 1px solid #FFD700;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #FFD700;
+            z-index: 9999;
+            width: 380px;
+            max-height: 450px;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+            pointer-events: none;
+            display: none;
+            line-height: 1.6;
+        }
+        .stock-tooltip .label {
+            color: #fff;
+            font-weight: bold;
+        }
+        .stock-tooltip .value {
+            color: #FFD700;
+        }
+        .stock-tooltip .divider {
+            color: #666;
+            margin: 0 8px;
+        }
+        .stock-tooltip .analysis-section {
+            margin-top: 12px;
+            border-top: 1px solid #FFD700;
+            padding-top: 12px;
+        }
+        .stock-tooltip .info-row {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 6px;
+        }
+        .leader-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: #fff;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .plate-search {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 5px 8px;
+            color: var(--text);
+            font-size: 12px;
+            outline: none;
+            min-width: 70px;
+            max-width: 140px;
+            transition: all 0.2s;
+        }
+        .plate-search::placeholder {
+            color: #666;
+        }
+        .plate-search:focus {
+            border-color: #ff9800;
+            background: rgba(255, 152, 0, 0.05);
+            max-width: 160px;
+        }
+        .date-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 3px 6px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .date-btn {
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            color: #ff9800;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .date-btn:hover {
+            background: rgba(255, 152, 0, 0.15);
+            border-color: #ff9800;
+        }
+        .date-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .date-display {
+            background: #000;
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            color: #00ced1;
+            cursor: pointer;
+            min-width: 90px;
+            text-align: center;
+            font-size: 12px;
+            border: 1px solid #1e2430;
+            transition: all 0.2s;
+        }
+        .date-display:hover {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: #ff9800;
+        }
+        .calendar-popup {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #12161e;
+            border: 1px solid #2a3f5f;
+            border-radius: 12px;
+            padding: 12px;
+            z-index: 1000;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+            display: none;
+            font-size: 12px;
+            min-width: 280px;
+        }
+        .calendar-popup.show {
+            display: block;
+        }
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a3f5f;
+        }
+        .cal-header span {
+            color: #ff9800;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .cal-header button {
+            background: #1a2a3f;
+            border: 1px solid #3a5f8f;
+            color: #e4e7f0;
+            padding: 2px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .cal-header button:hover {
+            background: #2a4a6f;
+            border-color: #ff9800;
+        }
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 36px);
+            gap: 4px;
+        }
+        .cal-day {
+            width: 36px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            background: #0a0f1f;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #aaa;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .cal-day:hover {
+            background: #ff9800;
+            color: #000;
+        }
+        .cal-day.selected {
+            background: #ff9800;
+            color: #000;
+            font-weight: bold;
+        }
+        .cal-day.has-data {
+            border-color: #4caf50;
+        }
+        .cal-day.other-month {
+            color: #555;
+        }
+        .cal-day.today {
+            box-shadow: inset 0 0 0 2px #42a5f5;
+        }
+        .cal-close {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #888;
+            transition: color 0.2s;
+        }
+        .cal-close:hover {
+            color: #ff9800;
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+        }
+        @media (max-width: 1200px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .plate-panel {
+                width: 100%;
+                min-width: unset;
+                height: auto;
+                max-height: 280px;
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-layout">
+        <!-- 左侧板块列表 -->
+        <div class="plate-panel">
+            <div class="panel-header">
+                <div class="header-left">
+                    <span>🔥 板块资金流向</span>
+                    <span style="color:#ff5252; font-weight:bold; margin-left:4px; font-size:14px;">PRO</span>
+                    <button class="select-all-btn" id="selectAllBtn" onclick="toggleShowAllPlates()">☐ 全部板块</button>
+                </div>
+                <div class="header-right">
+                    <input type="text" id="plateSearch" class="plate-search" placeholder="🔍 搜索板块..." />
+                    <div class="date-nav">
+                        <div class="date-btn" id="prevDayBtn">◀</div>
+                        <div class="date-display" id="calendarDisplay">今日数据</div>
+                        <div class="date-btn" id="nextDayBtn">▶</div>
+                    </div>
+                    <button class="btn btn-secondary" id="refreshBtn">⏸️ 暂停</button>
+                </div>
+                <div class="calendar-popup" id="calendarPopup">
+                    <span class="cal-close" id="calCloseBtn">✖</span>
+                    <div class="cal-header">
+                        <button id="prevMonthCal">◀</button>
+                        <span id="calendarMonth"></span>
+                        <button id="nextMonthCal">▶</button>
+                    </div>
+                    <div class="cal-grid" id="calendarGrid"></div>
+                </div>
+            </div>
+            <div class="panel-sub">
+                <span>单位：亿元</span>
+                <span class="sort-btn active" id="sortNetFlow" onclick="togglePlateSort('netFlow')">净流入 ↕</span>
+                <span class="sort-btn" id="sortChange" onclick="togglePlateSort('change')">涨幅 ↕</span>
+            </div>
+            <div class="refresh-bar">
+                <span id="refreshStatus">⏳ 加载中...</span>
+                <span id="updateTime"></span>
+            </div>
+            <ul class="flow-list" id="flowList"></ul>
+        </div>
+
+        <!-- 右侧内容 -->
+        <div class="right-content">
+            <div class="chart-section">
+                <div style="font-size:16px; font-weight:bold; color:#ff9800; margin-bottom:8px;">💰 板块资金净流入排行</div>
+                <div class="chart-container">
+                    <div id="barChart"></div>
+                    <div id="chartLoading" class="chart-loading" style="display:none;">
+                        <div class="loader"></div>
+                        <span>加载数据中...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="member-panel">
+                <div class="member-header">
+                    <span class="member-title" id="memberTitle">🔍 成分股</span>
+                    <div class="btn-group">
+                        <button class="btn" id="exportBtn">📥 导出成分股到通达信</button>
+                    </div>
+                </div>
+                <div class="member-table-wrapper" id="memberWrapper">
+                    <div class="loading-text" id="memberPlaceholder">👆 请点击左侧板块名称查看成分股</div>
+                    <table id="memberTable" style="display:none">
+                        <thead>
+                            <tr>
+                                <th>代码</th>
+                                <th>名称</th>
+                                <th>最新价</th>
+                                <th style="cursor:pointer;color:#ff9800;" onclick="toggleMemberSort('change')">涨跌幅 ↕</th>
+                                <th>成交额</th>
+                                <th style="cursor:pointer;color:#ff9800;" onclick="toggleMemberSort('netFlow')">净流入 ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="memberTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="stockTooltip" class="stock-tooltip"></div>
+
+    <script>
+        // ===================== 全局变量 =====================
+        let plateList = [];
+        let activePlateCode = '';
+        let barChartInstance = null;
+        let currentMembers = [];
+        let refreshTimer = null;
+        let memberSortCol = 'netFlow';
+        let memberSortDir = 'desc';
+        let plateSortCol = 'netFlow';
+        let plateSortDir = 'desc';
+
+        let showAllPlates = false;
+        let selectedPlateCodes = new Set();
+        let isAutoRefreshPaused = false;
+
+        let searchKeyword = '';
+        let selectedDate = '';
+        let calendarDateList = [];
+        let calendarCurrentMonth = new Date();
+        let isHistoricalMode = false;
+        let historicalSectorData = [];
+
+        const EM_HIST_UT = '7eea3edcaed734bea9cbfc24409ed989';
+        const EM_HIST_BASE = 'https://push2ex.eastmoney.com';
+        const TIER_LEVEL = { '五板+': 7, '五板': 6, '四板': 5, '三板': 4, '二板': 3, '首板': 2, '秒板': 1 };
+
+        const PALETTE = [
+            '#ff5252', '#ff9800', '#ffd600', '#69f0ae', '#40c4ff',
+            '#e040fb', '#f48fb1', '#80cbc4', '#fff176', '#b0bec5',
+            '#ff7043', '#a5d6a7', '#4dd0e1', '#ce93d8', '#ffcc80',
+            '#ef9a9a', '#90caf9', '#c5e1a5', '#ffe082', '#b39ddb',
+            '#80deea', '#ffab91', '#bcaaa4', '#e6ee9c', '#b2dfdb',
+            '#f8bbd0', '#dcedc8', '#b3e5fc', '#fce4ec', '#e8f5e9',
+            '#ff1744', '#ff6d00', '#ffd740', '#00e676', '#00b0ff',
+            '#d500f9', '#651fff', '#3d5afe', '#1de9b6', '#76ff03',
+            '#ff9100', '#ffea00', '#c6ff00', '#00e5ff', '#2979ff',
+            '#aa00ff', '#dd2c00', '#ff3d00', '#ff6e40', '#ffd180',
+            '#ccff90', '#a7ffeb', '#80d8ff', '#ea80fc', '#ff80ab',
+            '#b9f6ca', '#e0f7fa', '#e8eaf6', '#fbe9e7', '#fff8e1'
+        ];
+
+        let plateColorMap = {};
+
+        const PLATE_BASE = 'https://push2.eastmoney.com/api/qt/clist/get?np=1&fltt=2&invt=2&fid=f62&fs=m:90+t:3&fields=f2,f3,f6,f12,f14,f62';
+        const PLATES_API_IN = `${PLATE_BASE}&pn=1&pz=100&po=1`;
+        const PLATES_API_OUT = `${PLATE_BASE}&pn=1&pz=100&po=0`;
+
+        // ===================== 工具函数 =====================
+        function toast(msg) {
+            let t = document.createElement('div');
+            t.style.cssText = 'position:fixed;top:80px;right:20px;background:#1e1e2e;border-left:4px solid #ff5252;padding:10px 20px;z-index:9999;color:#fff;font-size:14px;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2000);
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        }
+
+        function formatStockCode(code) {
+            if (!code) return '';
+            const cleaned = code.toString().replace(/\.(SS|SZ|SH|HK|US)$/i, '');
+            return cleaned.padStart(6, '0');
+        }
+
+        // 获取股票对应的涨停百分比（数值）
+        function getStockLimitPercent(code) {
+            if (!code) return 10;
+            const c = code.toString().trim();
+            if (c.startsWith('00') || c.startsWith('60')) {
+                return 10;
+            }
+            if (c.startsWith('688') || c.startsWith('30')) {
+                return 20;  // 科创/创业板 20%
+            }
+            if (c.startsWith('4') || c.startsWith('8') || c.startsWith('9')) {
+                return 30;  // 北交所 30%
+            }
+            return 10;
+        }
+
+        window.linkToTdx = function(code) {
+            window.location.href = `http://www.treeid/code_${code}`;
+            toast(`联动通达信 ${code}`);
+        };
+
+        async function fetchJSON(url) {
+            try {
+                const response = await fetch(url, { cache: 'no-cache' });
+                return await response.json();
+            } catch (e) {
+                console.error('请求失败:', url, e);
+                return null;
+            }
+        }
+
+        function assignPlateColors(list) {
+            list.forEach((plate) => {
+                if (!plateColorMap[plate.code]) {
+                    plateColorMap[plate.code] = PALETTE[Object.keys(plateColorMap).length % PALETTE.length];
+                }
+            });
+        }
+
+        // ===================== 排序 =====================
+        function togglePlateSort(col) {
+            if (plateSortCol === col) {
+                plateSortDir = plateSortDir === 'desc' ? 'asc' : 'desc';
+            } else {
+                plateSortCol = col;
+                plateSortDir = 'desc';
+            }
+            sortPlateList();
+            renderPlateList();
+            document.getElementById('sortNetFlow').classList.remove('active');
+            document.getElementById('sortChange').classList.remove('active');
+            document.getElementById(col === 'netFlow' ? 'sortNetFlow' : 'sortChange').classList.add('active');
+        }
+
+        function sortPlateList() {
+            plateList.sort((a, b) => {
+                let va = parseFloat(a[plateSortCol]) || 0;
+                let vb = parseFloat(b[plateSortCol]) || 0;
+                return plateSortDir === 'desc' ? vb - va : va - vb;
+            });
+        }
+
+        function initDefaultSelection() {
+            if (selectedPlateCodes.size > 0) return;
+            plateList.slice(0, 6).forEach(p => selectedPlateCodes.add(p.code));
+            const outPlates = plateList
+                .filter(p => parseFloat(p.netFlow) < 0)
+                .sort((a, b) => parseFloat(a.netFlow) - parseFloat(b.netFlow));
+            outPlates.slice(0, 6).forEach(p => selectedPlateCodes.add(p.code));
+        }
+
+        // ===================== 加载板块数据 =====================
+        async function loadPlateData() {
+            try {
+                document.getElementById('refreshStatus').textContent = '⏳ 加载中...';
+                document.getElementById('chartLoading').style.display = 'flex';
+
+                if (selectedDate) {
+                    if (!isHistoricalMode) selectedPlateCodes.clear();
+                    isHistoricalMode = true;
+                    await loadHistoricalPlateData(selectedDate);
+                    document.getElementById('chartLoading').style.display = 'none';
+                    return;
+                }
+                if (isHistoricalMode) selectedPlateCodes.clear();
+                isHistoricalMode = false;
+
+                const [inData, outData] = await Promise.all([
+                    fetchJSON(PLATES_API_IN),
+                    fetchJSON(PLATES_API_OUT)
+                ]);
+                const merged = new Map();
+                if (inData && inData.data && inData.data.diff) {
+                    inData.data.diff.forEach(item => {
+                        merged.set(item.f12, {
+                            code: item.f12,
+                            name: item.f14,
+                            change: item.f3 || 0,
+                            price: item.f2 || 0,
+                            amount: item.f6 ? item.f6 / 1e8 : 0,
+                            netFlow: item.f62 ? item.f62 / 1e8 : 0
+                        });
+                    });
+                }
+                if (outData && outData.data && outData.data.diff) {
+                    outData.data.diff.forEach(item => {
+                        if (!merged.has(item.f12)) {
+                            merged.set(item.f12, {
+                                code: item.f12,
+                                name: item.f14,
+                                change: item.f3 || 0,
+                                price: item.f2 || 0,
+                                amount: item.f6 ? item.f6 / 1e8 : 0,
+                                netFlow: item.f62 ? item.f62 / 1e8 : 0
+                            });
+                        }
+                    });
+                }
+                plateList = Array.from(merged.values());
+                if (plateList.length === 0) throw new Error('无数据');
+
+                try {
+                    const todayStr = getTodayStr();
+                    const topicEvents = await fetchHistoricalEvents(todayStr);
+                    if (topicEvents && topicEvents.length > 0) {
+                        const processed = processHistoricalEvents(topicEvents.map(e => Object.assign({}, e)));
+                        const topicSectors = buildHistoricalSectorData(processed);
+                        const topicMap = new Map(topicSectors.map(s => [s.name, s]));
+                        plateList.forEach(p => {
+                            const ts = topicMap.get(p.name);
+                            if (ts) {
+                                p.ztCount = ts.ztCount;
+                                p.zbCount = ts.zbCount;
+                                p.dtCount = ts.dtCount;
+                                p.maxBoard = ts.maxBoard;
+                                p.leader = ts.leader;
+                                p.ztList = ts.ztList;
+                                p.zbList = ts.zbList;
+                                p.topicFund = ts.fund;
+                            }
+                        });
+                    }
+                } catch (topicErr) {
+                    console.warn('实时涨停池补充数据获取失败:', topicErr);
+                }
+
+                if (!plateSortCol) {
+                    plateSortCol = 'netFlow';
+                    plateSortDir = 'desc';
+                }
+                sortPlateList();
+                assignPlateColors(plateList);
+                initDefaultSelection();
+                renderPlateList();
+                updateBarChart();
+                document.getElementById('sortNetFlow').classList.toggle('active', plateSortCol === 'netFlow');
+                document.getElementById('sortChange').classList.toggle('active', plateSortCol === 'change');
+                document.getElementById('refreshStatus').textContent = '✅ 已更新';
+                document.getElementById('updateTime').textContent = new Date().toLocaleTimeString();
+                document.getElementById('chartLoading').style.display = 'none';
+            } catch (e) {
+                console.error('获取板块数据失败:', e);
+                document.getElementById('refreshStatus').textContent = '⚠️ 数据获取失败';
+                document.getElementById('chartLoading').style.display = 'none';
+                toast('板块数据获取失败: ' + e.message);
+            }
+        }
+
+        // ===================== 历史数据相关 =====================
+        function getPlateFlowKlineUrl(code) {
+            let url = `https://push2his.eastmoney.com/api/qt/stock/fflow/kline/get?secid=90.${code}&klt=1&lmt=0&fields1=f1,f2,f3,f7&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61,f62,f63,f64,f65&ut=fa5fd1943c7b386f172d6893dbfba10b&_=${Date.now()}`;
+            if (isHistoricalMode && selectedDate) {
+                url += `&date=${selectedDate}`;
+            }
+            return url;
+        }
+
+        function getMemberUrl(code) {
+            return `https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=80&po=1&np=1&fltt=2&invt=2&fid=f3&fs=b:${code}&fields=f2,f3,f6,f12,f14,f62`;
+        }
+
+        async function searchPlateCodeByName(name) {
+            try {
+                const url = `https://push2.eastmoney.com/api/qt/simple/screen?fltt=2&invt=2&fields=f57,f58,f116&secids=m:90+t:3&_=${Date.now()}`;
+                const data = await fetchJSON(url);
+                if (data && data.data && data.data.diff) {
+                    const matched = data.data.diff.find(item => item.f58 === name);
+                    if (matched) {
+                        return matched.f57;
+                    }
+                }
+            } catch (e) {
+                console.error('搜索板块代码失败:', e);
+            }
+            return null;
+        }
+
+        const STOCKS_API = 'https://flash-api.xuangubao.com.cn/api/surge_stock/stocks';
+        let stockAnalysisCache = {};
+
+        function emHistBuildUrl(poolType, dateStr) {
+            const d = dateStr.replace(/-/g, '');
+            const ts = Date.now();
+            const sort = poolType === 'dt' ? 'fund:asc' : 'fbt:asc';
+            const urlMap = {
+                zt: EM_HIST_BASE + '/getTopicZTPool',
+                zb: EM_HIST_BASE + '/getTopicZBPool',
+                dt: EM_HIST_BASE + '/getTopicDTPool'
+            };
+            return urlMap[poolType] + '?ut=' + EM_HIST_UT + '&dpt=wz.ztzt&Pageindex=0&Pagesize=500&sort=' + encodeURIComponent(sort) + '&date=' + d + '&_=' + ts + '&cb=__emCallback';
+        }
+
+        function emHistParseTime(fbt) {
+            if (!fbt || typeof fbt !== 'number') return 565;
+            const s = String(Math.round(fbt)).padStart(6, '0');
+            return parseInt(s.substring(0, 2)) * 60 + parseInt(s.substring(2, 4));
+        }
+
+        function emHistParseZT(data) {
+            const list = [];
+            const pool = data && data.data && data.data.pool;
+            if (!pool) return list;
+            pool.forEach(item => {
+                list.push({
+                    name: item.n || '',
+                    code: item.c || '',
+                    reason: item.hybk || '其他',
+                    price: (item.p || 0) / 1000,
+                    time: emHistParseTime(item.fbt),
+                    type: 'zt',
+                    tier: String(item.lbc || 1),
+                    fund: item.fund || 0,
+                    zttz: item.zttz || '',
+                    isSec: false,
+                    tag: ''
+                });
+            });
+            return list;
+        }
+
+        function emHistParseZB(data) {
+            const list = [];
+            const pool = data && data.data && data.data.pool;
+            if (!pool) return list;
+            pool.forEach(item => {
+                list.push({
+                    name: item.n || '',
+                    code: item.c || '',
+                    reason: item.hybk || '其他',
+                    price: (item.p || 0) / 1000,
+                    time: emHistParseTime(item.fbt),
+                    type: 'zb',
+                    tag: '炸',
+                    fund: item.fund || 0,
+                    zttz: item.zttz || ''
+                });
+            });
+            return list;
+        }
+
+        function emHistParseDT(data) {
+            const list = [];
+            const pool = data && data.data && data.data.pool;
+            if (!pool) return list;
+            pool.forEach(item => {
+                list.push({
+                    name: item.n || '',
+                    code: item.c || '',
+                    reason: item.hybk || '其他',
+                    price: (item.p || 0) / 1000,
+                    time: emHistParseTime(item.lbt),
+                    type: 'dt',
+                    tag: '跌停',
+                    fund: item.fund || 0,
+                    zttz: item.zttz || ''
+                });
+            });
+            return list;
+        }
+
+        function jsonp(url, timeout = 15000) {
+            return new Promise((resolve, reject) => {
+                const cbName = '__jsonp_' + Math.random().toString(36).substring(2, 10);
+                const timer = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('timeout'));
+                }, timeout);
+
+                function cleanup() {
+                    clearTimeout(timer);
+                    delete window[cbName];
+                    const s = document.getElementById(cbName);
+                    if (s && s.parentNode) s.parentNode.removeChild(s);
+                }
+                window[cbName] = (data) => {
+                    cleanup();
+                    resolve(data);
+                };
+                const finalUrl = url.replace(/cb=[^&]*/, 'cb=' + cbName);
+                const script = document.createElement('script');
+                script.id = cbName;
+                script.src = finalUrl;
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error('script load error'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        async function fetchHistoricalEvents(dateStr) {
+            const parsers = { zt: emHistParseZT, zb: emHistParseZB, dt: emHistParseDT };
+            const promises = ['zt', 'zb', 'dt'].map(type =>
+                jsonp(emHistBuildUrl(type, dateStr)).then(data => parsers[type](data)).catch(() => [])
+            );
+            const all = await Promise.all(promises);
+            return all.reduce((acc, arr) => acc.concat(arr), []);
+        }
+
+        function parseTierNum(tierStr) {
+            let n = parseInt(tierStr);
+            if (isNaN(n) || n < 1) n = 1;
+            const map = { 1: '首板', 2: '二板', 3: '三板', 4: '四板', 5: '五板', 6: '六板', 7: '七板', 8: '八板' };
+            return map[n] || (n >= 5 ? '五板+' : (n >= 3 ? '三板' : '首板'));
+        }
+
+        function assignStatus(list) {
+            const ztList = list.filter(e => e.type === 'zt');
+            ztList.sort((a, b) => {
+                const la = TIER_LEVEL[a.tier] || 0,
+                    lb = TIER_LEVEL[b.tier] || 0;
+                if (la !== lb) return lb - la;
+                return a.time - b.time;
+            });
+            const sectorBest = {};
+            ztList.forEach(e => {
+                const r = e.reason,
+                    lv = TIER_LEVEL[e.tier] || 0;
+                if (!sectorBest[r] || lv > TIER_LEVEL[sectorBest[r].tier]) sectorBest[r] = e;
+                else if (lv === TIER_LEVEL[sectorBest[r].tier] && e.time < sectorBest[r].time) sectorBest[r] = e;
+            });
+            ztList.forEach(e => {
+                const r = e.reason,
+                    lv = TIER_LEVEL[e.tier] || 0;
+                const isBest = (sectorBest[r] && sectorBest[r] === e);
+                if (e.isSec && lv >= 4) e.tag = '秒顶一';
+                else if (e.isSec && lv < 4) e.tag = '秒板';
+                else if (isBest && lv >= 3) e.tag = '龙头';
+                else if (!isBest && lv >= 3 && sectorBest[r]) {
+                    const bl = TIER_LEVEL[sectorBest[r].tier] || 0;
+                    if (lv === bl && e.time <= sectorBest[r].time + 3) e.tag = '卡位';
+                    else if (lv >= bl - 1) e.tag = '加强';
+                    else e.tag = '弹性';
+                } else if (!isBest && lv >= 2 && sectorBest[r]) {
+                    const bl2 = TIER_LEVEL[sectorBest[r].tier] || 0;
+                    e.tag = (lv >= bl2 - 1) ? '弹性' : '后排';
+                } else if (!isBest && lv <= 2) {
+                    const hasHigher = ztList.some(x => x.reason === r && x !== e && x.time < e.time && (TIER_LEVEL[x.tier] || 0) > lv);
+                    e.tag = (hasHigher || e.time >= 11 * 60 + 30) ? '后排' : '弹性';
+                } else e.tag = '后排';
+            });
+        }
+
+        function processHistoricalEvents(events) {
+            events.forEach(e => {
+                if (e.type === 'zt') {
+                    e.tier = parseTierNum(e.tier);
+                    e.isSec = (e.time <= 9 * 60 + 25 + 1);
+                    e.tag = '';
+                }
+            });
+            events.sort((a, b) => a.time - b.time);
+            assignStatus(events);
+            return events;
+        }
+
+        function computeStockScore(stock) {
+            if (stock.type !== 'zt') return 0;
+            const tierScore = (TIER_LEVEL[stock.tier] || 1) * 30;
+            const fundScore = (stock.fund / 100000000) * 5;
+            let timeScore = 0;
+            if (stock.time <= 9 * 60 + 30) timeScore = 20;
+            else if (stock.time <= 9 * 60 + 35) timeScore = 18;
+            else if (stock.time <= 10 * 60) timeScore = 15;
+            else if (stock.time <= 10 * 60 + 30) timeScore = 12;
+            else if (stock.time <= 11 * 60 + 30) timeScore = 8;
+            else if (stock.time <= 13 * 60 + 30) timeScore = 5;
+            else if (stock.time <= 14 * 60 + 30) timeScore = 3;
+            else timeScore = 1;
+            let tagScore = 0;
+            if (stock.tag === '龙头') tagScore = 10;
+            else if (stock.tag === '秒顶一') tagScore = 8;
+            else if (stock.tag === '卡位') tagScore = 6;
+            else if (stock.tag === '加强') tagScore = 4;
+            else if (stock.tag === '秒板') tagScore = 5;
+            else if (stock.tag === '弹性') tagScore = 2;
+            return Math.round(tierScore + fundScore + timeScore + tagScore);
+        }
+
+        function computeSectorScore(sector) {
+            const ztScore = sector.ztCount * 15;
+            const maxBoardScore = sector.maxBoard * 25;
+            const fundScore = (sector.fund / 100000000) * 8;
+            let leaderScore = 0;
+            if (sector.leader) leaderScore = computeStockScore(sector.leader) * 0.1;
+            const breakPenalty = sector.breakRate * 3;
+            return Math.round(ztScore + maxBoardScore + fundScore + leaderScore - breakPenalty);
+        }
+
+        function buildHistoricalSectorData(events) {
+            const map = {};
+            events.forEach(e => {
+                const r = e.reason || '其他';
+                if (!map[r]) map[r] = { name: r, zt: [], zb: [], dt: [], fund: 0, firstTime: 9999, maxBoard: 0 };
+                const s = map[r];
+                s.fund += (e.fund || 0);
+                if (e.time < s.firstTime) s.firstTime = e.time;
+                if (e.type === 'zt') {
+                    s.zt.push(e);
+                    const bl = TIER_LEVEL[e.tier] || 0;
+                    if (bl > s.maxBoard) s.maxBoard = bl;
+                } else if (e.type === 'zb') s.zb.push(e);
+                else if (e.type === 'dt') s.dt.push(e);
+            });
+            const arr = [];
+            for (const k in map) {
+                const s = map[k];
+                const leader = s.zt.sort((a, b) => (TIER_LEVEL[b.tier] || 0) - (TIER_LEVEL[a.tier] || 0) || a.time - b.time)[0];
+                const breakRate = s.zt.length > 0 ? (s.zb.length / (s.zt.length + s.zb.length) * 100) : 0;
+                const sectorObj = {
+                    name: s.name,
+                    ztCount: s.zt.length,
+                    zbCount: s.zb.length,
+                    dtCount: s.dt.length,
+                    total: s.zt.length + s.zb.length + s.dt.length,
+                    fund: s.fund,
+                    firstTime: s.firstTime,
+                    maxBoard: s.maxBoard,
+                    leader: leader,
+                    breakRate: breakRate,
+                    ztList: s.zt,
+                    zbList: s.zb
+                };
+                sectorObj.score = computeSectorScore(sectorObj);
+                arr.push(sectorObj);
+            }
+            return arr;
+        }
+
+        async function loadHistoricalPlateData(dateStr) {
+            try {
+                const rawEvents = await fetchHistoricalEvents(dateStr);
+                if (!rawEvents || rawEvents.length === 0) throw new Error('无历史数据');
+                const events = processHistoricalEvents(rawEvents.map(e => Object.assign({}, e)));
+                historicalSectorData = buildHistoricalSectorData(events);
+                historicalSectorData.sort((a, b) => b.score - a.score);
+                plateList = historicalSectorData.map((s, idx) => ({
+                    code: 'H' + String(idx + 1).padStart(4, '0'),
+                    name: s.name,
+                    change: s.ztCount > 0 ? 5.0 : 0.0,
+                    price: 0,
+                    amount: s.fund / 1e8,
+                    netFlow: s.score / 10,
+                    score: s.score,
+                    ztCount: s.ztCount,
+                    leader: s.leader,
+                    ztList: s.ztList,
+                    zbList: s.zbList
+                }));
+                if (!plateSortCol) {
+                    plateSortCol = 'netFlow';
+                    plateSortDir = 'desc';
+                }
+                sortPlateList();
+                assignPlateColors(plateList);
+                initDefaultSelection();
+                renderPlateList();
+                updateBarChart();
+                document.getElementById('sortNetFlow').classList.toggle('active', plateSortCol === 'netFlow');
+                document.getElementById('sortChange').classList.toggle('active', plateSortCol === 'change');
+                document.getElementById('refreshStatus').textContent = '✅ 历史数据已更新';
+                document.getElementById('updateTime').textContent = dateStr + ' ' + new Date().toLocaleTimeString();
+            } catch (e) {
+                console.error('获取历史板块数据失败:', e);
+                toast('历史数据加载失败: ' + e.message);
+                document.getElementById('refreshStatus').textContent = '⚠️ 历史数据失败';
+            }
+        }
+
+        // ===================== 渲染板块列表 =====================
+        function getFilteredPlateList() {
+            if (!searchKeyword) return plateList;
+            const kw = searchKeyword.toLowerCase();
+            return plateList.filter(p => p.name && p.name.toLowerCase().includes(kw));
+        }
+
+        function renderPlateList() {
+            const list = document.getElementById('flowList');
+            let html = '';
+            const displayList = getFilteredPlateList();
+            const showGroups = (plateSortCol === 'netFlow' && plateSortDir === 'desc' && !searchKeyword);
+            if (showGroups) {
+                let inPlates = displayList.filter(p => parseFloat(p.netFlow) >= 0);
+                let outPlates = displayList.filter(p => parseFloat(p.netFlow) < 0);
+                outPlates.sort((a, b) => parseFloat(a.netFlow) - parseFloat(b.netFlow));
+                const inVisible = showAllPlates ? inPlates : inPlates.slice(0, 10);
+                const outVisible = showAllPlates ? outPlates : outPlates.slice(0, 10);
+                if (inVisible.length > 0) {
+                    html += `<li class="flow-group-title in">🟢 资金净流入 ${showAllPlates ? '全部' : 'TOP10'}</li>`;
+                    inVisible.forEach(plate => { html += buildFlowItemHTML(plate); });
+                }
+                if (outVisible.length > 0) {
+                    html += `<li class="flow-group-title out">🔴 资金净流出 ${showAllPlates ? '全部' : 'TOP10'}</li>`;
+                    outVisible.forEach(plate => { html += buildFlowItemHTML(plate); });
+                }
+            } else {
+                if (displayList.length === 0) {
+                    html += `<li style="text-align:center;color:#666;padding:20px 0;font-size:12px;">未找到匹配板块</li>`;
+                } else {
+                    displayList.forEach(plate => { html += buildFlowItemHTML(plate); });
+                }
+            }
+            list.innerHTML = html;
+        }
+
+        function buildFlowItemHTML(plate) {
+            const color = plateColorMap[plate.code] || '#888';
+            const isUp = parseFloat(plate.change) >= 0;
+            const netVal = parseFloat(plate.netFlow);
+            const netUp = netVal >= 0;
+            const checked = selectedPlateCodes.has(plate.code);
+            return `
+                <li class="flow-item ${activePlateCode === plate.code ? 'active' : ''}"
+                    data-code="${plate.code}" data-name="${plate.name}">
+                    <div class="flow-left">
+                        <span class="flow-check ${checked ? 'checked' : ''}"
+                              style="border-color:${color};${checked ? 'background:' + color + ';color:#fff' : 'color:transparent'}"
+                              data-action="toggle">✓</span>
+                        <span style="width:8px; flex-shrink:0;"></span>
+                        <span class="flow-name">${plate.name}</span>
+                    </div>
+                    <span class="flow-change-col ${isUp ? 'up' : 'down'}">
+                        ${isUp ? '+' : ''}${parseFloat(plate.change).toFixed(2)}%
+                    </span>
+                    <span class="flow-value-col ${netUp ? 'up' : 'down'}">
+                        ${netUp ? '+' : ''}${netVal.toFixed(2)}亿
+                    </span>
+                </li>`;
+        }
+
+        document.getElementById('flowList').addEventListener('click', (e) => {
+            const checkEl = e.target.closest('[data-action="toggle"]');
+            if (checkEl) {
+                e.stopPropagation();
+                const item = checkEl.closest('.flow-item');
+                const code = item.dataset.code;
+                if (selectedPlateCodes.has(code)) selectedPlateCodes.delete(code);
+                else selectedPlateCodes.add(code);
+                renderPlateList();
+                updateBarChart();
+                return;
+            }
+            const item = e.target.closest('.flow-item');
+            if (item) {
+                const code = item.dataset.code;
+                const name = item.dataset.name;
+                if (code) showMembers(code, name);
+            }
+        });
+
+        // ===================== 柱状图 =====================
+        function updateBarChart() {
+            const chartDom = document.getElementById('barChart');
+            if (!chartDom) return;
+            if (!barChartInstance) {
+                barChartInstance = echarts.init(chartDom);
+            }
+
+            let displayPlates = [];
+            if (selectedPlateCodes.size > 0) {
+                displayPlates = plateList.filter(p => selectedPlateCodes.has(p.code));
+            } else {
+                displayPlates = [...plateList];
+            }
+
+            const sorted = [...displayPlates].sort((a, b) => parseFloat(b.netFlow) - parseFloat(a.netFlow));
+            const topN = sorted.slice(0, 15);
+
+            const names = topN.map(p => p.name).reverse();
+            const values = topN.map(p => parseFloat(p.netFlow)).reverse();
+
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    backgroundColor: '#1a1a24',
+                    borderColor: '#2a2a38',
+                    textStyle: { color: '#e0e0e0' },
+                    formatter: function(params) {
+                        const p = params[0];
+                        const val = parseFloat(p.value);
+                        return `<div style="font-size:13px;font-weight:bold;">${p.name}</div>
+                                <div style="font-size:12px;color:${val >= 0 ? '#ff5252' : '#4caf50'};">
+                                    净流入：${val >= 0 ? '+' : ''}${val.toFixed(2)} 亿
+                                </div>`;
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '8%',
+                    bottom: '3%',
+                    top: '2%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
+                    axisLabel: {
+                        color: '#8b8b9e',
+                        fontSize: 10,
+                        formatter: function(v) { return v + '亿'; }
+                    },
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: names,
+                    axisLabel: {
+                        color: '#e0e0e0',
+                        fontSize: 11,
+                        width: 80,
+                        overflow: 'truncate'
+                    },
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
+                    axisTick: { show: false }
+                },
+                series: [{
+                    type: 'bar',
+                    data: values.map(v => ({
+                        value: v,
+                        itemStyle: {
+                            color: v >= 0 ? '#ff5252' : '#4caf50',
+                            borderRadius: v >= 0 ? [0, 4, 4, 0] : [4, 0, 0, 4]
+                        }
+                    })),
+                    label: {
+                        show: true,
+                        position: 'right',
+                        color: '#fff',
+                        fontSize: 10,
+                        fontWeight: 500,
+                        formatter: function(params) {
+                            const v = parseFloat(params.value);
+                            return (v >= 0 ? '+' : '') + v.toFixed(2) + '亿';
+                        }
+                    },
+                    barWidth: '60%',
+                    barMaxWidth: 20
+                }]
+            };
+
+            barChartInstance.setOption(option, true);
+        }
+
+        // ===================== 成分股 =====================
+        async function showMembers(code, name) {
+            activePlateCode = code;
+            renderPlateList();
+            document.getElementById('memberTitle').textContent = `🔍 ${name} · 成分股`;
+            document.getElementById('memberPlaceholder').style.display = 'block';
+            document.getElementById('memberTable').style.display = 'none';
+
+            if (isHistoricalMode) {
+                await showHistoricalMembers(name);
+                return;
+            }
+            const realtimePlate = plateList.find(p => p.code === code);
+            if (realtimePlate && (realtimePlate.ztList || realtimePlate.zbList)) {
+                showTopicPoolMembers(realtimePlate);
+                return;
+            }
+            try {
+                const data = await fetchJSON(getMemberUrl(code) + '&_=' + Date.now());
+                if (data && data.data && data.data.diff) {
+                    currentMembers = data.data.diff.map(item => ({
+                        code: item.f12,
+                        name: item.f14,
+                        price: item.f2 || 0,
+                        change: item.f3 || 0,
+                        amount: item.f6 || 0,
+                        netFlow: item.f62 || 0
+                    }));
+                    renderMemberTable();
+                }
+            } catch (e) {
+                console.error('获取成分股失败:', e);
+                document.getElementById('memberPlaceholder').textContent = '⚠️ 成分股加载失败';
+                document.getElementById('memberPlaceholder').style.display = 'block';
+                document.getElementById('memberTable').style.display = 'none';
+            }
+        }
+
+        function showTopicPoolMembers(plate) {
+            const members = [];
+            if (plate.ztList) {
+                plate.ztList.forEach(stock => {
+                    const limitPct = getStockLimitPercent(stock.code);
+                    members.push({
+                        code: stock.code,
+                        name: stock.name,
+                        price: stock.price,
+                        change: limitPct,
+                        amount: stock.fund || 0,
+                        netFlow: stock.fund || 0,
+                        isLimit: true
+                    });
+                });
+            }
+            if (plate.zbList) {
+                plate.zbList.forEach(stock => {
+                    members.push({
+                        code: stock.code,
+                        name: stock.name,
+                        price: stock.price,
+                        change: 5.0,
+                        amount: stock.fund || 0,
+                        netFlow: -(stock.fund || 0),
+                        isLimit: false
+                    });
+                });
+            }
+            if (members.length > 0) {
+                currentMembers = members;
+                renderMemberTable();
+            } else {
+                document.getElementById('memberPlaceholder').textContent = '暂无涨停池成分股数据';
+                document.getElementById('memberPlaceholder').style.display = 'block';
+                document.getElementById('memberTable').style.display = 'none';
+            }
+        }
+
+        async function showHistoricalMembers(name) {
+            const sector = historicalSectorData.find(s => s.name === name);
+            if (!sector) {
+                toast('未找到历史板块成分股');
+                return;
+            }
+            const ztCodeSet = new Set(sector.ztList.map(s => s.code));
+            const zbCodeSet = new Set(sector.zbList.map(s => s.code));
+
+            try {
+                const plateCode = await searchPlateCodeByName(name);
+                if (plateCode) {
+                    const data = await fetchJSON(getMemberUrl(plateCode) + '&_=' + Date.now());
+                    if (data && data.data && data.data.diff) {
+                        currentMembers = data.data.diff.map(item => {
+                            const code = item.f12;
+                            const isZt = ztCodeSet.has(code);
+                            const isZb = zbCodeSet.has(code);
+                            const ztStock = sector.ztList.find(s => s.code === code);
+                            const zbStock = sector.zbList.find(s => s.code === code);
+                            const limitPct = getStockLimitPercent(code);
+                            return {
+                                code: code,
+                                name: item.f14,
+                                price: isZt && ztStock ? ztStock.price : (item.f2 || 0),
+                                change: isZt ? limitPct : (isZb ? 5.0 : (item.f3 || 0)),
+                                amount: isZt && ztStock ? ztStock.fund : (isZb && zbStock ? zbStock.fund : (item.f6 || 0)),
+                                netFlow: isZt && ztStock ? ztStock.fund : (isZb && zbStock ? -zbStock.fund : (item.f62 || 0)),
+                                isZt: isZt,
+                                isZb: isZb
+                            };
+                        });
+                        renderMemberTable();
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('获取历史板块完整成分股失败，回退到涨停池数据:', e);
+            }
+
+            const members = [];
+            sector.ztList.forEach(stock => {
+                const limitPct = getStockLimitPercent(stock.code);
+                members.push({
+                    code: stock.code,
+                    name: stock.name,
+                    price: stock.price,
+                    change: limitPct,
+                    amount: stock.fund,
+                    netFlow: stock.fund,
+                    isZt: true,
+                    isZb: false
+                });
+            });
+            sector.zbList.forEach(stock => {
+                members.push({
+                    code: stock.code,
+                    name: stock.name,
+                    price: stock.price,
+                    change: 5.0,
+                    amount: stock.fund,
+                    netFlow: -stock.fund,
+                    isZt: false,
+                    isZb: true
+                });
+            });
+            currentMembers = members;
+            renderMemberTable();
+        }
+
+        function renderMemberTable() {
+            document.getElementById('memberPlaceholder').style.display = 'none';
+            document.getElementById('memberTable').style.display = 'table';
+            let sortedMembers = [...currentMembers];
+            sortedMembers.sort((a, b) => {
+                let va = parseFloat(a[memberSortCol]);
+                let vb = parseFloat(b[memberSortCol]);
+                return memberSortDir === 'asc' ? va - vb : vb - va;
+            });
+            const tbody = document.getElementById('memberTbody');
+            let html = '';
+            sortedMembers.forEach(stock => {
+                const isUp = parseFloat(stock.change) >= 0;
+                const limitPct = getStockLimitPercent(stock.code);
+                const isLimit = parseFloat(stock.change) >= limitPct - 0.5;
+                let tagHtml = '';
+                if (stock.isZt || isLimit) {
+                    tagHtml += `<span class="leader-tag" style="background:linear-gradient(135deg,#e74c3c,#c0392b)">涨停</span>`;
+                } else if (stock.isZb) {
+                    tagHtml += `<span class="leader-tag" style="background:linear-gradient(135deg,#ff9800,#f57c00)">炸板</span>`;
+                }
+                html += `
+                    <tr class="stock-row"
+                        data-stock-code="${stock.code}"
+                        data-stock-name="${stock.name}"
+                        data-stock-pct="${stock.change}"
+                        data-stock-price="${stock.price}"
+                        onclick="linkToTdx('${stock.code}')"
+                        title="点击联动通达信">
+                        <td><span class="stock-code">${stock.code}</span></td>
+                        <td>${stock.name}${tagHtml}</td>
+                        <td>${parseFloat(stock.price).toFixed(2)}</td>
+                        <td style="color:${isUp ? '#ff5252' : '#4caf50'};font-weight:bold;">
+                            ${isUp ? '+' : ''}${parseFloat(stock.change).toFixed(2)}%
+                        </td>
+                        <td>${formatAmount(stock.amount)}</td>
+                        <td style="color:${parseFloat(stock.netFlow) >= 0 ? '#ff5252' : '#4caf50'};font-weight:bold;">
+                            ${parseFloat(stock.netFlow) >= 0 ? '+' : ''}${formatFlow(stock.netFlow)}
+                        </td>
+                    </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function formatAmount(v) {
+            const n = parseFloat(v) || 0;
+            if (n >= 1e8) return (n / 1e8).toFixed(2) + '亿';
+            if (n >= 1e4) return (n / 1e4).toFixed(1) + '万';
+            return n.toFixed(2);
+        }
+
+        function formatFlow(v) {
+            const n = parseFloat(v) || 0;
+            if (Math.abs(n) >= 1e8) return (n / 1e8).toFixed(2) + '亿';
+            if (Math.abs(n) >= 1e4) return (n / 1e4).toFixed(1) + '万';
+            return n.toFixed(2);
+        }
+
+        function toggleMemberSort(col) {
+            if (memberSortCol === col) {
+                memberSortDir = memberSortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                memberSortCol = col;
+                memberSortDir = 'desc';
+            }
+            if (currentMembers.length > 0) renderMemberTable();
+        }
+
+        function toggleShowAllPlates() {
+            const btn = document.getElementById('selectAllBtn');
+            showAllPlates = !showAllPlates;
+            btn.textContent = showAllPlates ? '☑ 精简显示' : '☐ 全部板块';
+            btn.classList.toggle('all-selected', showAllPlates);
+            renderPlateList();
+        }
+
+        function exportMembers() {
+            if (currentMembers.length === 0) { toast('无成分股可导出'); return; }
+            const params = currentMembers.map(s => {
+                const market = (s.code.startsWith('6') || s.code.startsWith('688')) ? '1' : '0';
+                return `${market}#${s.code}`;
+            }).join('|');
+            window.location.href = `http://www.treeid/AddToBlock_${params}`;
+            toast(`导出${currentMembers.length}只成分股`);
+        }
+
+        // ===================== 股票分析缓存 =====================
+        async function updateStockAnalysisCache() {
+            try {
+                const response = await fetch(STOCKS_API + '?normal=true&uplimit=true&_=' + Date.now(), { cache: 'no-cache' });
+                const data = await response.json();
+                if (data.code === 20000 && data.data && data.data.items) {
+                    const newCache = {};
+                    data.data.items.forEach(item => {
+                        const stockCode = formatStockCode(item[0]);
+                        if (stockCode) {
+                            const changeRate = item[3] !== null && item[3] !== undefined ? ((item[3] * 100).toFixed(2)) : '';
+                            newCache[stockCode] = {
+                                name: item[1] || '',
+                                analysis: item[5] || '',
+                                boards: item[11] || '',
+                                change: changeRate ? (parseFloat(changeRate) >= 0 ? '+' : '') + changeRate + '%' : '',
+                                time: formatTime(item[6])
+                            };
+                        }
+                    });
+                    stockAnalysisCache = newCache;
+                }
+            } catch (e) {
+                console.error('更新股票分析数据失败:', e);
+            }
+        }
+
+        function getStockAnalysis(code) {
+            const cleanCode = code?.toString()?.padStart(6, '0') || '';
+            return stockAnalysisCache[cleanCode] || stockAnalysisCache[code] || null;
+        }
+
+        // ===================== 股票提示框 =====================
+        function initStockTooltip() {
+            const tooltip = document.getElementById('stockTooltip');
+            document.addEventListener('mouseover', function(e) {
+                const stockRow = e.target.closest('tr.stock-row');
+                if (stockRow) {
+                    const stockCode = stockRow.getAttribute('data-stock-code');
+                    const stockName = stockRow.getAttribute('data-stock-name');
+                    const stockPct = stockRow.getAttribute('data-stock-pct');
+                    const stockPrice = stockRow.getAttribute('data-stock-price');
+                    let analysis = getStockAnalysis(stockCode);
+                    let content = '';
+                    let row1Parts = [];
+                    if (stockCode) row1Parts.push(`<span class="label">代码：</span><span class="value">${stockCode}</span>`);
+                    if (stockName) row1Parts.push(`<span class="label">名称：</span><span class="value">${stockName}</span>`);
+                    if (row1Parts.length > 0) content += `<div class="info-row">${row1Parts.join('<span class="divider"> | </span>')}</div>`;
+                    let row2Parts = [];
+                    if (analysis && analysis.boards) row2Parts.push(`<span class="label">连板：</span><span class="value">${analysis.boards}</span>`);
+                    if (stockPct) row2Parts.push(`<span class="label">涨跌：</span><span class="value">${parseFloat(stockPct) >= 0 ? '+' : ''}${stockPct}%</span>`);
+                    if (stockPrice) row2Parts.push(`<span class="label">价格：</span><span class="value">${parseFloat(stockPrice).toFixed(2)}</span>`);
+                    if (row2Parts.length > 0) content += `<div class="info-row">${row2Parts.join('<span class="divider"> | </span>')}</div>`;
+                    if (analysis && analysis.analysis && analysis.analysis.trim() !== '') {
+                        content += `<div class="analysis-section"><span class="label">涨停分析：</span><br><span class="value">${analysis.analysis}</span></div>`;
+                    } else {
+                        content += `<div class="analysis-section"><span class="label">公司概况：</span><br><span class="value">暂无详细分析数据</span></div>`;
+                    }
+                    tooltip.innerHTML = content;
+                    tooltip.style.display = 'block';
+                    const rect = stockRow.getBoundingClientRect();
+                    tooltip.style.left = rect.right + 15 + 'px';
+                    tooltip.style.top = rect.top + 'px';
+                }
+            });
+            document.addEventListener('mouseout', function(e) {
+                if (e.target.closest('tr.stock-row')) tooltip.style.display = 'none';
+            });
+            document.addEventListener('mousemove', function(e) {
+                const stockRow = e.target.closest('tr.stock-row');
+                if (stockRow) {
+                    const tooltipRect = tooltip.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    let top = e.clientY - 100;
+                    if (top < 10) top = 10;
+                    if (top + tooltipRect.height > viewportHeight - 10) top = viewportHeight - tooltipRect.height - 10;
+                    let left = e.clientX + 20;
+                    if (left + tooltipRect.width > window.innerWidth - 10) left = e.clientX - tooltipRect.width - 20;
+                    tooltip.style.top = top + 'px';
+                    tooltip.style.left = left + 'px';
+                }
+            });
+        }
+
+        // ===================== 自动刷新控制 =====================
+        function startAutoRefresh() {
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+                refreshTimer = null;
+            }
+            if (isAutoRefreshPaused) return;
+            refreshTimer = setInterval(() => {
+                if (!selectedDate) {
+                    loadPlateData();
+                    updateStockAnalysisCache();
+                }
+            }, 10000);
+        }
+
+        function toggleAutoRefresh() {
+            const btn = document.getElementById('refreshBtn');
+            if (isAutoRefreshPaused) {
+                isAutoRefreshPaused = false;
+                btn.innerHTML = '⏸️ 暂停';
+                startAutoRefresh();
+                loadPlateData();
+            } else {
+                isAutoRefreshPaused = true;
+                btn.innerHTML = '▶️ 恢复';
+                if (refreshTimer) {
+                    clearInterval(refreshTimer);
+                    refreshTimer = null;
+                }
+            }
+        }
+
+        // ===================== 日期选择器 =====================
+        function generateRecentTradingDays(count) {
+            const days = [],
+                today = new Date();
+            for (let i = 0; i <= count; i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                const w = d.getDay();
+                if (w === 0 || w === 6) continue;
+                days.push(formatCalendarDate(d));
+            }
+            return days;
+        }
+
+        function formatCalendarDate(date) {
+            return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+        }
+
+        function getTodayStr() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function updateNavButtons() {
+            const prevBtn = document.getElementById('prevDayBtn'),
+                nextBtn = document.getElementById('nextDayBtn');
+            if (!selectedDate) {
+                nextBtn.disabled = true;
+                prevBtn.disabled = false;
+            } else {
+                const idx = calendarDateList.indexOf(selectedDate);
+                nextBtn.disabled = idx <= 0;
+                prevBtn.disabled = idx >= calendarDateList.length - 1;
+            }
+        }
+
+        function updateDisplayUI() {
+            document.getElementById('calendarDisplay').textContent = selectedDate ? selectedDate : '今日数据';
+            updateNavButtons();
+        }
+
+        async function goPrevDay() {
+            if (!selectedDate) {
+                if (calendarDateList.length) selectedDate = calendarDateList[0];
+                else return;
+            } else {
+                const idx = calendarDateList.indexOf(selectedDate);
+                if (idx !== -1 && idx < calendarDateList.length - 1) selectedDate = calendarDateList[idx + 1];
+                else return;
+            }
+            updateDisplayUI();
+            await loadPlateData();
+        }
+
+        async function goNextDay() {
+            if (!selectedDate) return;
+            const idx = calendarDateList.indexOf(selectedDate);
+            if (idx === 0) {
+                selectedDate = '';
+                updateDisplayUI();
+                await loadPlateData();
+            } else if (idx > 0) {
+                selectedDate = calendarDateList[idx - 1];
+                updateDisplayUI();
+                await loadPlateData();
+            }
+        }
+
+        function buildCalendarPopupHTML() {
+            const year = calendarCurrentMonth.getFullYear(),
+                month = calendarCurrentMonth.getMonth();
+            document.getElementById('calendarMonth').innerText = year + '年' + (month + 1) + '月';
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startWeek = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+            const prevLast = new Date(year, month, 0).getDate();
+            const todayStr = getTodayStr();
+
+            function createDayCell(dayNum, ds, isOther) {
+                const div = document.createElement('div');
+                div.className = 'cal-day' + (isOther ? ' other-month' : '');
+                div.textContent = dayNum;
+                if (ds === todayStr) div.classList.add('today');
+                if (calendarDateList.includes(ds)) div.classList.add('has-data');
+                if ((!selectedDate && ds === todayStr) || ds === selectedDate) div.classList.add('selected');
+                div.dataset.date = ds;
+                div.onclick = function(e) {
+                    e.stopPropagation();
+                    if (this.dataset.date === todayStr) {
+                        selectedDate = '';
+                    } else if (calendarDateList.includes(this.dataset.date)) {
+                        selectedDate = this.dataset.date;
+                    } else return;
+                    updateDisplayUI();
+                    closeCalendarPopup();
+                    loadPlateData();
+                };
+                return div;
+            }
+
+            for (let i = startWeek - 1; i >= 0; i--) {
+                const dayNum = prevLast - i;
+                const ds = formatCalendarDate(new Date(year, month - 1, dayNum));
+                grid.appendChild(createDayCell(dayNum, ds, true));
+            }
+            for (let d = 1; d <= daysInMonth; d++) {
+                const ds = formatCalendarDate(new Date(year, month, d));
+                grid.appendChild(createDayCell(d, ds, false));
+            }
+            const remaining = 42 - (startWeek + daysInMonth);
+            for (let n = 1; n <= remaining; n++) {
+                const ds = formatCalendarDate(new Date(year, month + 1, n));
+                grid.appendChild(createDayCell(n, ds, true));
+            }
+        }
+
+        function toggleCalendarPopup() {
+            const pop = document.getElementById('calendarPopup');
+            if (pop.classList.contains('show')) {
+                pop.classList.remove('show');
+            } else {
+                buildCalendarPopupHTML();
+                pop.classList.add('show');
+            }
+        }
+
+        function closeCalendarPopup() {
+            document.getElementById('calendarPopup').classList.remove('show');
+        }
+
+        function prevMonth() {
+            calendarCurrentMonth.setMonth(calendarCurrentMonth.getMonth() - 1);
+            buildCalendarPopupHTML();
+        }
+
+        function nextMonth() {
+            calendarCurrentMonth.setMonth(calendarCurrentMonth.getMonth() + 1);
+            buildCalendarPopupHTML();
+        }
+
+        function initDatePicker() {
+            calendarDateList = generateRecentTradingDays(55);
+            document.getElementById('prevDayBtn').onclick = goPrevDay;
+            document.getElementById('nextDayBtn').onclick = goNextDay;
+            document.getElementById('calendarDisplay').onclick = toggleCalendarPopup;
+            document.getElementById('calCloseBtn').onclick = closeCalendarPopup;
+            document.getElementById('prevMonthCal').onclick = prevMonth;
+            document.getElementById('nextMonthCal').onclick = nextMonth;
+            document.getElementById('plateSearch').addEventListener('input', function(e) {
+                searchKeyword = e.target.value.trim();
+                renderPlateList();
+            });
+            document.addEventListener('click', function(e) {
+                const pop = document.getElementById('calendarPopup');
+                const display = document.getElementById('calendarDisplay');
+                if (pop && !pop.contains(e.target) && !display.contains(e.target)) {
+                    closeCalendarPopup();
+                }
+            });
+            updateDisplayUI();
+        }
+
+        // ===================== 初始化 =====================
+        async function init() {
+            initDatePicker();
+            await loadPlateData();
+            await updateStockAnalysisCache();
+            initStockTooltip();
+
+            isAutoRefreshPaused = false;
+            document.getElementById('refreshBtn').innerHTML = '⏸️ 暂停';
+            startAutoRefresh();
+
+            document.getElementById('refreshBtn').onclick = toggleAutoRefresh;
+
+            if (plateList.length > 0) {
+                const first = plateList[0];
+                showMembers(first.code, first.name);
+            }
+
+            window.addEventListener('resize', () => {
+                if (barChartInstance) barChartInstance.resize();
+            });
+        }
+
+        document.getElementById('exportBtn').onclick = exportMembers;
+
+        init();
+    </script>
+</body>
+</html>

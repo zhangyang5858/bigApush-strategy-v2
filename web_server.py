@@ -236,6 +236,34 @@ def short_term_desk():
     return render_template('short_term_desk.html')
 
 
+@app.route('/sector-fund-flow')
+def sector_fund_flow():
+    """板块资金流向独立页面"""
+    return render_template('sector_fund_flow.html')
+
+
+@app.route('/api/scalp/push', methods=['GET', 'POST'])
+def api_scalp_push():
+    """通过 HTTP API 触发短线决策台推送"""
+    try:
+        stage = request.args.get('stage')
+        if not stage and request.is_json:
+            stage = request.json.get('stage')
+        if not stage:
+            stage = 'instant'
+
+        is_demo = request.args.get('demo', 'false').lower() == 'true'
+        force = request.args.get('force', 'true').lower() == 'true'
+
+        from scalp_push import run_scalp_push
+        success = run_scalp_push(stage=stage, is_demo=is_demo, force=force)
+        return jsonify({"code": 200 if success else 500, "message": "推送执行成功" if success else "推送执行失败", "stage": stage})
+    except Exception as e:
+        return jsonify({"code": 500, "message": f"执行异常: {str(e)}", "stage": stage}), 500
+
+
+
+
 
 @app.route('/api/stocks')
 def get_stocks():

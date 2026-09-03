@@ -1,0 +1,37 @@
+name: 开盘极速秒板推送 (09:31:30)
+
+on:
+  schedule:
+    - cron: '31 1 * * 1-5'  # UTC 01:31 = 北京时间 09:31 (周一至周五)
+  workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+
+permissions:
+  contents: write
+
+jobs:
+  push-scalp-instant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install requests pyyaml
+      - name: Run scalp instant push
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+        run: |
+          sleep 30
+          python scalp_push.py --stage instant
+      - name: Commit and push daily records
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main || true
+          git add data/scalp_records/ data/scalp_account.json
+          git diff --staged --quiet || (git commit -m "chore(scalp): save 09:31:30 instant push & account [skip ci]" && git push origin main)
