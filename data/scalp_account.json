@@ -1,6 +1,6 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 100159.64,
+  "total_assets": 98848.07,
   "cash": 52035.07,
   "positions": [
     {
@@ -11,14 +11,16 @@
       "buy_stage": "settle",
       "strategy_tag": "🏆 主线首板突破",
       "buy_price": 28.8,
-      "current_price": 28.8,
+      "current_price": 27.5,
       "open_price": 26.0,
       "stop_loss": 25.48,
       "shares": 800,
       "cost_amount": 23045.99,
       "fee": 5.99,
-      "unrealized_profit_pct": 0.0,
-      "unrealized_profit_amount": 0.0
+      "unrealized_profit_pct": -4.51,
+      "unrealized_profit_amount": -1045.99,
+      "market_value": 22000.0,
+      "is_zt": true
     },
     {
       "code": "600059",
@@ -35,7 +37,9 @@
       "cost_amount": 24819.45,
       "fee": 6.45,
       "unrealized_profit_pct": 0.0,
-      "unrealized_profit_amount": 0.0
+      "unrealized_profit_amount": -6.45,
+      "market_value": 24813.0,
+      "is_zt": true
     }
   ],
   "closed_trades": [
@@ -119,9 +123,20 @@
       "total_profit": 159.64,
       "total_return_pct": 0.16,
       "position_count": 4
+    },
+    {
+      "date": "2026-09-04",
+      "total_assets": 98848.07,
+      "cash": 52035.07,
+      "position_market_value": 46813.0,
+      "daily_profit": -1311.57,
+      "daily_return_pct": -1.31,
+      "total_profit": -1151.93,
+      "total_return_pct": -1.15,
+      "position_count": 2
     }
   ],
   "created_at": "2026-09-02 22:51:21",
-  "updated_at": "2026-09-04 14:30:27",
-  "position_market_value": 97721.0
+  "updated_at": "2026-09-04 15:30:55",
+  "position_market_value": 46813.0
 }
