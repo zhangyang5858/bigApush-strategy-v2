@@ -758,7 +758,7 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
         for s in pushed_stocks:
             grade_badge = f"【{s['grade']}级 {s['score']}分】"
             leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
-            zt_tag = " [涨停板]" if s.get("is_zt") else f" (+{s['change']:.2f}%)"
+            zt_tag = f" | {s['change']:+.2f}% [涨停板]" if s.get("is_zt") else f" | {s['change']:+.2f}%"
             reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "开盘极速爆量拉升"
 
             flow_tag = f"净买 **{fmt_amount(s.get('net_flow', 0))}** (占{s.get('flow_ratio', 0) * 100:+.1f}%)"
@@ -771,7 +771,7 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
 
             action_tips = "主力直线封板，可第一时间挂单打板或排队抢筹！" if s.get("is_zt") else "开盘极速大单拉升，可挂分时均线上方抢筹！"
             stock_md_list.append(
-                f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** {zt_tag}){leader_tag}\n"
+                f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}**{zt_tag}){leader_tag}\n"
                 f"> 战法: **`{s['strategy_tag']}`** | 评级: **{grade_badge}**\n"
                 f"> 行业: {sec_tag} | 主力: {flow_tag}\n"
                 f"> 依据: {reasons_str}{buy_info_str}\n"
