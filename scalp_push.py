@@ -78,8 +78,10 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
 
     # ── 1. 模拟账户操作：处理昨日持仓处置 (T+1 卖出/预警) ──
     account = load_account()
-    live_price_map = {str(s["code"]): s for s in res.get("stocks", [])}
-    zt_set = {str(s["code"]) for s in res.get("stocks", []) if s.get("is_zt", False)}
+    raw_map = res.get("raw_price_map", {})
+    analyzed_map = {str(s["code"]): s for s in res.get("stocks", [])}
+    live_price_map = {**raw_map, **analyzed_map}
+    zt_set = res.get("zt_set") or {str(s["code"]) for s in res.get("stocks", []) if s.get("is_zt", False)}
 
     sell_actions = check_and_execute_sells(account, live_price_map, zt_set, stage=stage, today_str=today_str)
 

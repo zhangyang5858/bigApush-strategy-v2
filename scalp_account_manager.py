@@ -129,15 +129,15 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
         # 判断是否为 T+1 可卖状态
         is_t_plus_1 = (buy_date < today_str)
 
-        # 获取实时行情
+        # 获取实时行情 (兼容东财原始字段与分析引擎标准化字段)
         live_info = live_price_map.get(code, {})
-        cur_price = n(live_info.get("f2") or buy_price)
-        cur_chg = n(live_info.get("f3"))
-        high_price = n(live_info.get("f15") or cur_price)
-        low_price = n(live_info.get("f16") or cur_price)
-        open_price = n(live_info.get("f17") or cur_price)
+        cur_price = n(live_info.get("f2") or live_info.get("price") or pos.get("current_price") or buy_price)
+        cur_chg = n(live_info.get("f3") if "f3" in live_info else (live_info.get("change") if "change" in live_info else 0.0))
+        high_price = n(live_info.get("f15") or live_info.get("high") or cur_price)
+        low_price = n(live_info.get("f16") or live_info.get("low") or cur_price)
+        open_price = n(live_info.get("f17") or live_info.get("open_price") or cur_price)
 
-        is_zt = (code in zt_set) or (cur_chg >= 9.85 and cur_price >= high_price)
+        is_zt = bool((code in zt_set) or live_info.get("is_zt") or (cur_chg >= 9.85 and cur_price >= high_price))
         unrealized_profit_pct = ((cur_price / buy_price) - 1) * 100 if buy_price > 0 else 0.0
         unrealized_profit_amount = (cur_price - buy_price) * shares
 
@@ -399,7 +399,8 @@ def settle_daily_account(account, live_price_map, zt_set, today_str=None):
         cost_amount = n(pos.get("cost_amount"))
 
         live_info = live_price_map.get(code, {})
-        close_price = n(live_info.get("f2") or pos.get("current_price") or buy_price)
+        close_price = n(live_info.get("f2") or live_info.get("price") or pos.get("current_price") or buy_price)
+        cur_chg = n(live_info.get("f3") if "f3" in live_info else (live_info.get("change") if "change" in live_info else 0.0))
         cur_market_val = shares * close_price
         pos_market_value += cur_market_val
 
@@ -407,7 +408,7 @@ def settle_daily_account(account, live_price_map, zt_set, today_str=None):
         pos["market_value"] = round(cur_market_val, 2)
         pos["unrealized_profit_amount"] = round(cur_market_val - cost_amount, 2)
         pos["unrealized_profit_pct"] = round(((close_price / buy_price) - 1) * 100, 2) if buy_price > 0 else 0.0
-        pos["is_zt"] = (code in zt_set) or (n(live_info.get("f3")) >= 9.85)
+        pos["is_zt"] = bool((code in zt_set) or live_info.get("is_zt") or (cur_chg >= 9.85))
 
     account["position_market_value"] = round(pos_market_value, 2)
     prev_assets = INITIAL_CAPITAL

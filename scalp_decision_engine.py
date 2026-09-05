@@ -570,6 +570,8 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
 
     return {
         "stocks": analyzed_stocks,
+        "raw_price_map": {str(x.get("f12")): x for x in (raw_stocks or [])},
+        "zt_set": set(zt_dict.keys()),
         "sectors": sec_list[:8],
         "regime": regime,
         "zt_count": len(zt_dict),
