@@ -1,27 +1,8 @@
 {
   "initial_capital": 100000.0,
   "total_assets": 98848.07,
-  "cash": 5322.21,
+  "cash": 17179.58,
   "positions": [
-    {
-      "code": "600059",
-      "name": "古越龙山",
-      "buy_date": "2026-09-04",
-      "buy_time": "14:30:27",
-      "buy_stage": "instant",
-      "strategy_tag": "🏆 主线首板突破",
-      "buy_price": 9.19,
-      "current_price": 9.12,
-      "open_price": 8.59,
-      "stop_loss": 8.4182,
-      "shares": 2700,
-      "cost_amount": 24819.45,
-      "fee": 6.45,
-      "unrealized_profit_pct": -0.76,
-      "unrealized_profit_amount": -189.0,
-      "market_value": 24813.0,
-      "is_zt": true
-    },
     {
       "code": "300189",
       "name": "神农种业",
@@ -30,14 +11,14 @@
       "buy_stage": "auction",
       "strategy_tag": "🔥 竞价爆量弱转强",
       "buy_price": 7.34,
-      "current_price": 7.65,
+      "current_price": 7.55,
       "open_price": 7.34,
       "stop_loss": 7.1932,
       "shares": 3300,
       "cost_amount": 24228.3,
       "fee": 6.3,
-      "unrealized_profit_pct": 4.22,
-      "unrealized_profit_amount": 1023.0
+      "unrealized_profit_pct": 2.86,
+      "unrealized_profit_amount": 693.0
     },
     {
       "code": "300315",
@@ -47,14 +28,14 @@
       "buy_stage": "confirm",
       "strategy_tag": "🏆 主线首板突破",
       "buy_price": 4.63,
-      "current_price": 4.63,
+      "current_price": 4.68,
       "open_price": 4.46,
       "stop_loss": 4.3708,
       "shares": 5300,
       "cost_amount": 24545.38,
       "fee": 6.38,
-      "unrealized_profit_pct": 0.0,
-      "unrealized_profit_amount": 0.0
+      "unrealized_profit_pct": 1.08,
+      "unrealized_profit_amount": 265.0
     },
     {
       "code": "301486",
@@ -64,12 +45,29 @@
       "buy_stage": "confirm",
       "strategy_tag": "🏆 主线首板突破",
       "buy_price": 189.58,
-      "current_price": 189.58,
+      "current_price": 191.17,
       "open_price": 178.0,
       "stop_loss": 174.44,
       "shares": 100,
       "cost_amount": 18963.19,
       "fee": 5.19,
+      "unrealized_profit_pct": 0.84,
+      "unrealized_profit_amount": 159.0
+    },
+    {
+      "code": "301529",
+      "name": "福赛科技",
+      "buy_date": "2026-09-07",
+      "buy_time": "09:55:40",
+      "buy_stage": "settle",
+      "strategy_tag": "🏆 主线首板突破",
+      "buy_price": 124.73,
+      "current_price": 124.73,
+      "open_price": 113.61,
+      "stop_loss": 111.3378,
+      "shares": 100,
+      "cost_amount": 12478.12,
+      "fee": 5.12,
       "unrealized_profit_pct": 0.0,
       "unrealized_profit_amount": 0.0
     }
@@ -159,6 +157,23 @@
       "realized_profit_pct": -8.77,
       "action": "🚨 触发止损卖出",
       "reason": "跌破防守线(-8.68%)，无条件止损控制风险"
+    },
+    {
+      "code": "600059",
+      "name": "古越龙山",
+      "buy_date": "2026-09-04",
+      "buy_price": 9.19,
+      "sell_date": "2026-09-07",
+      "sell_time": "09:55:40",
+      "sell_stage": "settle",
+      "sell_price": 9.02,
+      "shares": 2700,
+      "gross_sell_amount": 24354.0,
+      "fee": 18.51,
+      "realized_profit": -483.96,
+      "realized_profit_pct": -1.95,
+      "action": "⏱️ 超短调仓卖出",
+      "reason": "早盘半小时定势未走强(-1.85%)，清仓腾出资金"
     }
   ],
   "daily_history": [
@@ -186,6 +201,6 @@
     }
   ],
   "created_at": "2026-09-02 22:51:21",
-  "updated_at": "2026-09-07 09:38:38",
+  "updated_at": "2026-09-07 09:55:40",
   "position_market_value": 46813.0
 }

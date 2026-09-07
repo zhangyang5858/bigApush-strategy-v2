@@ -1,0 +1,72 @@
+{
+  "date": "2026-09-07",
+  "time": "09:55:40",
+  "stage": "settle",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "301529",
+      "name": "福赛科技",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🏆 主线首板突破",
+      "push_price": 124.73,
+      "open_price": 113.61,
+      "pre_close": 107.0,
+      "stop_loss": 111.3378,
+      "grade": "S",
+      "score": 100,
+      "is_zt": true,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    },
+    {
+      "code": "300315",
+      "name": "掌趣科技",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🏆 主线首板突破",
+      "push_price": 4.68,
+      "open_price": 4.46,
+      "pre_close": 4.1,
+      "stop_loss": 4.3708,
+      "grade": "S",
+      "score": 100,
+      "is_zt": true,
+      "is_leader": true,
+      "sector": "游戏Ⅱ"
+    },
+    {
+      "code": "002975",
+      "name": "博杰股份",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🔥 主力大单爆量抢筹",
+      "push_price": 102.0,
+      "open_price": 97.0,
+      "pre_close": 95.03,
+      "stop_loss": 95.06,
+      "grade": "S",
+      "score": 95.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "自动化设备"
+    },
+    {
+      "code": "002815",
+      "name": "崇达技术",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🔥 主力大单爆量抢筹",
+      "push_price": 15.21,
+      "open_price": 14.84,
+      "pre_close": 14.55,
+      "stop_loss": 14.543199999999999,
+      "grade": "S",
+      "score": 95.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "元件"
+    }
+  ]
+}
