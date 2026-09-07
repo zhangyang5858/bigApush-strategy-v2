@@ -55,6 +55,17 @@ def run_daily_review_push(is_demo=False, force=False):
 
     print("  📤 正在向飞书推送每日复盘卡片...")
     success = notifier.send_card(card_json)
+
+    # 同步日结数据到 SQLite 数据库并导出多 Sheet Excel 报表
+    try:
+        from scalp_trade_db import record_daily_settlement, export_trades_to_excel
+        if review_data.get("settle_info"):
+            record_daily_settlement(review_data["settle_info"])
+        excel_file = export_trades_to_excel()
+        print(f"  📊 收盘战报 Excel 报表已生成: {excel_file}")
+    except Exception as e:
+        print(f"  ⚠️ 同步数据库与导出 Excel 异常: {e}")
+
     if success:
         print("  🎉 每日收盘复盘卡片推送成功！")
         return True
