@@ -244,7 +244,7 @@ def evaluate_daily_scalp(date_str=None, is_demo=False, account=None):
             stage_titles = {
                 "auction": "09:26 竞价初筛",
                 "instant": "09:31 极速秒板",
-                "confirm": "09:35 开盘确认",
+                "confirm": "09:38 开盘承接确认",
                 "settle": "09:55 早盘定势"
             }
             evaluated_stages[stage_key] = {

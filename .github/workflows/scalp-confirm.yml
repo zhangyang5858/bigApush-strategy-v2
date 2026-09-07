@@ -1,4 +1,4 @@
-name: 开盘承接确认推送 (09:35)
+name: 开盘承接强攻买点 (09:38)
 
 on:
   workflow_dispatch:
@@ -30,4 +30,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main || true
           git add data/scalp_records/ data/scalp_account.json
-          git diff --staged --quiet || (git commit -m "chore(scalp): save 09:35 confirm push & account [skip ci]" && git push origin main)
+          git diff --staged --quiet || (git commit -m "chore(scalp): save 09:38 confirm push & account [skip ci]" && git push origin main)

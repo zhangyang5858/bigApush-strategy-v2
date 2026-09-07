@@ -51,7 +51,7 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
     stage_name_map = {
         "auction": "早盘竞价初筛 (09:26)",
         "instant": "开盘极速秒板 (09:31:30)",
-        "confirm": "开盘承接确认 (09:35)",
+        "confirm": "开盘承接强攻 (09:38)",
         "settle": "早盘定势封板与二波 (09:55)"
     }
     stage_label = stage_name_map.get(stage, stage)
