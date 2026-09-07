@@ -597,76 +597,100 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
 
 
 def get_stage_pushed_stocks(analysis_res, stage="auction"):
-    """获取指定时段真正推荐上榜的个股列表（供卡片展示与每日复盘统一读取）"""
+    """
+    获取指定时段真正推荐上榜的个股列表
+    【实战原则】：严格排除当时已封死涨停的标的，不打板、不排板，只推荐有明确买入/低吸空间的未封死标的
+    """
     stocks = analysis_res.get("stocks", [])
-    qualified_stocks = [s for s in stocks if s.get("qualified")]
+
+    def is_buyable_unsealed(s):
+        """判断标的是否为未封死、可即时买入/挂单的个股"""
+        if s.get("is_zt"):
+            return False
+        code = str(s.get("code") or "")
+        chg = float(s.get("change") or s.get("auction_change") or 0.0)
+        # 排除已接近封死涨停的极端票（主板 >= 9.7%，创业板/科创板 >= 19.5%）
+        if code.startswith(("30", "688")):
+            return chg < 19.5
+        else:
+            return chg < 9.7
+
+    buyable_qualified = [s for s in stocks if s.get("qualified") and is_buyable_unsealed(s)]
+    buyable_all = [s for s in stocks if is_buyable_unsealed(s)]
 
     if stage == "instant":
-        # 09:31:30 极速秒板与主力闪电冲板
-        instant_zt = [s for s in qualified_stocks if s.get("is_zt") and s.get("net_flow", 0) > 0]
-        instant_surge = [s for s in qualified_stocks if (s.get("change", 0) >= 5.0 and s.get("net_flow", 0) > 1e7 and s.get("flow_ratio", 0) >= 0.15) and not s.get("is_zt")]
-        picks = instant_zt[:2] + instant_surge[:2]
+        # 09:31:30 极速突击（未封死·主力闪电抢筹拉升，可分时跟进）
+        instant_surge = [
+            s for s in buyable_qualified 
+            if s.get("change", 0) >= 3.0 and s.get("net_flow", 0) > 0 and s.get("flow_ratio", 0) >= 0.08
+        ]
+        instant_surge.sort(key=lambda s: (s.get("score", 0) + (10 if s.get("net_flow", 0) > 1e7 else 0)), reverse=True)
+        picks = instant_surge[:3]
         if not picks:
-            picks = [s for s in qualified_stocks if s.get("is_breakthrough")][:3] or qualified_stocks[:3]
+            picks = [s for s in buyable_qualified if s.get("is_breakthrough")][:3] or buyable_qualified[:3] or buyable_all[:3]
         return picks[:3]
 
     elif stage == "auction":
-        sorted_qualified = sorted(qualified_stocks, key=lambda s: (s.get("score", 0) + (10 if s.get("net_flow", 0) > 1e7 else 0)), reverse=True)
+        # 09:26 竞价初筛先锋（未涨停一字板，开盘可观察低吸/承接）
+        sorted_qualified = sorted(
+            buyable_qualified, 
+            key=lambda s: (s.get("score", 0) + (10 if s.get("net_flow", 0) > 1e7 else 0)), 
+            reverse=True
+        )
         picks = [s for s in sorted_qualified if s.get("is_breakthrough") or s.get("net_flow", 0) > 1e7][:2]
         if not picks:
-            picks = sorted_qualified[:2] or stocks[:2]
-        return picks
+            picks = sorted_qualified[:2] or buyable_all[:2]
+        return picks[:2]
 
     elif stage == "confirm":
-        # 09:38 开盘确认阶段（区分为：未封死强攻冲板、未封死均线低吸、已封死涨停龙头）
-        # 1. 未封死强攻冲板标的 (涨幅较高 + 主力爆量抢筹，有即时买入空间)
+        # 09:38 开盘确认阶段（主战场：未封死强攻冲板 + 未封死均线低吸）
         unsealed_break = [
-            s for s in qualified_stocks 
-            if not s.get("is_zt") and (s.get("is_breakthrough") or s.get("change", 0) >= 3.5 or s.get("strategy_tag") in ["🔥 主力大单爆量抢筹", "🔥 竞价爆量弱转强"])
+            s for s in buyable_qualified 
+            if s.get("is_breakthrough") or s.get("change", 0) >= 3.5 or s.get("strategy_tag") in ["🔥 主力大单爆量抢筹", "🔥 竞价爆量弱转强"]
         ]
         unsealed_break.sort(key=lambda s: (s.get("score", 0) + (10 if s.get("net_flow", 0) > 1e7 else 0)), reverse=True)
 
-        # 2. 未封死稳健低吸标的 (站在VWAP均线上方且回踩承接良好，适合回踩均线买入)
         unsealed_absorb = [
-            s for s in qualified_stocks 
-            if not s.get("is_zt") and s not in unsealed_break and (s.get("is_low_absorb") or s.get("is_wave2_absorb") or (s.get("vwap_diff", 0) >= 0 and s.get("change", 0) <= 7.0))
+            s for s in buyable_qualified 
+            if s not in unsealed_break and (s.get("is_low_absorb") or s.get("is_wave2_absorb") or (s.get("vwap_diff", 0) >= 0 and s.get("change", 0) <= 7.0))
         ]
         unsealed_absorb.sort(key=lambda s: (s.get("score", 0) + (10 if s.get("net_flow", 0) > 0 else 0)), reverse=True)
 
-        # 3. 已封死涨停龙头 (已涨停，供排板或情绪观察)
-        zt_leaders = [s for s in qualified_stocks if s.get("is_zt")]
-        zt_leaders.sort(key=lambda s: (s.get("lbc", 1), s.get("score", 0)), reverse=True)
-
-        # 组合推送列表：优先保证有可买入的未封死标的
         picks = []
         if unsealed_break:
             picks.extend(unsealed_break[:2])
         if unsealed_absorb:
             picks.extend(unsealed_absorb[:2])
 
-        # 若未封死标的不满 4 只，补充已封死涨停龙头供排板与观察
-        if len(picks) < 4 and zt_leaders:
-            for z in zt_leaders:
-                if z not in picks:
-                    picks.append(z)
-                if len(picks) >= 4:
-                    break
-
-        # 兜底：若仍不足，从 qualified_stocks 补充
         if not picks:
-            picks = qualified_stocks[:4] or stocks[:4]
-
+            picks = buyable_qualified[:4] or buyable_all[:4]
         return picks[:4]
 
     elif stage == "settle":
-        zt_picks = [s for s in qualified_stocks if s.get("is_zt")][:2]
-        wave2_picks = [s for s in qualified_stocks if s.get("is_wave2_absorb") and not s.get("is_zt")][:2]
-        if not zt_picks and not wave2_picks:
-            zt_picks = [s for s in stocks if s.get("is_zt")][:2]
-            wave2_picks = qualified_stocks[:2]
-        return zt_picks + wave2_picks
+        # 09:55 早盘定势阶段（未封死强势走强 + 二波回踩蓄势低吸）
+        strong_picks = [
+            s for s in buyable_qualified 
+            if s.get("change", 0) >= 3.5 and s.get("net_flow", 0) > 0
+        ]
+        strong_picks.sort(key=lambda s: (s.get("score", 0) + (10 if s.get("net_flow", 0) > 1e7 else 0)), reverse=True)
 
-    return qualified_stocks[:4] or stocks[:3]
+        wave2_picks = [
+            s for s in buyable_qualified 
+            if s not in strong_picks and (s.get("is_wave2_absorb") or s.get("vwap_diff", 0) >= 0)
+        ]
+        wave2_picks.sort(key=lambda s: (s.get("score", 0) + (10 if s.get("net_flow", 0) > 0 else 0)), reverse=True)
+
+        picks = []
+        if strong_picks:
+            picks.extend(strong_picks[:2])
+        if wave2_picks:
+            picks.extend(wave2_picks[:2])
+
+        if not picks:
+            picks = buyable_qualified[:4] or buyable_all[:4]
+        return picks[:4]
+
+    return buyable_qualified[:4] or buyable_all[:3]
 
 
 def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None, sell_actions=None, buy_records=None, account_data=None):
@@ -791,15 +815,14 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
         card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(stock_md_list) if stock_md_list else "⚠️ 今日早盘竞价无达到合格门槛的标的，建议防守观望。"}})
 
     elif stage == "instant":
-        # ── 09:31:30 极速秒板阶段 ──
-        section_title = "⚡ **【开盘极速秒板 · 主力闪电抢筹先锋 (09:31:30)】**"
+        # ── 09:31:30 极速突击阶段 (未封死·闪电抢筹) ──
+        section_title = "⚡ **【开盘极速突击 · 主力闪电抢筹 (未封死·可即时买入)】**"
         card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": section_title}})
 
         stock_md_list = []
         for s in pushed_stocks:
             grade_badge = f"【{s['grade']}级 {s['score']}分】"
             leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
-            zt_tag = f" | {s['change']:+.2f}% [涨停板]" if s.get("is_zt") else f" | {s['change']:+.2f}%"
             reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "开盘极速爆量拉升"
 
             flow_tag = f"净买 **{fmt_amount(s.get('net_flow', 0))}** (占{s.get('flow_ratio', 0) * 100:+.1f}%)"
@@ -810,9 +833,9 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
                 b = buy_map[s["code"]]
                 buy_info_str = f"\n> 💼 **【10万实盘模拟买入】**: 买入 **{b['shares']}股** | 占用现金: **￥{b['cost_amount']:,.2f}** (仓位 {b['pos_ratio']:.1f}%)"
 
-            action_tips = "主力直线封板，可第一时间挂单打板或排队抢筹！" if s.get("is_zt") else "开盘极速大单拉升，可挂分时均线上方抢筹！"
+            action_tips = "开盘主力大单爆量拉升，未封死，可在分时均线上方跟进挂单抢筹！"
             stock_md_list.append(
-                f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}**{zt_tag}){leader_tag}\n"
+                f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
                 f"> 战法: **`{s['strategy_tag']}`** | 评级: **{grade_badge}**\n"
                 f"> 行业: {sec_tag} | 主力: {flow_tag}\n"
                 f"> 依据: {reasons_str}{buy_info_str}\n"
@@ -820,23 +843,21 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
                 f"> 🚨 **防守止损线**: `￥{s['stop_loss']:.2f}`"
             )
 
-        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(stock_md_list) if stock_md_list else "开盘 90 秒内暂无主力极速秒板标的。"}})
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(stock_md_list) if stock_md_list else "开盘 90 秒内暂无未封死极速抢筹标的。"}})
 
     elif stage == "confirm":
-        # ── 09:38 开盘确认阶段 ──
-        # 精准拆分为：未封死强攻冲板、未封死均线低吸、已封死涨停龙头
+        # ── 09:38 开盘确认阶段 (未封死强攻 + 未封死低吸) ──
         break_picks = [
             s for s in pushed_stocks 
-            if not s.get("is_zt") and (s.get("is_breakthrough") or s.get("change", 0) >= 3.5 or s.get("strategy_tag") in ["🔥 主力大单爆量抢筹", "🔥 竞价爆量弱转强"])
+            if (s.get("is_breakthrough") or s.get("change", 0) >= 3.5 or s.get("strategy_tag") in ["🔥 主力大单爆量抢筹", "🔥 竞价爆量弱转强"])
         ]
         absorb_picks = [
             s for s in pushed_stocks 
-            if not s.get("is_zt") and s not in break_picks
+            if s not in break_picks
         ]
-        zt_picks = [s for s in pushed_stocks if s.get("is_zt")]
 
         # 1. 强攻冲板先锋 (未封死·可即时买入)
-        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "💥 **【强攻冲板 / 主力抢筹 (未封死·可即时买入)】**"}})
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "💥 **【强攻冲板 / 主力抢筹先锋 (未封死·可即时买入)】**"}})
         if break_picks:
             break_md = []
             for s in break_picks:
@@ -856,7 +877,7 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
                     f"> 战法: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
                     f"> 行业: {sec_tag} | 主力: {flow_tag}\n"
                     f"> 依据: {reasons_str}{buy_info_str}\n"
-                    f"> 💡 **强攻买入**: 现价或分时均线上方挂单抢筹，捕捉早盘封板机会\n"
+                    f"> 💡 **强攻买入**: 现价或分时均线上方挂单抢筹，捕捉冲板空间\n"
                     f"> 🚨 **防守止损线**: `￥{s['stop_loss']:.2f}` (次日T+1跌破坚决止损)"
                 )
             card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(break_md)}})
@@ -893,45 +914,18 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
         else:
             card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "暂无未封死低吸标的"}})
 
-        # 3. 已封死涨停龙头 (若有已封死标的，单独列出，避免误导为可买入)
-        if zt_picks:
-            card["elements"].append({"tag": "hr"})
-            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "🏆 **【主线封板龙头 (已封死·排单/回封参考)】**"}})
-            zt_md = []
-            for s in zt_picks:
-                leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
-                reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "开盘主力强势封死涨停"
-
-                flow_tag = f"净买 **{fmt_amount(s.get('net_flow', 0))}** (占{s.get('flow_ratio', 0) * 100:+.1f}%)"
-                sec_tag = f"`{s['sector']}` ({s.get('sector_flow_str', '--')})"
-
-                buy_info_str = ""
-                if s["code"] in buy_map:
-                    b = buy_map[s["code"]]
-                    buy_info_str = f"\n> 💼 **【10万实盘模拟买入】**: 买入 **{b['shares']}股** | 占用现金: **￥{b['cost_amount']:,.2f}** (仓位 {b['pos_ratio']:.1f}%)"
-
-                zt_md.append(
-                    f"🟢 **{s['code']} {s['name']}** (封板价: **￥{s['price']:.2f}** | {s['change']:+.2f}% [涨停]){leader_tag}\n"
-                    f"> 战法: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
-                    f"> 行业: {sec_tag} | 主力: {flow_tag}\n"
-                    f"> 依据: {reasons_str}{buy_info_str}\n"
-                    f"> ⚡ **封板策略**: 封单充足，不可追买；若盘中炸板回踩企稳且承接坚决，可轻仓回封打板"
-                )
-            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(zt_md)}})
-
     else:
-        # ── 09:55 早盘定势阶段 ──
-        zt_picks = [s for s in pushed_stocks if s.get("is_zt")]
-        wave2_picks = [s for s in pushed_stocks if not s.get("is_zt")]
+        # ── 09:55 早盘定势阶段 (未封死走强 + 二波低吸) ──
+        strong_picks = [s for s in pushed_stocks if s.get("change", 0) >= 3.5]
+        wave2_picks = [s for s in pushed_stocks if s not in strong_picks]
 
-        # 1. 封板龙头打板确认
-        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "🏆 **【主线封板先锋 · 封板/排板确认】**"}})
-        if zt_picks:
-            zt_md = []
-            for s in zt_picks:
+        # 1. 强势走强先锋
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "💥 **【早盘强势 / 主力持续抢筹 (未封死·分时跟进)】**"}})
+        if strong_picks:
+            strong_md = []
+            for s in strong_picks:
                 leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
-                seal_str = f"封单约 {fmt_amount(s['seal_fund'])}" if s.get("seal_fund") else "封单坚挺"
-                flow_tag = f"主力净买 **{fmt_amount(s.get('net_flow', 0))}**"
+                flow_tag = f"主力净买 **{fmt_amount(s.get('net_flow', 0))}** (占{s.get('flow_ratio', 0) * 100:+.1f}%)"
                 sec_tag = f"`{s['sector']}` ({s.get('sector_flow_str', '--')})"
 
                 buy_info_str = ""
@@ -939,20 +933,21 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
                     b = buy_map[s["code"]]
                     buy_info_str = f"\n> 💼 **【10万实盘模拟买入】**: 买入 **{b['shares']}股** | 占用现金: **￥{b['cost_amount']:,.2f}** (仓位 {b['pos_ratio']:.1f}%)"
 
-                zt_md.append(
-                    f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}% 涨停板){leader_tag}\n"
-                    f"> 梯队: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
-                    f"> 行业: {sec_tag} | {flow_tag} | {seal_str}{buy_info_str}\n"
-                    f"> 💡 **排单操作**: 主线最强龙头，若有炸板回封机会可直接排单打板"
+                strong_md.append(
+                    f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
+                    f"> 战法: **`{s['strategy_tag']}`** | 评级: **【{s['grade']}级 {s['score']}分】**\n"
+                    f"> 行业: {sec_tag} | {flow_tag}{buy_info_str}\n"
+                    f"> 💡 **操作建议**: 早盘多头承接坚挺，分时均线上方跟进挂单买入\n"
+                    f"> 🚨 **防守止损线**: `￥{s['stop_loss']:.2f}`"
                 )
-            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(zt_md)}})
+            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n\n".join(strong_md)}})
         else:
-            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "早盘暂无核心涨停标的"}})
+            card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "早盘暂无未封死走强标的"}})
 
         card["elements"].append({"tag": "hr"})
 
         # 2. 二波回踩蓄势低吸
-        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "🌊 **【二波回踩蓄势 · 主力承接低吸】**"}})
+        card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "🌊 **【二波回踩蓄势 · 主力承接低吸 (均线买入)】**"}})
         if wave2_picks:
             wave2_md = []
             for s in wave2_picks:

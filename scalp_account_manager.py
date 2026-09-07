@@ -327,6 +327,8 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
             continue
         if push_price <= 0:
             continue
+        if stock.get("is_zt"):
+            continue
 
         # 计算拟分配买入资金
         target_buy_amount = min(account.get("total_assets", INITIAL_CAPITAL) * target_pos_ratio, account["cash"])
