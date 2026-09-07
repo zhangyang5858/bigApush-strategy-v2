@@ -522,13 +522,21 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
         if not code or pre_close <= 0 or code.startswith(("688", "8", "4")):
             continue
 
-        stop_loss_price = open_price * 0.98
         is_leader = (sec_info["leader"] == name)
 
         if stage == "auction":
             push_price = open_price
+            stop_loss_price = round(open_price * 0.98, 2)
         else:
-            push_price = cur_price
+            # 20cm 标的防追高回落机制：若涨幅已达 +9% ~ +16% 且未封死涨停，以均线分时支撑作为买入参考
+            if code.startswith(("30", "688")) and 9.0 <= cur_chg < 19.5 and not is_zt:
+                vwap_ref = round(cur_price / (1.0 + max(vwap_diff, 0.0) / 100.0), 2)
+                push_price = round(min(vwap_ref, cur_price * 0.98), 2)
+                if strategy_tag not in ["🏆 主线首板突破", "👑 主线领涨封板"]:
+                    strategy_tag = "🛡️ 20cm回踩VWAP低吸"
+            else:
+                push_price = cur_price
+            stop_loss_price = round(push_price * 0.975, 2)
 
         analyzed_stocks.append({
             "code": code,

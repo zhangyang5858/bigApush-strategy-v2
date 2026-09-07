@@ -203,10 +203,17 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
                 reason = f"盘中触及止损价 ￥{stop_loss:.2f}，按纪律清仓"
                 should_sell = True
             elif stage == "settle" and not is_zt:
-                # 09:55 定势阶段仍未冲高且走弱，执行调仓
-                action_desc = "⏱️ 超短调仓卖出"
-                reason = f"早盘半小时定势未走强({unrealized_profit_pct:+.2f}%)，清仓腾出资金"
-                should_sell = True
+                # 09:55 定势阶段：若走弱、跌破开盘价或处于浮亏状态，果断调仓卖出
+                # 若稳居买入价上方且分时承接良好，允许继续持有观察午后冲高
+                is_weak = (unrealized_profit_pct <= 0) or (cur_price < open_price)
+                if is_weak:
+                    action_desc = "⏱️ 超短调仓卖出"
+                    reason = f"早盘半小时定势未走强({unrealized_profit_pct:+.2f}%)，清仓腾出资金"
+                    should_sell = True
+                else:
+                    action_desc = "🛡️ 均线上方蓄势持股"
+                    reason = f"稳居买入价与开盘价上方({unrealized_profit_pct:+.2f}%)，持有观察午后冲高"
+                    should_sell = False
             else:
                 action_desc = "🛡️ VWAP上方持股"
                 reason = f"稳居买入价上方({unrealized_profit_pct:+.2f}%)，继续观察"
@@ -328,6 +335,14 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
 
         # 计算买入股数 (向下取 100 股整数倍)
         raw_shares = int(target_buy_amount / (push_price * 100)) * 100
+
+        # 高价股自适应弹性微调：若现金充足且允许微幅弹性浮动（10%容忍度），优先买足仓位避免大量闲置资金
+        candidate_shares = raw_shares + 100
+        candidate_gross = candidate_shares * push_price
+        candidate_cost = candidate_gross + calc_buy_fee(candidate_gross)
+        if candidate_cost <= account["cash"] and candidate_cost <= target_buy_amount * 1.10:
+            raw_shares = candidate_shares
+
         if raw_shares < 100:
             continue
 
