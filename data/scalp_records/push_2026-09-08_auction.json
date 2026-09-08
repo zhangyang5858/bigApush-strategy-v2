@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-08",
+  "time": "09:26:36",
+  "stage": "auction",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "600127",
+      "name": "金健米业",
+      "push_time": "09:26:36",
+      "stage": "auction",
+      "strategy_tag": "🔥 竞价爆量弱转强",
+      "push_price": 14.07,
+      "open_price": 14.07,
+      "pre_close": 13.53,
+      "stop_loss": 13.79,
+      "grade": "S",
+      "score": 84.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "农产品加工"
+    },
+    {
+      "code": "605577",
+      "name": "龙版传媒",
+      "push_time": "09:26:36",
+      "stage": "auction",
+      "strategy_tag": "🔥 竞价爆量弱转强",
+      "push_price": 18.18,
+      "open_price": 18.18,
+      "pre_close": 17.11,
+      "stop_loss": 17.82,
+      "grade": "S",
+      "score": 83.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "出版"
+    }
+  ]
+}
