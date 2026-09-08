@@ -1,0 +1,72 @@
+{
+  "date": "2026-09-08",
+  "time": "09:55:40",
+  "stage": "settle",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "300697",
+      "name": "电工合金",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🛡️ 20cm回踩VWAP低吸",
+      "push_price": 15.52,
+      "open_price": 15.1,
+      "pre_close": 14.6,
+      "stop_loss": 15.13,
+      "grade": "S",
+      "score": 96.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "工业金属"
+    },
+    {
+      "code": "600227",
+      "name": "赤天化",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🛡️ 资金共振VWAP低吸",
+      "push_price": 4.91,
+      "open_price": 4.51,
+      "pre_close": 4.51,
+      "stop_loss": 4.79,
+      "grade": "S",
+      "score": 94.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "农化制品"
+    },
+    {
+      "code": "603466",
+      "name": "风语筑",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🌊 主线二波蓄势低吸",
+      "push_price": 12.57,
+      "open_price": 12.33,
+      "pre_close": 12.19,
+      "stop_loss": 12.26,
+      "grade": "S",
+      "score": 94.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "数字媒体"
+    },
+    {
+      "code": "000422",
+      "name": "湖北宜化",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🌊 主线二波蓄势低吸",
+      "push_price": 12.81,
+      "open_price": 12.5,
+      "pre_close": 12.46,
+      "stop_loss": 12.49,
+      "grade": "S",
+      "score": 91.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "农化制品"
+    }
+  ]
+}
