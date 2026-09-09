@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-09",
+  "time": "09:26:37",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002579",
+      "name": "中京电子",
+      "push_time": "09:26:37",
+      "stage": "auction",
+      "strategy_tag": "🔥 竞价爆量弱转强",
+      "push_price": 17.74,
+      "open_price": 17.74,
+      "pre_close": 17.06,
+      "stop_loss": 17.39,
+      "grade": "A",
+      "score": 79.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "元件"
+    },
+    {
+      "code": "000823",
+      "name": "超声电子",
+      "push_time": "09:26:37",
+      "stage": "auction",
+      "strategy_tag": "🛡️ VWAP低吸承接",
+      "push_price": 17.05,
+      "open_price": 17.05,
+      "pre_close": 16.53,
+      "stop_loss": 16.71,
+      "grade": "A",
+      "score": 79.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "元件"
+    }
+  ]
+}
