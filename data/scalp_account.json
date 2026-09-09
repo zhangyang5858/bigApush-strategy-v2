@@ -1,7 +1,7 @@
 {
   "initial_capital": 100000.0,
   "total_assets": 98451.89,
-  "cash": 73263.28,
+  "cash": 23859.44,
   "positions": [
     {
       "code": "002885",
@@ -11,12 +11,46 @@
       "buy_stage": "instant",
       "strategy_tag": "🔥 主力大单爆量抢筹",
       "buy_price": 29.31,
-      "current_price": 29.31,
+      "current_price": 29.78,
       "open_price": 29.8,
       "stop_loss": 28.58,
       "shares": 900,
       "cost_amount": 26385.86,
       "fee": 6.86,
+      "unrealized_profit_pct": 1.6,
+      "unrealized_profit_amount": 423.0
+    },
+    {
+      "code": "300943",
+      "name": "春晖智控",
+      "buy_date": "2026-09-09",
+      "buy_time": "09:38:40",
+      "buy_stage": "confirm",
+      "strategy_tag": "🔥 主力大单爆量抢筹",
+      "buy_price": 40.11,
+      "current_price": 40.11,
+      "open_price": 39.0,
+      "stop_loss": 39.11,
+      "shares": 600,
+      "cost_amount": 24072.26,
+      "fee": 6.26,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": 0.0
+    },
+    {
+      "code": "600360",
+      "name": "华微电子",
+      "buy_date": "2026-09-09",
+      "buy_time": "09:38:40",
+      "buy_stage": "confirm",
+      "strategy_tag": "🌊 主线二波蓄势低吸",
+      "buy_price": 10.13,
+      "current_price": 10.13,
+      "open_price": 9.83,
+      "stop_loss": 9.88,
+      "shares": 2500,
+      "cost_amount": 25331.58,
+      "fee": 6.58,
       "unrealized_profit_pct": 0.0,
       "unrealized_profit_amount": 0.0
     }
@@ -308,6 +342,6 @@
     }
   ],
   "created_at": "2026-09-02 22:51:21",
-  "updated_at": "2026-09-09 09:32:10",
+  "updated_at": "2026-09-09 09:38:40",
   "position_market_value": 98398.0
 }
