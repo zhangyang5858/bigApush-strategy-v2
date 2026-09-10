@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-10",
+  "time": "09:26:41",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002059",
+      "name": "云南旅游",
+      "push_time": "09:26:41",
+      "stage": "auction",
+      "strategy_tag": "🔥 竞价爆量弱转强",
+      "push_price": 6.3,
+      "open_price": 6.3,
+      "pre_close": 6.01,
+      "stop_loss": 6.17,
+      "grade": "A",
+      "score": 79.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "旅游及景区"
+    },
+    {
+      "code": "300859",
+      "name": "西域旅游",
+      "push_time": "09:26:41",
+      "stage": "auction",
+      "strategy_tag": "🛡️ VWAP低吸承接",
+      "push_price": 30.4,
+      "open_price": 30.4,
+      "pre_close": 29.42,
+      "stop_loss": 29.79,
+      "grade": "A",
+      "score": 77.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "旅游及景区"
+    }
+  ]
+}
