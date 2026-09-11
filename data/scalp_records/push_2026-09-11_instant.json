@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-11",
+  "time": "09:32:08",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "003013",
+      "name": "地铁设计",
+      "push_time": "09:32:08",
+      "stage": "instant",
+      "strategy_tag": "🔥 主力大单爆量抢筹",
+      "push_price": 18.92,
+      "open_price": 18.63,
+      "pre_close": 17.8,
+      "stop_loss": 18.45,
+      "grade": "S",
+      "score": 82.5,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "工程咨询服务Ⅱ"
+    },
+    {
+      "code": "000722",
+      "name": "湖南发展",
+      "push_time": "09:32:08",
+      "stage": "instant",
+      "strategy_tag": "🔥 主力大单爆量抢筹",
+      "push_price": 15.42,
+      "open_price": 15.12,
+      "pre_close": 14.74,
+      "stop_loss": 15.03,
+      "grade": "A",
+      "score": 78.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电力"
+    },
+    {
+      "code": "301080",
+      "name": "百普赛斯",
+      "push_time": "09:32:08",
+      "stage": "instant",
+      "strategy_tag": "🌊 主线二波蓄势低吸",
+      "push_price": 84.28,
+      "open_price": 82.01,
+      "pre_close": 81.6,
+      "stop_loss": 82.17,
+      "grade": "A",
+      "score": 71.2,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "生物制品"
+    }
+  ]
+}
