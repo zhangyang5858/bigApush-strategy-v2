@@ -1,27 +1,8 @@
 {
   "initial_capital": 100000.0,
   "total_assets": 91557.82,
-  "cash": 2085.17,
+  "cash": 2209.19,
   "positions": [
-    {
-      "code": "605006",
-      "name": "山东玻纤",
-      "buy_date": "2026-09-10",
-      "buy_time": "09:38:39",
-      "buy_stage": "confirm",
-      "strategy_tag": "🛡️ VWAP低吸承接",
-      "buy_price": 17.17,
-      "current_price": 17.28,
-      "open_price": 16.29,
-      "stop_loss": 16.74,
-      "shares": 1400,
-      "cost_amount": 24044.25,
-      "fee": 6.25,
-      "unrealized_profit_pct": 0.64,
-      "unrealized_profit_amount": 154.0,
-      "market_value": 24248.0,
-      "is_zt": false
-    },
     {
       "code": "003013",
       "name": "地铁设计",
@@ -30,14 +11,14 @@
       "buy_stage": "instant",
       "strategy_tag": "🔥 主力大单爆量抢筹",
       "buy_price": 18.92,
-      "current_price": 18.78,
+      "current_price": 18.73,
       "open_price": 18.63,
       "stop_loss": 18.45,
       "shares": 1300,
       "cost_amount": 24602.39,
       "fee": 6.39,
-      "unrealized_profit_pct": -0.74,
-      "unrealized_profit_amount": -182.0
+      "unrealized_profit_pct": -1.0,
+      "unrealized_profit_amount": -247.0
     },
     {
       "code": "002531",
@@ -47,14 +28,14 @@
       "buy_stage": "confirm",
       "strategy_tag": "🛡️ VWAP低吸承接",
       "buy_price": 7.23,
-      "current_price": 7.23,
+      "current_price": 7.08,
       "open_price": 7.12,
       "stop_loss": 7.05,
       "shares": 3200,
       "cost_amount": 23142.02,
       "fee": 6.02,
-      "unrealized_profit_pct": 0.0,
-      "unrealized_profit_amount": 0.0
+      "unrealized_profit_pct": -2.07,
+      "unrealized_profit_amount": -480.0
     },
     {
       "code": "001232",
@@ -64,12 +45,29 @@
       "buy_stage": "confirm",
       "strategy_tag": "🌊 主线二波蓄势低吸",
       "buy_price": 172.23,
-      "current_price": 172.23,
+      "current_price": 173.3,
       "open_price": 163.1,
       "stop_loss": 167.92,
       "shares": 100,
       "cost_amount": 17228.17,
       "fee": 5.17,
+      "unrealized_profit_pct": 0.62,
+      "unrealized_profit_amount": 107.0
+    },
+    {
+      "code": "002815",
+      "name": "崇达技术",
+      "buy_date": "2026-09-11",
+      "buy_time": "09:55:42",
+      "buy_stage": "settle",
+      "strategy_tag": "🛡️ VWAP低吸承接",
+      "buy_price": 19.5,
+      "current_price": 19.5,
+      "open_price": 18.09,
+      "stop_loss": 19.01,
+      "shares": 1200,
+      "cost_amount": 23406.08,
+      "fee": 6.08,
       "unrealized_profit_pct": 0.0,
       "unrealized_profit_amount": 0.0
     }
@@ -431,6 +429,23 @@
       "realized_profit_pct": -4.91,
       "action": "🚨 触发止损卖出",
       "reason": "跌破防守线(-4.81%)，无条件止损控制风险"
+    },
+    {
+      "code": "605006",
+      "name": "山东玻纤",
+      "buy_date": "2026-09-10",
+      "buy_price": 17.17,
+      "sell_date": "2026-09-11",
+      "sell_time": "09:55:42",
+      "sell_stage": "settle",
+      "sell_price": 16.82,
+      "shares": 1400,
+      "gross_sell_amount": 23548.0,
+      "fee": 17.9,
+      "realized_profit": -514.15,
+      "realized_profit_pct": -2.14,
+      "action": "⏱️ 超短调仓卖出",
+      "reason": "早盘半小时定势未走强(-2.04%)，清仓腾出资金"
     }
   ],
   "daily_history": [
@@ -502,6 +517,6 @@
     }
   ],
   "created_at": "2026-09-02 22:51:21",
-  "updated_at": "2026-09-11 09:38:39",
+  "updated_at": "2026-09-11 09:55:42",
   "position_market_value": 91106.0
 }
