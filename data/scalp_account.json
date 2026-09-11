@@ -1,7 +1,7 @@
 {
   "initial_capital": 100000.0,
   "total_assets": 91557.82,
-  "cash": 42455.36,
+  "cash": 2085.17,
   "positions": [
     {
       "code": "605006",
@@ -30,12 +30,46 @@
       "buy_stage": "instant",
       "strategy_tag": "🔥 主力大单爆量抢筹",
       "buy_price": 18.92,
-      "current_price": 18.92,
+      "current_price": 18.78,
       "open_price": 18.63,
       "stop_loss": 18.45,
       "shares": 1300,
       "cost_amount": 24602.39,
       "fee": 6.39,
+      "unrealized_profit_pct": -0.74,
+      "unrealized_profit_amount": -182.0
+    },
+    {
+      "code": "002531",
+      "name": "天顺风能",
+      "buy_date": "2026-09-11",
+      "buy_time": "09:38:39",
+      "buy_stage": "confirm",
+      "strategy_tag": "🛡️ VWAP低吸承接",
+      "buy_price": 7.23,
+      "current_price": 7.23,
+      "open_price": 7.12,
+      "stop_loss": 7.05,
+      "shares": 3200,
+      "cost_amount": 23142.02,
+      "fee": 6.02,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": 0.0
+    },
+    {
+      "code": "001232",
+      "name": "嘉立创",
+      "buy_date": "2026-09-11",
+      "buy_time": "09:38:39",
+      "buy_stage": "confirm",
+      "strategy_tag": "🌊 主线二波蓄势低吸",
+      "buy_price": 172.23,
+      "current_price": 172.23,
+      "open_price": 163.1,
+      "stop_loss": 167.92,
+      "shares": 100,
+      "cost_amount": 17228.17,
+      "fee": 5.17,
       "unrealized_profit_pct": 0.0,
       "unrealized_profit_amount": 0.0
     }
@@ -468,6 +502,6 @@
     }
   ],
   "created_at": "2026-09-02 22:51:21",
-  "updated_at": "2026-09-11 09:32:08",
+  "updated_at": "2026-09-11 09:38:39",
   "position_market_value": 91106.0
 }
