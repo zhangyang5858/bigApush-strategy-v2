@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-14",
+  "time": "09:26:40",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "300164",
+      "name": "通源石油",
+      "push_time": "09:26:40",
+      "stage": "auction",
+      "strategy_tag": "🔥 竞价爆量弱转强",
+      "push_price": 10.59,
+      "open_price": 10.59,
+      "pre_close": 10.18,
+      "stop_loss": 10.38,
+      "grade": "A",
+      "score": 78.4,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "油服工程"
+    },
+    {
+      "code": "002439",
+      "name": "启明星辰",
+      "push_time": "09:26:40",
+      "stage": "auction",
+      "strategy_tag": "🔥 竞价爆量弱转强",
+      "push_price": 13.98,
+      "open_price": 13.98,
+      "pre_close": 13.3,
+      "stop_loss": 13.7,
+      "grade": "A",
+      "score": 78.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "软件开发"
+    }
+  ]
+}
