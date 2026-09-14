@@ -102,7 +102,8 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
     sell_actions = check_and_execute_sells(account, live_price_map, zt_set, stage=stage, today_str=today_str)
 
     # ── 2. 模拟账户操作：今日推荐新标的模拟分仓买入 ──
-    buy_records = execute_stage_buys(account, pushed_stocks, stage=stage, today_str=today_str)
+    regime = res.get("regime", "中性")
+    buy_records = execute_stage_buys(account, pushed_stocks, stage=stage, today_str=today_str, regime=regime)
 
     # ── 3. 盘中盯市资产重估：实时计算持仓市值、总资产、今日盈亏与累计收益 ──
     account = update_account_realtime_valuation(account, live_price_map, zt_set, today_str=today_str)

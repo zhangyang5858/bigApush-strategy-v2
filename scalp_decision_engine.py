@@ -755,8 +755,16 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
         total_ret = account_data.get("total_return_pct", 0.0)
         profit_emoji = "🟢" if daily_profit >= 0 else "🔴"
 
+        regime = analysis_res.get("regime", "中性")
+        if regime == "进攻":
+            regime_tag = " [🔥进攻·满仓4只]"
+        elif regime == "防守":
+            regime_tag = " [🛡️防守·上限2只/50%避险]"
+        else:
+            regime_tag = " [⚖️中性·上限3只/75%]"
+
         account_md = (
-            f"💼 **10万模拟账户**: 总资产 **￥{total_assets:,.2f}** | 可用现金: **￥{cash:,.2f}** | 持仓市值: **￥{pos_val:,.2f}** ({pos_cnt}只)\n"
+            f"💼 **10万模拟账户**{regime_tag}: 总资产 **￥{total_assets:,.2f}** | 可用现金: **￥{cash:,.2f}** | 持仓市值: **￥{pos_val:,.2f}** ({pos_cnt}只)\n"
             f"{profit_emoji} **今日盘中实时盈亏**: **{daily_profit:+,.2f}元 ({daily_ret:+.2f}%)** | 累计总收益: **{total_profit:+,.2f}元 ({total_ret:+.2f}%)**"
         )
         card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": account_md}})
@@ -841,6 +849,8 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
             if s["code"] in buy_map:
                 b = buy_map[s["code"]]
                 buy_info_str = f"\n> 💼 **【10万实盘模拟买入】**: 买入 **{b['shares']}股** | 占用现金: **￥{b['cost_amount']:,.2f}** (仓位 {b['pos_ratio']:.1f}%)"
+            elif analysis_res.get("regime") == "防守" and s.get("score", 0) < 86.0:
+                buy_info_str = f"\n> 🛡️ **【防守避险】**: 评分({s.get('score', 0):.1f}分)未达防守期极强门槛(86分)，保持现金观望，资金留待09:38确认阶段"
 
             action_tips = "开盘主力大单爆量拉升，未封死，可在分时均线上方跟进挂单抢筹！"
             stock_md_list.append(

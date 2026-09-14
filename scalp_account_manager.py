@@ -332,30 +332,55 @@ STAGE_MAX_BUYS = {
 }
 
 
-def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, max_positions=4, target_pos_ratio=0.25, max_stock_price=80.0):
+def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, max_positions=4, target_pos_ratio=0.25, max_stock_price=80.0, regime="中性"):
     """
     执行早盘新推荐标的的模拟买入建仓
-    - 阶段控仓配额：
-      * auction (09:26): 最多买 1 只 (25%)，避免过早打光子弹
-      * instant (09:31:30): 最多买 1 只 (25%)
-      * confirm (09:35/09:38): 最多买 2 只 (50%)，确定性最高的主战场
-      * settle (09:55): 机动买 1 只
+    - P1: 大盘状态机与动态仓位管控 (Option B 温和平衡防守)
+      * 进攻: 上限 4 只 (100% 满仓博弈)
+      * 中性: 上限 3 只 (75% 仓位，保留 25% 现金防御)
+      * 防守: 上限 2 只 (50% 仓位，强制保留 50% 现金避险)
+    - P2: 时段配额与买入门槛再平衡
+      * 防守期: 09:31 instant 仅买评分 >= 86.0 且 net_flow >= 2e7 的极强龙头；09:38 confirm 配额 1 只
+      * 中性期: 09:31 instant 门槛提升至评分 >= 82.0
+      * 进攻期: 维持标准门槛与配额
     - target_pos_ratio: 单只标的分配总资产的 25%（约 2.5 万元）
     - max_stock_price: 10万小资金单价过滤门槛 (默认 80 元)，避免单手过大造成资金闲置
-    - 检查现金是否充足
-    - 股数严格向下取整到 100 股（1手）
     """
     if not today_str:
         today_str = datetime.now().strftime("%Y-%m-%d")
 
+    # 1. 大盘状态机动态持仓上限 (P1)
+    if regime == "进攻":
+        effective_max_positions = min(max_positions, 4)
+    elif regime == "防守":
+        effective_max_positions = min(max_positions, 2)
+    else:  # 中性
+        effective_max_positions = min(max_positions, 3)
+
+    # 2. 时段配额动态调整 (P2)
     stage_limit = STAGE_MAX_BUYS.get(stage, 2)
+    if regime == "防守" and stage == "confirm":
+        stage_limit = 1  # 防守期开盘承接降为 1 只
+
+    # 3. 极速秒板阶段质量门槛 (P2)
+    min_instant_score = 86.0 if regime == "防守" else 82.0 if regime == "中性" else 75.0
+    min_instant_net_flow = 2e7 if regime == "防守" else 1e7 if regime == "中性" else 0.0
+
     existing_codes = {p["code"] for p in account.get("positions", [])}
     buy_records = []
+
+    cur_pos_count = len(account.get("positions", []))
+    if cur_pos_count >= effective_max_positions:
+        if regime == "防守":
+            print(f"  🛡️ [防守模式控仓] 当前持仓已达上限 {effective_max_positions}只 (50%仓位)，防守期强制保留半仓现金避险，跳过买入。")
+        elif regime == "中性":
+            print(f"  ⚖️ [中性模式控仓] 当前持仓已达上限 {effective_max_positions}只 (75%仓位)，中性期保持现金防御，跳过买入。")
+        return buy_records
 
     for stock in pushed_stocks:
         if len(buy_records) >= stage_limit:
             break
-        if len(account.get("positions", [])) >= max_positions:
+        if len(account.get("positions", [])) >= effective_max_positions:
             break
 
         code = str(stock.get("code") or "")
@@ -364,6 +389,8 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
         open_price = n(stock.get("open_price") or push_price)
         stop_loss = n(stock.get("stop_loss") or (open_price * 0.98))
         strategy_tag = stock.get("strategy_tag", "🎯 综合短线")
+        score = n(stock.get("score") or 0.0)
+        net_flow = n(stock.get("net_flow") or 0.0)
 
         if code in existing_codes:
             continue
@@ -371,6 +398,15 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
             continue
         if stock.get("is_zt"):
             continue
+
+        # P2: 极速秒板 (09:31:30) 弱势环境防诱多门槛校验
+        if stage == "instant":
+            if score < min_instant_score:
+                print(f"  🛡️ [{regime}行情·秒板拦截] {code} {name} (评分 {score:.1f} < 门槛 {min_instant_score:.1f})，跳过以防开盘冲高诱多回落")
+                continue
+            if net_flow < min_instant_net_flow:
+                print(f"  🛡️ [{regime}行情·秒板拦截] {code} {name} (主力净流入 {net_flow/1e4:.0f}万 < 门槛 {min_instant_net_flow/1e4:.0f}万)，主力资金支持不足，跳过")
+                continue
 
         # 10万小资金高价股过滤：若单价过高，买1手占资不均，买2手超额，跳过以避免大量闲置资金
         if max_stock_price and push_price > max_stock_price:
@@ -424,7 +460,8 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
             "cost_amount": round(total_cost, 2),
             "fee": buy_fee,
             "unrealized_profit_pct": 0.0,
-            "unrealized_profit_amount": 0.0
+            "unrealized_profit_amount": 0.0,
+            "regime": regime
         }
         account["positions"].append(pos_entry)
         existing_codes.add(code)
@@ -437,7 +474,8 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
             "cost_amount": total_cost,
             "pos_ratio": (total_cost / account.get("total_assets", INITIAL_CAPITAL)) * 100,
             "stop_loss": stop_loss,
-            "strategy_tag": strategy_tag
+            "strategy_tag": strategy_tag,
+            "regime": regime
         })
         print(f"  🛒 [模拟买入] {code} {name} {raw_shares}股 @ ￥{push_price:.2f} | 占用现金: {total_cost:.2f}元 (仓位 {(total_cost / account.get('total_assets', INITIAL_CAPITAL))*100:.1f}%)")
 
