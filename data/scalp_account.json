@@ -1,6 +1,6 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 92214.19,
+  "total_assets": 93030.64,
   "cash": 591.64,
   "positions": [
     {
@@ -11,15 +11,15 @@
       "buy_stage": "instant",
       "strategy_tag": "🔥 主力大单爆量抢筹",
       "buy_price": 18.92,
-      "current_price": 19.2,
+      "current_price": 19.59,
       "open_price": 18.63,
       "stop_loss": 18.45,
       "shares": 1300,
       "cost_amount": 24602.39,
       "fee": 6.39,
-      "unrealized_profit_pct": 1.48,
-      "unrealized_profit_amount": 364.0,
-      "market_value": 24557.0,
+      "unrealized_profit_pct": 3.54,
+      "unrealized_profit_amount": 864.61,
+      "market_value": 25467.0,
       "is_zt": false
     },
     {
@@ -30,14 +30,16 @@
       "buy_stage": "instant",
       "strategy_tag": "🎯 综合短线先锋",
       "buy_price": 8.39,
-      "current_price": 8.66,
+      "current_price": 8.65,
       "open_price": 8.38,
       "stop_loss": 8.18,
       "shares": 2400,
       "cost_amount": 20141.24,
       "fee": 5.24,
-      "unrealized_profit_pct": 3.22,
-      "unrealized_profit_amount": 648.0
+      "unrealized_profit_pct": 3.1,
+      "unrealized_profit_amount": 618.76,
+      "market_value": 20760.0,
+      "is_zt": true
     },
     {
       "code": "002279",
@@ -47,14 +49,16 @@
       "buy_stage": "settle",
       "strategy_tag": "🌊 主线二波蓄势低吸",
       "buy_price": 7.31,
-      "current_price": 7.08,
+      "current_price": 7.11,
       "open_price": 6.85,
       "stop_loss": 7.13,
       "shares": 3200,
       "cost_amount": 23398.08,
       "fee": 6.08,
-      "unrealized_profit_pct": -3.15,
-      "unrealized_profit_amount": -736.0
+      "unrealized_profit_pct": -2.74,
+      "unrealized_profit_amount": -646.08,
+      "market_value": 22752.0,
+      "is_zt": false
     },
     {
       "code": "600207",
@@ -64,14 +68,16 @@
       "buy_stage": "instant",
       "strategy_tag": "🔥 主力大单爆量抢筹",
       "buy_price": 5.11,
-      "current_price": 5.11,
+      "current_price": 5.1,
       "open_price": 5.08,
       "stop_loss": 4.98,
       "shares": 4600,
       "cost_amount": 23512.11,
       "fee": 6.11,
-      "unrealized_profit_pct": 0.0,
-      "unrealized_profit_amount": 0.0
+      "unrealized_profit_pct": -0.2,
+      "unrealized_profit_amount": -52.11,
+      "market_value": 23460.0,
+      "is_zt": false
     }
   ],
   "closed_trades": [
@@ -578,9 +584,20 @@
       "total_profit": -7785.81,
       "total_return_pct": -7.79,
       "position_count": 4
+    },
+    {
+      "date": "2026-09-14",
+      "total_assets": 93030.64,
+      "cash": 591.64,
+      "position_market_value": 92439.0,
+      "daily_profit": 816.45,
+      "daily_return_pct": 0.89,
+      "total_profit": -6969.36,
+      "total_return_pct": -6.97,
+      "position_count": 4
     }
   ],
   "created_at": "2026-09-02 22:51:21",
-  "updated_at": "2026-09-14 14:56:30",
-  "position_market_value": 90005.0
+  "updated_at": "2026-09-14 15:30:54",
+  "position_market_value": 92439.0
 }
