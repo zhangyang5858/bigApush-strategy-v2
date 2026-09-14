@@ -41,6 +41,10 @@ def run_daily_review_push(is_demo=False, force=False):
         if not is_trading_day(today_str):
             print(f"☕ 今天 {today_str} 不是交易日，跳过收盘复盘。")
             return True
+        cur_hm = datetime.now().strftime("%H:%M")
+        if cur_hm < "15:00":
+            print(f"⏰ [时间窗口拦截] 当前时间 {cur_hm} 尚未收盘 (15:00后)，跳过收盘复盘以防获取未收盘行情。")
+            return True
 
     print("  📊 正在拉取全天推送记录与收盘数据执行胜率评估...")
     review_data = evaluate_daily_scalp(date_str=today_str, is_demo=is_demo)

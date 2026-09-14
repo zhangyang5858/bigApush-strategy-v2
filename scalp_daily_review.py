@@ -28,13 +28,25 @@ def ensure_record_dir():
     os.makedirs(REVIEW_CACHE_DIR, exist_ok=True)
 
 
-def save_stage_push_record(stage, pushed_stocks, res=None, date_str=None):
+def save_stage_push_record(stage, pushed_stocks, res=None, date_str=None, force=False):
     """保存每个时段实际推荐上榜的个股快照到本地，供 15:30 收盘复盘使用"""
     ensure_record_dir()
     if not date_str:
         date_str = datetime.now().strftime("%Y-%m-%d")
 
     file_path = os.path.join(REVIEW_CACHE_DIR, f"push_{date_str}_{stage}.json")
+
+    # 快照不可变保护：若当天该时段早盘有效快照已存在，且非强制覆盖，禁止覆写以防污染早盘记录
+    if os.path.exists(file_path) and not force:
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                old_data = json.load(f)
+            if old_data.get("stocks"):
+                old_time = old_data.get("time", "")
+                print(f"  🔒 [快照保护] {stage} 阶段在 {old_time} 已存在有效快照 ({len(old_data['stocks'])}只)，跳过重复覆盖以保护早盘真实记录。")
+                return
+        except Exception:
+            pass
 
     stock_items = []
     for s in (pushed_stocks or []):

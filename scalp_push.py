@@ -14,7 +14,8 @@ from scalp_decision_engine import (
     analyze_scalp_market_v2, build_scalp_feishu_card_v2, get_stage_pushed_stocks
 )
 from scalp_account_manager import (
-    load_account, save_account, check_and_execute_sells, execute_stage_buys
+    load_account, save_account, check_and_execute_sells, execute_stage_buys,
+    update_account_realtime_valuation
 )
 from utils.trade_date_utils import is_trading_day
 
@@ -63,6 +64,21 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
             print(f"☕ 今天 {today_str} 不是交易日，短线决策台跳过推送。")
             return True
 
+        # 时段运行时间窗口校验（防止 GitHub Actions 延迟或外部误触在下午等非对应时段覆盖早盘数据）
+        STAGE_TIME_WINDOWS = {
+            "auction": ("09:15", "09:32"),
+            "instant": ("09:30", "09:40"),
+            "confirm": ("09:35", "09:52"),
+            "settle":  ("09:50", "10:15")
+        }
+        window = STAGE_TIME_WINDOWS.get(stage)
+        if window:
+            cur_hm = datetime.now().strftime("%H:%M")
+            start_t, end_t = window
+            if not (start_t <= cur_hm <= end_t):
+                print(f"⏰ [时间窗口拦截] 当前时间 {cur_hm} 不在阶段【{stage_label}】允许的时间窗口 ({start_t} ~ {end_t}) 内，跳过执行以防污染早盘记录。")
+                return True
+
     webhook_url = get_feishu_webhook()
     notifier = FeishuNotifier(webhook_url)
 
@@ -88,15 +104,18 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
     # ── 2. 模拟账户操作：今日推荐新标的模拟分仓买入 ──
     buy_records = execute_stage_buys(account, pushed_stocks, stage=stage, today_str=today_str)
 
+    # ── 3. 盘中盯市资产重估：实时计算持仓市值、总资产、今日盈亏与累计收益 ──
+    account = update_account_realtime_valuation(account, live_price_map, zt_set, today_str=today_str)
+
     # 保存账户最新状态
     save_account(account)
 
     # 保存阶段推送记录以供收盘 15:30 自动复盘及 SQLite 存档
     try:
         from scalp_daily_review import save_stage_push_record
-        save_stage_push_record(stage, pushed_stocks, res=res, date_str=today_str)
+        save_stage_push_record(stage, pushed_stocks, res=res, date_str=today_str, force=force)
         from scalp_trade_db import record_push_signals
-        record_push_signals(stage, pushed_stocks, date_str=today_str)
+        record_push_signals(stage, pushed_stocks, date_str=today_str, force=force)
     except Exception as e:
         print(f"  ⚠️ 保存推送记录异常: {e}")
 

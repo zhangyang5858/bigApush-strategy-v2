@@ -250,7 +250,7 @@ def record_daily_settlement(settle_dict):
         conn.commit()
 
 
-def record_push_signals(stage, pushed_stocks, date_str=None):
+def record_push_signals(stage, pushed_stocks, date_str=None, force=False):
     """记录时段推送的所有选股信号快照"""
     init_db()
     if not date_str:
@@ -259,6 +259,13 @@ def record_push_signals(stage, pushed_stocks, date_str=None):
 
     with get_db_connection() as conn:
         cursor = conn.cursor()
+        # 快照不可变保护：若当天该时段早盘已记录过有效推送信号，且非 force，跳过覆盖
+        if not force:
+            cursor.execute("SELECT count(*) as cnt FROM push_signals WHERE date = ? AND stage = ?", (date_str, stage))
+            row = cursor.fetchone()
+            if row and row["cnt"] > 0:
+                print(f"  🔒 [DB快照保护] {stage} 阶段在 {date_str} 已存在 {row['cnt']} 条推送信号记录，跳过重复覆盖。")
+                return
         for s in (pushed_stocks or []):
             cursor.execute("""
             INSERT OR REPLACE INTO push_signals (

@@ -20,6 +20,7 @@ test_*.py
 !tests/
 !tests/*.py
 *.tmp
+*.xlsx
 .DS_Store
 Thumbs.db
 

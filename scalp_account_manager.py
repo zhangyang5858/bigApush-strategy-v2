@@ -107,8 +107,8 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
     检查并执行 T+1 持仓处置决策
     - 只能卖出 buy_date < today_str 的持仓 (T+1 规则)
     - 阶段判断：
-      * 09:26 竞价阶段：只输出建议与预警，不实际成交扣减（9:30前不能成交）
-      * 09:35/09:55 开盘后阶段：若满足止盈/止损/调仓条件，自动执行卖出成交并回收现金
+      * 09:26 竞价阶段：输出建议与预警；若竞价低开 <= -3.0% 或破位，标记开盘抢跑止损指令
+      * 09:31/09:35/09:55 开盘后阶段：若满足止盈/止损/保本防守/调仓条件，自动执行卖出成交并回收现金
     """
     if not today_str:
         today_str = datetime.now().strftime("%Y-%m-%d")
@@ -140,6 +140,21 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
         is_zt = bool((code in zt_set) or live_info.get("is_zt") or (cur_chg >= 9.85 and cur_price >= high_price))
         unrealized_profit_pct = ((cur_price / buy_price) - 1) * 100 if buy_price > 0 else 0.0
         unrealized_profit_amount = (cur_price - buy_price) * shares
+
+        # 动态追踪历史最高价与最大浮盈
+        highest_price = max(n(pos.get("highest_price")), high_price, cur_price)
+        pos["highest_price"] = round(highest_price, 2)
+        max_profit_pct = max(n(pos.get("max_profit_pct")), unrealized_profit_pct)
+        pos["max_profit_pct"] = round(max_profit_pct, 2)
+
+        # ── 移动防守规则 1：保本锁盈机制 ──
+        # 若曾浮盈 >= +3.5%，自动将止损位上移至成本价上方 (+0.5%)，确保不亏手续费
+        if max_profit_pct >= 3.5:
+            breakeven_stop = round(buy_price * 1.005, 2)
+            if breakeven_stop > stop_loss:
+                stop_loss = breakeven_stop
+                pos["stop_loss"] = stop_loss
+                pos["is_breakeven_locked"] = True
 
         action_desc = "🛡️ 正常持股"
         reason = "处于正常波动区间，继续持有观察"
@@ -175,36 +190,62 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
             should_sell = False
 
         elif stage == "auction":
-            # 09:26 竞价阶段：只做预警提示
+            # 09:26 竞价阶段：预警与开盘抢跑指令
             auction_chg = ((cur_price / buy_price) - 1) * 100 if buy_price > 0 else 0
-            if cur_price <= stop_loss or auction_chg <= -2.5:
-                action_desc = "🚨 竞价不及预期·预警"
-                reason = f"竞价大幅低开({auction_chg:+.2f}%)，建议 9:30 开盘反抽均线果断止损抢跑"
+            if cur_price <= stop_loss or auction_chg <= -3.0:
+                action_desc = "🚨 竞价破位·开盘抢跑"
+                reason = f"竞价大幅低开({auction_chg:+.2f}%)跌破防守线，指令：09:30:00 开盘市价挂单抢跑止损，杜绝深套"
+                pos["pre_market_stop"] = True
+            elif auction_chg <= -1.5:
+                action_desc = "⚠️ 竞价偏弱·盯盘预警"
+                reason = f"竞价微幅低开({auction_chg:+.2f}%)，建议开盘观察反抽分时均线力度，若不回抽择机减仓"
             elif auction_chg >= 3.0:
                 action_desc = "🎯 竞价高开超预期"
                 reason = f"竞价强势高开({auction_chg:+.2f}%)，9:30开盘观察冲高力度，若不板可在 9:35 冲高止盈"
             else:
                 action_desc = "👀 竞价平开盯盘"
                 reason = f"竞价平稳，开盘观察分时承接与量能"
-            should_sell = False  # 竞价不直接成交，等待 09:35 确认
+            should_sell = False  # 竞价不直接扣减成交，等待 09:30 开盘后执行
 
         else:
-            # 09:35 / 09:55 实盘操作阶段
-            if cur_price <= stop_loss or unrealized_profit_pct <= -2.5:
+            # 09:31 / 09:35 / 09:55 开盘实盘操作阶段
+            # 1. 竞价已标记开盘抢跑止损
+            if pos.get("pre_market_stop") and not is_zt:
+                action_desc = "🚨 竞价破位抢跑成交"
+                reason = f"执行开盘竞价低开抢跑纪律({unrealized_profit_pct:+.2f}%)，市价止损出局避免深亏"
+                should_sell = True
+
+            # 2. 触发保本防守线（此前大肉回落）
+            elif pos.get("is_breakeven_locked") and cur_price <= stop_loss:
+                action_desc = "🛡️ 触发保本锁盈止损"
+                reason = f"曾浮盈+{max_profit_pct:.1f}%，回落跌破保本防守线({unrealized_profit_pct:+.2f}%)，锁定本金出局"
+                should_sell = True
+
+            # 3. 移动止盈（浮盈>=6%且较最高点回撤>=2%且未涨停）
+            elif max_profit_pct >= 6.0 and cur_price <= highest_price * 0.98 and not is_zt:
+                action_desc = "🎯 冲高回落动态止盈"
+                reason = f"盘中最高浮盈+{max_profit_pct:.1f}%，较盘中高点(￥{highest_price:.2f})回撤达2%且未封板，落袋为安"
+                should_sell = True
+
+            # 4. 触发初始止损防守线
+            elif cur_price <= stop_loss or unrealized_profit_pct <= -2.5:
                 action_desc = "🚨 触发止损卖出"
                 reason = f"跌破防守线({unrealized_profit_pct:+.2f}%)，无条件止损控制风险"
                 should_sell = True
+
+            # 5. 冲高未板分批止盈
             elif unrealized_profit_pct >= 3.5 and not is_zt:
                 action_desc = "🎯 冲高止盈卖出"
                 reason = f"早盘冲高获利({unrealized_profit_pct:+.2f}%)，未封涨停，分批落袋为安"
                 should_sell = True
+
             elif unrealized_profit_pct < 0 and low_price <= stop_loss:
                 action_desc = "🚨 盘中破位止损"
                 reason = f"盘中触及止损价 ￥{stop_loss:.2f}，按纪律清仓"
                 should_sell = True
+
             elif stage == "settle" and not is_zt:
                 # 09:55 定势阶段：若走弱、跌破开盘价或处于浮亏状态，果断调仓卖出
-                # 若稳居买入价上方且分时承接良好，允许继续持有观察午后冲高
                 is_weak = (unrealized_profit_pct <= 0) or (cur_price < open_price)
                 if is_weak:
                     action_desc = "⏱️ 超短调仓卖出"
@@ -291,7 +332,7 @@ STAGE_MAX_BUYS = {
 }
 
 
-def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, max_positions=4, target_pos_ratio=0.25):
+def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, max_positions=4, target_pos_ratio=0.25, max_stock_price=80.0):
     """
     执行早盘新推荐标的的模拟买入建仓
     - 阶段控仓配额：
@@ -300,6 +341,7 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
       * confirm (09:35/09:38): 最多买 2 只 (50%)，确定性最高的主战场
       * settle (09:55): 机动买 1 只
     - target_pos_ratio: 单只标的分配总资产的 25%（约 2.5 万元）
+    - max_stock_price: 10万小资金单价过滤门槛 (默认 80 元)，避免单手过大造成资金闲置
     - 检查现金是否充足
     - 股数严格向下取整到 100 股（1手）
     """
@@ -328,6 +370,11 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
         if push_price <= 0:
             continue
         if stock.get("is_zt"):
+            continue
+
+        # 10万小资金高价股过滤：若单价过高，买1手占资不均，买2手超额，跳过以避免大量闲置资金
+        if max_stock_price and push_price > max_stock_price:
+            print(f"  ⏭️ [跳过高价股] {code} {name} (￥{push_price:.2f} > 门槛￥{max_stock_price:.2f})，规避10万资金分仓失衡与闲置现金")
             continue
 
         # 计算拟分配买入资金
@@ -397,6 +444,60 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
     return buy_records
 
 
+def update_account_realtime_valuation(account, live_price_map, zt_set, today_str=None):
+    """
+    盘中 Mark-to-Market 实时盯市资产重估函数
+    - 每次推送（09:26/09:31/09:35/09:55）在完成买卖后立即调用
+    - 实时刷新持仓个股最新价、市值、浮动盈亏
+    - 动态计算账户持仓总市值、实时总资产、今日日内盈亏额/率、累计总收益额/率
+    """
+    if not today_str:
+        today_str = datetime.now().strftime("%Y-%m-%d")
+
+    pos_market_value = 0.0
+    for pos in account.get("positions", []):
+        code = str(pos.get("code") or "")
+        shares = int(pos.get("shares", 0))
+        buy_price = n(pos.get("buy_price"))
+        cost_amount = n(pos.get("cost_amount"))
+
+        live_info = live_price_map.get(code, {})
+        cur_price = n(live_info.get("f2") or live_info.get("price") or pos.get("current_price") or buy_price)
+        cur_chg = n(live_info.get("f3") if "f3" in live_info else (live_info.get("change") if "change" in live_info else 0.0))
+        high_price = n(live_info.get("f15") or live_info.get("high") or cur_price)
+
+        cur_market_val = shares * cur_price
+        pos_market_value += cur_market_val
+
+        pos["current_price"] = cur_price
+        pos["market_value"] = round(cur_market_val, 2)
+        pos["unrealized_profit_amount"] = round(cur_market_val - cost_amount, 2)
+        pos["unrealized_profit_pct"] = round(((cur_price / buy_price) - 1) * 100, 2) if buy_price > 0 else 0.0
+        pos["highest_price"] = max(n(pos.get("highest_price")), high_price, cur_price)
+        pos["max_profit_pct"] = max(n(pos.get("max_profit_pct")), pos["unrealized_profit_pct"])
+        pos["is_zt"] = bool((code in zt_set) or live_info.get("is_zt") or (cur_chg >= 9.85 and cur_price >= high_price))
+
+    total_assets = round(account["cash"] + pos_market_value, 2)
+    account["position_market_value"] = round(pos_market_value, 2)
+    account["total_assets"] = total_assets
+
+    # 获取前一交易日的总资产作为今日基准
+    prev_history = [h for h in account.get("daily_history", []) if h.get("date") < today_str]
+    prev_assets = prev_history[-1].get("total_assets", INITIAL_CAPITAL) if prev_history else INITIAL_CAPITAL
+
+    daily_profit = round(total_assets - prev_assets, 2)
+    daily_return_pct = round((daily_profit / prev_assets) * 100, 2) if prev_assets > 0 else 0.0
+    total_profit = round(total_assets - INITIAL_CAPITAL, 2)
+    total_return_pct = round((total_profit / INITIAL_CAPITAL) * 100, 2)
+
+    account["daily_profit"] = daily_profit
+    account["daily_return_pct"] = daily_return_pct
+    account["total_profit"] = total_profit
+    account["total_return_pct"] = total_return_pct
+
+    return account
+
+
 def settle_daily_account(account, live_price_map, zt_set, today_str=None):
     """
     15:30 每日收盘账户结算
@@ -418,6 +519,7 @@ def settle_daily_account(account, live_price_map, zt_set, today_str=None):
         live_info = live_price_map.get(code, {})
         close_price = n(live_info.get("f2") or live_info.get("price") or pos.get("current_price") or buy_price)
         cur_chg = n(live_info.get("f3") if "f3" in live_info else (live_info.get("change") if "change" in live_info else 0.0))
+        high_price = n(live_info.get("f15") or live_info.get("high") or close_price)
         cur_market_val = shares * close_price
         pos_market_value += cur_market_val
 
@@ -425,12 +527,15 @@ def settle_daily_account(account, live_price_map, zt_set, today_str=None):
         pos["market_value"] = round(cur_market_val, 2)
         pos["unrealized_profit_amount"] = round(cur_market_val - cost_amount, 2)
         pos["unrealized_profit_pct"] = round(((close_price / buy_price) - 1) * 100, 2) if buy_price > 0 else 0.0
+        pos["highest_price"] = max(n(pos.get("highest_price")), high_price, close_price)
+        pos["max_profit_pct"] = max(n(pos.get("max_profit_pct")), pos["unrealized_profit_pct"])
         pos["is_zt"] = bool((code in zt_set) or live_info.get("is_zt") or (cur_chg >= 9.85))
 
     account["position_market_value"] = round(pos_market_value, 2)
     prev_assets = INITIAL_CAPITAL
-    if account.get("daily_history"):
-        prev_assets = account["daily_history"][-1].get("total_assets", INITIAL_CAPITAL)
+    prev_history = [h for h in account.get("daily_history", []) if h.get("date") < today_str]
+    if prev_history:
+        prev_assets = prev_history[-1].get("total_assets", INITIAL_CAPITAL)
 
     new_total_assets = round(account["cash"] + pos_market_value, 2)
     daily_profit = round(new_total_assets - prev_assets, 2)
@@ -439,6 +544,10 @@ def settle_daily_account(account, live_price_map, zt_set, today_str=None):
     total_return_pct = round((total_profit / INITIAL_CAPITAL) * 100, 2)
 
     account["total_assets"] = new_total_assets
+    account["daily_profit"] = daily_profit
+    account["daily_return_pct"] = daily_return_pct
+    account["total_profit"] = total_profit
+    account["total_return_pct"] = total_return_pct
 
     # 更新或追加今日日结记录
     history_entry = {

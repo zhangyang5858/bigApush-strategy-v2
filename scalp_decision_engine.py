@@ -743,13 +743,22 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
     )
     card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": market_md}})
 
-    # 2. 模拟账户当前资金小看板 (如果提供了账户信息)
+    # 2. 模拟账户当前资金小看板 (实时动态资产与盘中盈亏)
     if account_data:
         total_assets = account_data.get("total_assets", 100000.0)
         cash = account_data.get("cash", 100000.0)
+        pos_val = account_data.get("position_market_value", 0.0)
         pos_cnt = len(account_data.get("positions", []))
-        total_ret = ((total_assets - 100000.0) / 100000.0) * 100
-        account_md = f"💼 **10万模拟账户**: 总资产 **￥{total_assets:,.2f}** (累计: `{total_ret:+.2f}%`) | 可用现金: **￥{cash:,.2f}** | 当前持仓: **{pos_cnt}只**"
+        daily_profit = account_data.get("daily_profit", 0.0)
+        daily_ret = account_data.get("daily_return_pct", 0.0)
+        total_profit = account_data.get("total_profit", 0.0)
+        total_ret = account_data.get("total_return_pct", 0.0)
+        profit_emoji = "🟢" if daily_profit >= 0 else "🔴"
+
+        account_md = (
+            f"💼 **10万模拟账户**: 总资产 **￥{total_assets:,.2f}** | 可用现金: **￥{cash:,.2f}** | 持仓市值: **￥{pos_val:,.2f}** ({pos_cnt}只)\n"
+            f"{profit_emoji} **今日盘中实时盈亏**: **{daily_profit:+,.2f}元 ({daily_ret:+.2f}%)** | 累计总收益: **{total_profit:+,.2f}元 ({total_ret:+.2f}%)**"
+        )
         card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": account_md}})
 
     card["elements"].append({"tag": "hr"})
