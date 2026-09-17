@@ -29,8 +29,22 @@ def get_db_connection():
     return conn
 
 
+def infer_strategy_id(tag):
+    """根据战法标签推断四柱战法 ID (S1~S4)"""
+    tag = str(tag or "")
+    if "S1" in tag or "竞价" in tag:
+        return "S1"
+    elif "S2" in tag or "龙头" in tag or "主线" in tag or "秒板" in tag or "强攻" in tag:
+        return "S2"
+    elif "S3" in tag or "回调" in tag or "二波" in tag or "低吸" in tag:
+        return "S3"
+    elif "S4" in tag or "突破" in tag or "回踩" in tag:
+        return "S4"
+    return "S1"
+
+
 def init_db():
-    """初始化数据库表结构"""
+    """初始化数据库表结构并自动迁移更新新增字段"""
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
@@ -38,6 +52,7 @@ def init_db():
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS closed_trades (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            strategy_id TEXT DEFAULT 'S1',
             code TEXT NOT NULL,
             name TEXT NOT NULL,
             buy_date TEXT NOT NULL,
@@ -67,6 +82,7 @@ def init_db():
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS positions (
             code TEXT PRIMARY KEY,
+            strategy_id TEXT DEFAULT 'S1',
             name TEXT NOT NULL,
             buy_date TEXT NOT NULL,
             buy_time TEXT,
@@ -126,10 +142,68 @@ def init_db():
             strategy_tag TEXT,
             is_zt INTEGER DEFAULT 0,
             is_leader INTEGER DEFAULT 0,
+            strategy_id TEXT DEFAULT 'S1',
+            signal_stage TEXT DEFAULT 'CONFIRMED',
+            strategy_variant TEXT,
+            support_price REAL,
+            invalid_reason TEXT,
             created_at TEXT DEFAULT (datetime('now', 'localtime')),
             UNIQUE(date, stage, code)
         );
         """)
+
+        # 5. S3/S4 战法观察池持久化表
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS strategy_observation_pool (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            strategy_id TEXT NOT NULL,
+            code TEXT NOT NULL,
+            name TEXT,
+            support_price REAL,
+            trigger_condition TEXT,
+            target_date TEXT,
+            status TEXT DEFAULT 'ACTIVE',
+            meta_json TEXT,
+            created_at TEXT DEFAULT (datetime('now', 'localtime')),
+            UNIQUE(strategy_id, code, target_date)
+        );
+        """)
+
+        # ── 数据库平滑自愈与字段迁移检查 ──
+        # push_signals 字段迁移
+        cursor.execute("PRAGMA table_info(push_signals);")
+        ps_cols = {col["name"] for col in cursor.fetchall()}
+        ps_add_cols = [
+            ("strategy_id", "TEXT DEFAULT 'S1'"),
+            ("signal_stage", "TEXT DEFAULT 'CONFIRMED'"),
+            ("strategy_variant", "TEXT"),
+            ("support_price", "REAL"),
+            ("invalid_reason", "TEXT")
+        ]
+        for cname, ctype in ps_add_cols:
+            if cname not in ps_cols:
+                try:
+                    cursor.execute(f"ALTER TABLE push_signals ADD COLUMN {cname} {ctype};")
+                except Exception:
+                    pass
+
+        # closed_trades 字段迁移
+        cursor.execute("PRAGMA table_info(closed_trades);")
+        ct_cols = {col["name"] for col in cursor.fetchall()}
+        if "strategy_id" not in ct_cols:
+            try:
+                cursor.execute("ALTER TABLE closed_trades ADD COLUMN strategy_id TEXT DEFAULT 'S1';")
+            except Exception:
+                pass
+
+        # positions 字段迁移
+        cursor.execute("PRAGMA table_info(positions);")
+        pos_cols = {col["name"] for col in cursor.fetchall()}
+        if "strategy_id" not in pos_cols:
+            try:
+                cursor.execute("ALTER TABLE positions ADD COLUMN strategy_id TEXT DEFAULT 'S1';")
+            except Exception:
+                pass
 
         conn.commit()
 
@@ -139,21 +213,23 @@ def init_db():
 def record_closed_trade(trade_dict):
     """记录一笔平仓交易"""
     init_db()
+    stg_id = trade_dict.get("strategy_id") or infer_strategy_id(trade_dict.get("strategy_tag"))
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
         INSERT OR REPLACE INTO closed_trades (
-            code, name, buy_date, buy_time, buy_stage, strategy_tag,
+            strategy_id, code, name, buy_date, buy_time, buy_stage, strategy_tag,
             buy_price, sell_date, sell_time, sell_stage, sell_price,
             shares, cost_amount, gross_sell_amount, fee,
             realized_profit, realized_profit_pct, hold_days, action, reason
         ) VALUES (
-            :code, :name, :buy_date, :buy_time, :buy_stage, :strategy_tag,
+            :strategy_id, :code, :name, :buy_date, :buy_time, :buy_stage, :strategy_tag,
             :buy_price, :sell_date, :sell_time, :sell_stage, :sell_price,
             :shares, :cost_amount, :gross_sell_amount, :fee,
             :realized_profit, :realized_profit_pct, :hold_days, :action, :reason
         );
         """, {
+            "strategy_id": stg_id,
             "code": str(trade_dict.get("code") or ""),
             "name": str(trade_dict.get("name") or ""),
             "buy_date": str(trade_dict.get("buy_date") or ""),
@@ -185,19 +261,21 @@ def sync_active_positions(positions_list):
         cursor = conn.cursor()
         cursor.execute("DELETE FROM positions;")
         for pos in (positions_list or []):
+            stg_id = pos.get("strategy_id") or infer_strategy_id(pos.get("strategy_tag"))
             cursor.execute("""
             INSERT INTO positions (
-                code, name, buy_date, buy_time, buy_stage, strategy_tag,
+                strategy_id, code, name, buy_date, buy_time, buy_stage, strategy_tag,
                 buy_price, current_price, open_price, stop_loss, shares,
                 cost_amount, fee, market_value, unrealized_profit_pct,
                 unrealized_profit_amount, is_zt
             ) VALUES (
-                :code, :name, :buy_date, :buy_time, :buy_stage, :strategy_tag,
+                :strategy_id, :code, :name, :buy_date, :buy_time, :buy_stage, :strategy_tag,
                 :buy_price, :current_price, :open_price, :stop_loss, :shares,
                 :cost_amount, :fee, :market_value, :unrealized_profit_pct,
                 :unrealized_profit_amount, :is_zt
             );
             """, {
+                "strategy_id": stg_id,
                 "code": str(pos.get("code") or ""),
                 "name": str(pos.get("name") or ""),
                 "buy_date": str(pos.get("buy_date") or ""),
@@ -250,6 +328,50 @@ def record_daily_settlement(settle_dict):
         conn.commit()
 
 
+def sync_observation_pools_to_db(pools_dict, target_date=None):
+    """将 S3/S4 战法观察池同步记录至 SQLite 数据库"""
+    if not target_date:
+        target_date = datetime.now().strftime("%Y-%m-%d")
+    init_db()
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        # 同步 S3 涨停回调候选池
+        for item in pools_dict.get("s3_pullback_pool", []):
+            cursor.execute("""
+            INSERT OR REPLACE INTO strategy_observation_pool (
+                strategy_id, code, name, support_price, trigger_condition,
+                target_date, status, meta_json
+            ) VALUES (
+                'S3', :code, :name, :support_price, '自然首板后1~4日缩量调整',
+                :target_date, 'ACTIVE', :meta_json
+            );
+            """, {
+                "code": str(item.get("code") or ""),
+                "name": str(item.get("name") or ""),
+                "support_price": float(item.get("support_low") or 0.0),
+                "target_date": str(item.get("target_date") or target_date),
+                "meta_json": json.dumps(item, ensure_ascii=False)
+            })
+        # 同步 S4 量价突破候选池
+        for item in pools_dict.get("s4_breakout_pool", []):
+            cursor.execute("""
+            INSERT OR REPLACE INTO strategy_observation_pool (
+                strategy_id, code, name, support_price, trigger_condition,
+                target_date, status, meta_json
+            ) VALUES (
+                'S4', :code, :name, :support_price, '放量突破前20日平台Ceiling回踩',
+                :target_date, 'ACTIVE', :meta_json
+            );
+            """, {
+                "code": str(item.get("code") or ""),
+                "name": str(item.get("name") or ""),
+                "support_price": float(item.get("ceiling") or 0.0),
+                "target_date": str(item.get("target_date") or target_date),
+                "meta_json": json.dumps(item, ensure_ascii=False)
+            })
+        conn.commit()
+
+
 def record_push_signals(stage, pushed_stocks, date_str=None, force=False):
     """记录时段推送的所有选股信号快照"""
     init_db()
@@ -267,15 +389,18 @@ def record_push_signals(stage, pushed_stocks, date_str=None, force=False):
                 print(f"  🔒 [DB快照保护] {stage} 阶段在 {date_str} 已存在 {row['cnt']} 条推送信号记录，跳过重复覆盖。")
                 return
         for s in (pushed_stocks or []):
+            stg_id = s.get("strategy_id") or infer_strategy_id(s.get("strategy_tag"))
             cursor.execute("""
             INSERT OR REPLACE INTO push_signals (
                 date, time, stage, code, name, push_price, open_price,
                 pre_close, cur_change, net_flow, flow_ratio, sector,
-                score, grade, strategy_tag, is_zt, is_leader
+                score, grade, strategy_tag, is_zt, is_leader,
+                strategy_id, signal_stage, strategy_variant, support_price, invalid_reason
             ) VALUES (
                 :date, :time, :stage, :code, :name, :push_price, :open_price,
                 :pre_close, :cur_change, :net_flow, :flow_ratio, :sector,
-                :score, :grade, :strategy_tag, :is_zt, :is_leader
+                :score, :grade, :strategy_tag, :is_zt, :is_leader,
+                :strategy_id, :signal_stage, :strategy_variant, :support_price, :invalid_reason
             );
             """, {
                 "date": date_str,
@@ -294,7 +419,12 @@ def record_push_signals(stage, pushed_stocks, date_str=None, force=False):
                 "grade": str(s.get("grade") or "A"),
                 "strategy_tag": str(s.get("strategy_tag") or "🎯 综合短线"),
                 "is_zt": 1 if s.get("is_zt") else 0,
-                "is_leader": 1 if s.get("is_leader") else 0
+                "is_leader": 1 if s.get("is_leader") else 0,
+                "strategy_id": stg_id,
+                "signal_stage": str(s.get("signal_stage") or "CONFIRMED"),
+                "strategy_variant": str(s.get("strategy_variant") or ""),
+                "support_price": float(s.get("support_price") or 0.0),
+                "invalid_reason": str(s.get("invalid_reason") or "")
             })
         conn.commit()
 
@@ -452,32 +582,147 @@ def get_current_positions_df():
     return df
 
 
+def get_four_pillars_attribution_df():
+    """
+    四柱战法全维度归因分析：
+    - S1 竞价首板
+    - S2 主线龙头主升
+    - S3 涨停后回调低吸
+    - S4 量价突破回踩
+    汇总各战法的推荐次数、触发确认、封板成功率、模拟交易胜率与累计盈亏
+    """
+    init_db()
+    with get_db_connection() as conn:
+        try:
+            df_signals = pd.read_sql_query("SELECT * FROM push_signals", conn)
+        except Exception:
+            df_signals = pd.DataFrame()
+        try:
+            df_closed = pd.read_sql_query("SELECT * FROM closed_trades", conn)
+        except Exception:
+            df_closed = pd.DataFrame()
+
+    strategy_names = {
+        "S1": "S1 竞价首板",
+        "S2": "S2 主线龙头主升",
+        "S3": "S3 涨停后回调低吸",
+        "S4": "S4 量价突破回踩"
+    }
+
+    rows = []
+    for sid in ["S1", "S2", "S3", "S4"]:
+        name = strategy_names[sid]
+
+        # 信号表现
+        if not df_signals.empty and "strategy_id" in df_signals.columns:
+            sig_subset = df_signals[df_signals["strategy_id"] == sid]
+        elif not df_signals.empty and "strategy_tag" in df_signals.columns:
+            sig_subset = df_signals[df_signals["strategy_tag"].apply(infer_strategy_id) == sid]
+        else:
+            sig_subset = pd.DataFrame()
+
+        total_signals = len(sig_subset)
+        zt_count = len(sig_subset[sig_subset["is_zt"] == 1]) if total_signals > 0 else 0
+        zt_rate = (zt_count / total_signals) * 100 if total_signals > 0 else 0.0
+
+        # 实盘平仓表现
+        if not df_closed.empty:
+            if "strategy_id" in df_closed.columns and df_closed["strategy_id"].notna().any():
+                trade_subset = df_closed[df_closed["strategy_id"] == sid]
+            else:
+                trade_subset = df_closed[df_closed["strategy_tag"].apply(infer_strategy_id) == sid]
+        else:
+            trade_subset = pd.DataFrame()
+
+        total_trades = len(trade_subset)
+        if total_trades > 0:
+            wins = trade_subset[trade_subset["realized_profit"] > 0]
+            losses = trade_subset[trade_subset["realized_profit"] < 0]
+            win_cnt = len(wins)
+            win_rate = (win_cnt / total_trades) * 100
+            total_win_amt = wins["realized_profit"].sum()
+            total_loss_amt = abs(losses["realized_profit"].sum())
+            profit_factor = (total_win_amt / total_loss_amt) if total_loss_amt > 0 else (total_win_amt if total_win_amt > 0 else 1.0)
+            avg_return = trade_subset["realized_profit_pct"].mean()
+            realized_profit = trade_subset["realized_profit"].sum()
+        else:
+            win_rate = 0.0
+            profit_factor = 1.0
+            avg_return = 0.0
+            realized_profit = 0.0
+
+        rows.append({
+            "战法编号": sid,
+            "战法全称": name,
+            "推荐信号数": total_signals,
+            "封板数量": zt_count,
+            "封板成功率 (%)": round(zt_rate, 2),
+            "实盘交易数": total_trades,
+            "交易胜率 (%)": round(win_rate, 2),
+            "盈亏比": round(profit_factor, 2),
+            "平均收益率 (%)": round(avg_return, 2),
+            "累计净利润 (元)": round(realized_profit, 2)
+        })
+
+    return pd.DataFrame(rows)
+
+
+def get_observation_pool_df():
+    """获取最新观察池监控清单"""
+    init_db()
+    with get_db_connection() as conn:
+        try:
+            df = pd.read_sql_query("""
+            SELECT
+                strategy_id AS '战法编号',
+                code AS '股票代码',
+                name AS '股票名称',
+                support_price AS '防守关键位',
+                trigger_condition AS '触发与失效条件',
+                target_date AS '目标交易日',
+                status AS '状态',
+                created_at AS '加入时间'
+            FROM strategy_observation_pool
+            ORDER BY target_date DESC, strategy_id ASC
+            """, conn)
+            return df
+        except Exception:
+            return pd.DataFrame()
+
+
 # ===================== 高保真带样式 Excel 导出引擎 =====================
 
 def export_trades_to_excel(output_path=EXCEL_REPORT_PATH):
     """
     生成商业级格式化的多 Sheet 交易透视 Excel 报表
-    - Sheet 1: 📊 战法策略胜率透视 (Strategy Attribution)
-    - Sheet 2: 💸 历史平仓成交明细 (Closed Trades Ledger)
-    - Sheet 3: 📈 账户日结与资金曲线 (Asset Curve & Settlement)
-    - Sheet 4: 🎯 当前持仓与跟踪 (Current Positions)
+    - Sheet 1: 🏆 四柱战法归因分析 (Four Pillars Multi-Strategy Attribution)
+    - Sheet 2: 📊 战法策略胜率透视 (Strategy Attribution)
+    - Sheet 3: 💸 历史平仓成交明细 (Closed Trades Ledger)
+    - Sheet 4: 📈 账户日结与资金曲线 (Asset Curve & Settlement)
+    - Sheet 5: 🎯 当前持仓与跟踪 (Current Positions)
+    - Sheet 6: 🔍 战法观察池监控 (Observation Pool, if exists)
     """
     init_db()
     # 先做一次数据迁移确保最新
     import_account_json_to_db()
 
+    df_attribution = get_four_pillars_attribution_df()
     df_strategy = get_strategy_performance_df()
     df_closed = get_closed_trades_df()
     df_daily = get_daily_settlement_df()
     df_positions = get_current_positions_df()
+    df_pool = get_observation_pool_df()
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+        df_attribution.to_excel(writer, sheet_name="四柱战法归因分析", index=False)
         df_strategy.to_excel(writer, sheet_name="战法策略胜率透视", index=False)
         df_closed.to_excel(writer, sheet_name="历史平仓明细流水", index=False)
         df_daily.to_excel(writer, sheet_name="账户日结与资金曲线", index=False)
         df_positions.to_excel(writer, sheet_name="当前持仓监控", index=False)
+        if not df_pool.empty:
+            df_pool.to_excel(writer, sheet_name="战法观察池监控", index=False)
 
         workbook = writer.book
 
@@ -527,7 +772,7 @@ def export_trades_to_excel(output_path=EXCEL_REPORT_PATH):
 
                         if isinstance(val, (int, float)):
                             if "率" in col_name or "%" in col_name:
-                                cell.number_format = "0.00%"
+                                cell.number_format = '0.00"%"' if abs(val) > 1.0 else "0.00%"
                                 cell.alignment = align_right
                                 if val > 0:
                                     cell.font = font_profit

@@ -396,6 +396,11 @@ def evaluate_daily_scalp(date_str=None, is_demo=False, account=None):
         from strategy_four_pillars import build_observation_pools, save_observation_pools
         pools = build_observation_pools(trade_date=date_str, is_demo=is_demo)
         save_observation_pools(pools)
+        try:
+            from scalp_trade_db import sync_observation_pools_to_db
+            sync_observation_pools_to_db(pools, target_date=date_str)
+        except Exception:
+            pass
     except Exception as e:
         print(f"  ⚠️ 生成次日战法观察池异常: {e}")
 
