@@ -489,13 +489,35 @@ def detect_s4_breakout_retest(
 # ─────────────────────────────────────────────────────────────
 # 观察池自动构建函数 (盘前/收盘由历史日线生成)
 # ─────────────────────────────────────────────────────────────
-def build_observation_pools(daily_bars_map: Dict[str, List[Dict[str, Any]]], target_date_str: Optional[str] = None) -> Dict[str, List[Dict[str, Any]]]:
+def build_observation_pools(daily_bars_map: Optional[Dict[str, List[Dict[str, Any]]]] = None, target_date_str: Optional[str] = None, is_demo: bool = False, trade_date: Optional[str] = None) -> Dict[str, List[Dict[str, Any]]]:
     """
     基于已完成的日线历史数据，自动构建次日 S3 (涨停回调) 与 S4 (突破回踩) 监控池
     - 绝不引入当日未来数据
     - S3: 自然首板 + 随后 1~4 日缩量调整不破首板低点
     - S4: 前 1~2 日放量突破此前 20 日平台最高价 Ceiling (严格突破前数据)
     """
+    if target_date_str is None and trade_date is not None:
+        target_date_str = trade_date
+
+    if daily_bars_map is None:
+        if is_demo:
+            daily_bars_map = {
+                "002478": [
+                    {"date": "2026-09-11", "open": 6.2, "close": 6.3, "high": 6.35, "low": 6.18, "volume": 50000, "is_limit_up": False},
+                    {"date": "2026-09-14", "open": 6.3, "close": 6.93, "high": 6.93, "low": 6.25, "volume": 120000, "is_limit_up": True},
+                    {"date": "2026-09-15", "open": 6.90, "close": 6.85, "high": 7.00, "low": 6.75, "volume": 60000, "is_limit_up": False},
+                    {"date": "2026-09-16", "open": 6.85, "close": 6.80, "high": 6.95, "low": 6.70, "volume": 55000, "is_limit_up": False}
+                ],
+                "603967": [
+                    {"date": f"2026-08-{i:02d}", "open": 10.0, "close": 10.2, "high": 10.8, "low": 9.8, "volume": 50000, "is_limit_up": False}
+                    for i in range(1, 22)
+                ] + [
+                    {"date": "2026-09-16", "open": 10.8, "close": 11.6, "high": 11.8, "low": 10.7, "volume": 120000, "is_limit_up": False}
+                ]
+            }
+        else:
+            daily_bars_map = {}
+
     s3_pool = []
     s4_pool = []
 
@@ -603,3 +625,8 @@ def load_observation_pools_from_json(path: str = "data/observation_pools.json") 
         except Exception:
             pass
     return {"s3_pullback_pool": [], "s4_breakout_pool": []}
+
+
+# 方便外部模块统一调用别名
+save_observation_pools = save_observation_pools_to_json
+load_observation_pools = load_observation_pools_from_json

@@ -1,0 +1,25 @@
+{
+  "s3_pullback_pool": [
+    {
+      "code": "002478",
+      "first_board_date": "2026-09-14",
+      "support_low": 6.25,
+      "midpoint": 6.615,
+      "first_vol": 120000.0,
+      "adjust_days": 2,
+      "target_date": "2026-09-18"
+    }
+  ],
+  "s4_breakout_pool": [
+    {
+      "code": "603967",
+      "breakout_date": "2026-09-16",
+      "ceiling": 10.8,
+      "avg_vol": 50000.0,
+      "breakout_vol": 120000.0,
+      "breakout_vol_ratio": 2.4,
+      "target_date": "2026-09-18"
+    }
+  ],
+  "created_at": "2026-09-18 00:26:08"
+}

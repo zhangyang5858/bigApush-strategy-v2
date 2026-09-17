@@ -43,19 +43,30 @@ def get_feishu_webhook():
     return DEFAULT_WEBHOOK
 
 
+STAGE_NAME_MAP = {
+    "auction": "早盘竞价初筛 (09:26)",
+    "instant": "开盘极速秒板 (09:31:30)",
+    "confirm": "开盘承接强攻 (09:38)",
+    "settle": "早盘定势主线龙头 (10:00)",
+    "afternoon": "尾盘低吸与突破回踩决胜 (14:30)"
+}
+
+STAGE_TIME_WINDOWS = {
+    "auction": ("09:15", "09:32"),
+    "instant": ("09:30", "09:40"),
+    "confirm": ("09:35", "09:52"),
+    "settle":  ("09:50", "10:15"),
+    "afternoon": ("14:15", "14:55")
+}
+
+
 def run_scalp_push(stage="auction", is_demo=False, force=False):
     """
     执行短线决策台 V2 推送与 10万模拟账户联动
-    stage: 'auction' (09:26) | 'confirm' (09:35) | 'settle' (09:55)
+    stage: 'auction' (09:26) | 'instant' (09:31) | 'confirm' (09:38) | 'settle' (10:00) | 'afternoon' (14:30)
     """
     today_str = datetime.now().strftime("%Y-%m-%d")
-    stage_name_map = {
-        "auction": "早盘竞价初筛 (09:26)",
-        "instant": "开盘极速秒板 (09:31:30)",
-        "confirm": "开盘承接强攻 (09:38)",
-        "settle": "早盘定势封板与二波 (09:55)"
-    }
-    stage_label = stage_name_map.get(stage, stage)
+    stage_label = STAGE_NAME_MAP.get(stage, stage)
     print(f"🚀 开始执行短线决策台 V2 推送 [{stage_label}] - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     # 交易日校验 (演示模式或强制模式跳过)
@@ -64,19 +75,13 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
             print(f"☕ 今天 {today_str} 不是交易日，短线决策台跳过推送。")
             return True
 
-        # 时段运行时间窗口校验（防止 GitHub Actions 延迟或外部误触在下午等非对应时段覆盖早盘数据）
-        STAGE_TIME_WINDOWS = {
-            "auction": ("09:15", "09:32"),
-            "instant": ("09:30", "09:40"),
-            "confirm": ("09:35", "09:52"),
-            "settle":  ("09:50", "10:15")
-        }
+        # 时段运行时间窗口校验（防止 GitHub Actions 延迟或外部误触在非对应时段覆盖早盘数据）
         window = STAGE_TIME_WINDOWS.get(stage)
         if window:
             cur_hm = datetime.now().strftime("%H:%M")
             start_t, end_t = window
             if not (start_t <= cur_hm <= end_t):
-                print(f"⏰ [时间窗口拦截] 当前时间 {cur_hm} 不在阶段【{stage_label}】允许的时间窗口 ({start_t} ~ {end_t}) 内，跳过执行以防污染早盘记录。")
+                print(f"⏰ [时间窗口拦截] 当前时间 {cur_hm} 不在阶段【{stage_label}】允许的时间窗口 ({start_t} ~ {end_t}) 内，跳过执行以防污染记录。")
                 return True
 
     webhook_url = get_feishu_webhook()
@@ -160,8 +165,8 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
 
 def main():
     parser = argparse.ArgumentParser(description="短线决策台飞书自动推送脚本")
-    parser.add_argument("--stage", choices=["auction", "instant", "confirm", "settle"], default="auction",
-                        help="推送阶段: auction(09:26 竞价初筛), instant(09:31:30 极速秒板), confirm(09:35 开盘确认), settle(09:55 早盘定势与二波)")
+    parser.add_argument("--stage", choices=["auction", "instant", "confirm", "settle", "afternoon"], default="auction",
+                        help="推送阶段: auction(09:26 竞价初筛), instant(09:31:30 极速秒板), confirm(09:35 开盘确认), settle(09:55 早盘定势与二波), afternoon(14:30 尾盘低吸与突破回踩)")
     parser.add_argument("--demo", action="store_true", help="使用演示模拟数据运行（非交易日测试）")
     parser.add_argument("--force", action="store_true", help="忽略交易日判断强制执行")
 

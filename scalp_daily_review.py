@@ -93,7 +93,7 @@ def load_today_push_records(date_str=None, is_demo=False):
         date_str = datetime.now().strftime("%Y-%m-%d")
 
     records = {}
-    stages = ["auction", "instant", "confirm", "settle"]
+    stages = ["auction", "instant", "confirm", "settle", "afternoon"]
 
     # 1. 优先从 JSON 本地缓存读取
     for stg in stages:
@@ -201,6 +201,16 @@ def generate_self_consistent_demo_records(date_str):
             "stocks": [
                 {"code": "301486", "name": "致尚科技", "push_price": 68.80, "open_price": 62.00, "pre_close": 57.33, "stop_loss": 60.76, "strategy_tag": "🏆 主线领涨封板 (2连板)", "grade": "S", "score": 100, "is_zt": True, "sector": "光通信"},
                 {"code": "002888", "name": "惠威科技", "push_price": 21.00, "open_price": 20.80, "pre_close": 20.50, "stop_loss": 20.38, "strategy_tag": "🌊 二波蓄势低吸", "grade": "A", "score": 86, "is_zt": False, "sector": "消费电子"}
+            ]
+        },
+        "afternoon": {
+            "date": date_str,
+            "stage": "afternoon",
+            "time": "14:30:00",
+            "regime": "进攻",
+            "stocks": [
+                {"code": "002478", "name": "常宝股份", "push_price": 7.40, "open_price": 7.20, "pre_close": 7.00, "stop_loss": 7.10, "strategy_tag": "🛡️ S3 涨停回调 (缩量蓄势)", "strategy_id": "S3", "grade": "S", "score": 90, "is_zt": False, "sector": "机械制造"},
+                {"code": "603967", "name": "中创物流", "push_price": 12.10, "open_price": 11.80, "pre_close": 11.50, "stop_loss": 11.80, "strategy_tag": "⚡ S4 量价突破 (回踩确认)", "strategy_id": "S4", "grade": "A", "score": 88, "is_zt": False, "sector": "跨境物流"}
             ]
         }
     }
@@ -365,7 +375,8 @@ def evaluate_daily_scalp(date_str=None, is_demo=False, account=None):
                 "auction": "09:26 竞价初筛先锋",
                 "instant": "09:31:30 极速秒板突击",
                 "confirm": "09:38 开盘承接确认 (主战场)",
-                "settle": "09:55 早盘定势精选"
+                "settle": "09:55 早盘定势精选",
+                "afternoon": "14:30 尾盘低吸与突破回踩"
             }
             evaluated_stages[stage_key] = {
                 "title": stage_titles.get(stage_key, stage_key),
@@ -379,6 +390,14 @@ def evaluate_daily_scalp(date_str=None, is_demo=False, account=None):
     stop_loss_rate = (stop_loss_count / total_recs * 100) if total_recs > 0 else 0.0
     win_count = sum(1 for s in all_evaluated_stocks.values() if s["intraday_profit"] > 0)
     win_rate = (win_count / total_recs * 100) if total_recs > 0 else 0.0
+
+    # 刷新次日战法观察池 (S3回调与S4突破) 并缓存
+    try:
+        from strategy_four_pillars import build_observation_pools, save_observation_pools
+        pools = build_observation_pools(trade_date=date_str, is_demo=is_demo)
+        save_observation_pools(pools)
+    except Exception as e:
+        print(f"  ⚠️ 生成次日战法观察池异常: {e}")
 
     return {
         "date": date_str,
@@ -444,7 +463,7 @@ def build_daily_review_card(review_data):
         for p in positions:
             zt_badge = " 🏆[涨停]" if p.get("is_zt") else ""
             t_str = "🔒 今日建仓(T日锁定)" if p.get("buy_date") == date_str else "🔓 次日可卖(T+1)"
-            stage_name = {"auction": "09:26竞价", "instant": "09:31秒板", "confirm": "09:38承接", "settle": "09:55定势"}.get(p.get("buy_stage"), p.get("buy_stage", "早盘"))
+            stage_name = {"auction": "09:26竞价", "instant": "09:31秒板", "confirm": "09:38承接", "settle": "09:55定势", "afternoon": "14:30尾盘"}.get(p.get("buy_stage"), p.get("buy_stage", "早盘"))
             pos_lines.append(
                 f"🟢 **{p['code']} {p['name']}**{zt_badge} (买入时段: `{stage_name}` | 战法: `{p.get('strategy_tag', '🎯 综合短线')}`)\n"
                 f"  > 持仓: **{p['shares']}股** | 成本: `￥{p['buy_price']:.2f}` ➔ 收盘: `￥{p['current_price']:.2f}` | 市值: `￥{p.get('market_value', 0):,.2f}`\n"
@@ -561,6 +580,30 @@ def build_daily_review_card(review_data):
                             f"  > 战法: `{s['strategy_tag']}` | 低吸浮盈: **{s['intraday_profit']:+.2f}%** (盘中最高: `{s['max_profit']:+.2f}%`) | 状态: **{s['status_desc']}**{buy_tag}"
                         )
                 card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n".join(settle_lines)}})
+
+            elif stg_key == "afternoon":
+                # 14:30 尾盘阶段：划分为【S3涨停回调低吸】与【S4量价突破回踩】
+                s3_list = [s for s in stocks if s.get("strategy_id") == "S3" or "S3" in s.get("strategy_tag", "") or "回调" in s.get("strategy_tag", "")]
+                s4_list = [s for s in stocks if s not in s3_list]
+
+                aft_lines = [stg_title]
+                if s3_list:
+                    aft_lines.append("\n🛡️ **[S3 涨停回调低吸复盘]**")
+                    for s in s3_list:
+                        buy_tag = f"\n  > {s['sim_buy_str']}" if s.get("sim_buy_str") else ""
+                        aft_lines.append(
+                            f"• **{s['code']} {s['name']}** (推荐: `￥{s['push_price']:.2f}` ➔ 收盘: `￥{s['close_price']:.2f}` | 全天: `{s['final_chg']:+.2f}%`)\n"
+                            f"  > 战法: `{s['strategy_tag']}` | 日内浮盈: **{s['intraday_profit']:+.2f}%** | 状态: **{s['status_desc']}**{buy_tag}"
+                        )
+                if s4_list:
+                    aft_lines.append("\n⚡ **[S4 量价突破回踩复盘]**")
+                    for s in s4_list:
+                        buy_tag = f"\n  > {s['sim_buy_str']}" if s.get("sim_buy_str") else ""
+                        aft_lines.append(
+                            f"• **{s['code']} {s['name']}** (推荐: `￥{s['push_price']:.2f}` ➔ 收盘: `￥{s['close_price']:.2f}` | 全天: `{s['final_chg']:+.2f}%`)\n"
+                            f"  > 战法: `{s['strategy_tag']}` | 日内浮盈: **{s['intraday_profit']:+.2f}%** | 状态: **{s['status_desc']}**{buy_tag}"
+                        )
+                card["elements"].append({"tag": "div", "text": {"tag": "lark_md", "content": "\n".join(aft_lines)}})
 
             else:
                 # 09:26 竞价初筛 或 09:31:30 极速秒板
