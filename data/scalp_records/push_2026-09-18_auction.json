@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-18",
+  "time": "00:29:41",
+  "stage": "auction",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "001017",
+      "name": "拓华股份17",
+      "push_time": "00:29:41",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 39.78,
+      "open_price": 39.78,
+      "pre_close": 38.45,
+      "stop_loss": 38.98,
+      "grade": "S",
+      "score": 88.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "算力硬件"
+    },
+    {
+      "code": "601004",
+      "name": "恒拓微电",
+      "push_time": "00:29:41",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 15.31,
+      "open_price": 15.31,
+      "pre_close": 14.4,
+      "stop_loss": 15.0,
+      "grade": "S",
+      "score": 88.1,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "消费电子"
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 {
   "date": "2026-09-18",
-  "time": "00:26:24",
+  "time": "00:29:44",
   "stage": "afternoon",
   "regime": "进攻",
   "stocks": [
     {
       "code": "001017",
       "name": "拓华股份17",
-      "push_time": "00:26:24",
+      "push_time": "00:29:44",
       "stage": "afternoon",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
       "push_price": 39.78,
@@ -23,7 +23,7 @@
     {
       "code": "601010",
       "name": "华科智能10",
-      "push_time": "00:26:24",
+      "push_time": "00:29:44",
       "stage": "afternoon",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
       "push_price": 26.62,
@@ -39,7 +39,7 @@
     {
       "code": "601004",
       "name": "恒拓微电",
-      "push_time": "00:26:24",
+      "push_time": "00:29:44",
       "stage": "afternoon",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
       "push_price": 15.31,
