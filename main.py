@@ -735,7 +735,7 @@ B1完美图形匹配:
             if result:
                 from utils.feishu_notifier import FeishuNotifier
                 feishu_cfg = quant.config.get('feishu', {})
-                _default_webhook = "https://open.feishu.cn/open-apis/bot/v2/hook/ef0d8206-3c26-4fa0-9401-138f997db920"
+                _default_webhook = "https://open.feishu.cn/open-apis/bot/v2/hook/186dde11-c61e-47bf-aa54-18514c9dbecb"
                 webhook_url = os.environ.get('FEISHU_WEBHOOK') or feishu_cfg.get('webhook_url', '') or _default_webhook
                 notifier = FeishuNotifier(webhook_url)
 

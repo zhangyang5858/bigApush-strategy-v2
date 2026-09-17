@@ -12,7 +12,7 @@ from utils.feishu_notifier import FeishuNotifier
 from scalp_daily_review import evaluate_daily_scalp, build_daily_review_card
 from utils.trade_date_utils import is_trading_day
 
-DEFAULT_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/ef0d8206-3c26-4fa0-9401-138f997db920"
+DEFAULT_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/186dde11-c61e-47bf-aa54-18514c9dbecb"
 
 
 def get_feishu_webhook():
