@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-18",
+  "time": "09:55:44",
+  "stage": "settle",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "603316",
+      "name": "诚邦股份",
+      "push_time": "09:55:44",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 16.32,
+      "open_price": 15.48,
+      "pre_close": 15.17,
+      "stop_loss": 15.17,
+      "grade": "S",
+      "score": 89.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "半导体"
+    }
+  ]
+}
