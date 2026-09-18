@@ -1,10 +1,38 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 100000.0,
-  "cash": 100000.0,
-  "positions": [],
+  "total_assets": 99993.43,
+  "cash": 74721.43,
+  "positions": [
+    {
+      "code": "002584",
+      "name": "西陇科学",
+      "buy_date": "2026-09-18",
+      "buy_time": "09:26:41",
+      "buy_stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "buy_price": 9.72,
+      "current_price": 9.72,
+      "open_price": 9.72,
+      "stop_loss": 9.53,
+      "shares": 2600,
+      "cost_amount": 25278.57,
+      "fee": 6.57,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": -6.57,
+      "regime": "中性",
+      "market_value": 25272.0,
+      "highest_price": 9.72,
+      "max_profit_pct": 0.0,
+      "is_zt": false
+    }
+  ],
   "closed_trades": [],
   "daily_history": [],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-09-18 00:00:00"
+  "updated_at": "2026-09-18 09:26:41",
+  "position_market_value": 25272.0,
+  "daily_profit": -6.57,
+  "daily_return_pct": -0.01,
+  "total_profit": -6.57,
+  "total_return_pct": -0.01
 }
