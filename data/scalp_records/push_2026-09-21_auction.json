@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-21",
+  "time": "09:26:40",
+  "stage": "auction",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "601811",
+      "name": "新华文轩",
+      "push_time": "09:26:40",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 14.5,
+      "open_price": 14.5,
+      "pre_close": 13.9,
+      "stop_loss": 14.21,
+      "grade": "A",
+      "score": 76.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "出版"
+    },
+    {
+      "code": "603316",
+      "name": "诚邦股份",
+      "push_time": "09:26:40",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 17.46,
+      "open_price": 17.46,
+      "pre_close": 16.69,
+      "stop_loss": 17.11,
+      "grade": "A",
+      "score": 76.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "半导体"
+    }
+  ]
+}
