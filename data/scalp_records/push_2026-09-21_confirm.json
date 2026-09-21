@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-21",
+  "time": "09:38:37",
+  "stage": "confirm",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "301566",
+      "name": "达利凯普",
+      "push_time": "09:38:37",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 29.1,
+      "open_price": 27.81,
+      "pre_close": 26.79,
+      "stop_loss": 27.25,
+      "grade": "S",
+      "score": 89.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "元件"
+    },
+    {
+      "code": "002965",
+      "name": "祥鑫科技",
+      "push_time": "09:38:37",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 33.58,
+      "open_price": 33.0,
+      "pre_close": 31.11,
+      "stop_loss": 32.34,
+      "grade": "S",
+      "score": 89.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    }
+  ]
+}
