@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-22",
+  "time": "09:38:38",
+  "stage": "confirm",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "301689",
+      "name": "电科思仪",
+      "push_time": "09:38:38",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 64.32,
+      "open_price": 64.11,
+      "pre_close": 62.7,
+      "stop_loss": 62.83,
+      "grade": "S",
+      "score": 83.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    },
+    {
+      "code": "301717",
+      "name": "超纯应材",
+      "push_time": "09:38:38",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 380.0,
+      "open_price": 366.5,
+      "pre_close": 360.28,
+      "stop_loss": 359.17,
+      "grade": "S",
+      "score": 83.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "半导体"
+    }
+  ]
+}
