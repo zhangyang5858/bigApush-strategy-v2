@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-22",
+  "time": "09:56:08",
+  "stage": "settle",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "300566",
+      "name": "激智科技",
+      "push_time": "09:56:08",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 27.11,
+      "open_price": 26.25,
+      "pre_close": 25.56,
+      "stop_loss": 25.72,
+      "grade": "S",
+      "score": 83.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "光学光电子"
+    }
+  ]
+}
