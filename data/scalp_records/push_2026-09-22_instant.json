@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-22",
+  "time": "09:32:28",
+  "stage": "instant",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "603068",
+      "name": "博通集成",
+      "push_time": "09:32:28",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 47.25,
+      "open_price": 45.4,
+      "pre_close": 43.79,
+      "stop_loss": 44.49,
+      "grade": "S",
+      "score": 90.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "半导体"
+    },
+    {
+      "code": "600721",
+      "name": "百花医药",
+      "push_time": "09:32:28",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 13.7,
+      "open_price": 13.38,
+      "pre_close": 13.15,
+      "stop_loss": 13.11,
+      "grade": "S",
+      "score": 90.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "医疗服务"
+    },
+    {
+      "code": "603230",
+      "name": "内蒙新华",
+      "push_time": "09:32:28",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 16.07,
+      "open_price": 15.26,
+      "pre_close": 14.83,
+      "stop_loss": 14.95,
+      "grade": "S",
+      "score": 90.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "出版"
+    }
+  ]
+}
