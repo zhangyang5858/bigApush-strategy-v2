@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-23",
+  "time": "09:55:45",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "301080",
+      "name": "百普赛斯",
+      "push_time": "09:55:45",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 124.91,
+      "open_price": 122.9,
+      "pre_close": 118.8,
+      "stop_loss": 120.44,
+      "grade": "A",
+      "score": 71.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "生物制品"
+    }
+  ]
+}
