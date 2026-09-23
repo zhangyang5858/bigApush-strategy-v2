@@ -1,7 +1,7 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 104977.46,
-  "cash": 26757.46,
+  "total_assets": 105191.41,
+  "cash": 50491.41,
   "positions": [
     {
       "code": "600721",
@@ -27,29 +27,6 @@
       "is_breakeven_locked": true
     },
     {
-      "code": "301689",
-      "name": "电科思仪",
-      "buy_date": "2026-09-22",
-      "buy_time": "09:38:38",
-      "buy_stage": "confirm",
-      "strategy_tag": "S1 竞价首板 (开盘确认)",
-      "buy_price": 64.32,
-      "current_price": 60.0,
-      "open_price": 64.11,
-      "stop_loss": 62.83,
-      "shares": 400,
-      "cost_amount": 25734.69,
-      "fee": 6.69,
-      "unrealized_profit_pct": -6.72,
-      "unrealized_profit_amount": -1734.69,
-      "regime": "中性",
-      "market_value": 24000.0,
-      "highest_price": 66.66,
-      "max_profit_pct": 0.0,
-      "is_zt": false,
-      "pre_market_stop": true
-    },
-    {
       "code": "300566",
       "name": "激智科技",
       "buy_date": "2026-09-22",
@@ -57,16 +34,16 @@
       "buy_stage": "settle",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
       "buy_price": 27.11,
-      "current_price": 26.34,
+      "current_price": 26.82,
       "open_price": 26.25,
       "stop_loss": 25.72,
       "shares": 1000,
       "cost_amount": 27117.05,
       "fee": 7.05,
-      "unrealized_profit_pct": -2.84,
-      "unrealized_profit_amount": -777.05,
+      "unrealized_profit_pct": -1.07,
+      "unrealized_profit_amount": -297.05,
       "regime": "中性",
-      "market_value": 26340.0,
+      "market_value": 26820.0,
       "highest_price": 27.77,
       "max_profit_pct": 0.0,
       "is_zt": false
@@ -191,6 +168,23 @@
       "realized_profit_pct": 0.74,
       "action": "⏱️ 超短调仓卖出",
       "reason": "早盘半小时定势未走强(+0.84%)，清仓腾出资金"
+    },
+    {
+      "code": "301689",
+      "name": "电科思仪",
+      "buy_date": "2026-09-22",
+      "buy_price": 64.32,
+      "sell_date": "2026-09-23",
+      "sell_time": "09:32:11",
+      "sell_stage": "instant",
+      "sell_price": 59.38,
+      "shares": 400,
+      "gross_sell_amount": 23752.0,
+      "fee": 18.05,
+      "realized_profit": -2000.74,
+      "realized_profit_pct": -7.77,
+      "action": "🚨 竞价破位抢跑成交",
+      "reason": "执行开盘竞价低开抢跑纪律(-7.68%)，市价止损出局避免深亏"
     }
   ],
   "daily_history": [
@@ -229,10 +223,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-09-23 09:26:41",
-  "position_market_value": 78220.0,
-  "daily_profit": -1644.0,
-  "daily_return_pct": -1.54,
-  "total_profit": 4977.46,
-  "total_return_pct": 4.98
+  "updated_at": "2026-09-23 09:32:11",
+  "position_market_value": 54700.0,
+  "daily_profit": -1430.05,
+  "daily_return_pct": -1.34,
+  "total_profit": 5191.41,
+  "total_return_pct": 5.19
 }
