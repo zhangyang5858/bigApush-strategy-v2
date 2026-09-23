@@ -255,12 +255,23 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
                     action_desc = "🛡️ 均线上方蓄势持股"
                     reason = f"稳居买入价与开盘价上方({unrealized_profit_pct:+.2f}%)，持有观察午后冲高"
                     should_sell = False
+            elif stage == "afternoon" and not is_zt:
+                # 14:30 尾盘阶段：若跌破保本线、走弱或处于浮亏状态，清仓防范次日低开风险
+                is_weak = (unrealized_profit_pct <= 0) or (cur_price < open_price) or (cur_price <= stop_loss)
+                if is_weak:
+                    action_desc = "⏱️ 尾盘走弱清仓"
+                    reason = f"尾盘走弱({unrealized_profit_pct:+.2f}%)，清仓防范次日低开风险"
+                    should_sell = True
+                else:
+                    action_desc = "🛡️ 尾盘强势持有"
+                    reason = f"尾盘稳居分时均线上方(+{unrealized_profit_pct:.2f}%)，持有享受次日溢价"
+                    should_sell = False
             else:
                 action_desc = "🛡️ VWAP上方持股"
                 reason = f"稳居买入价上方({unrealized_profit_pct:+.2f}%)，继续观察"
                 should_sell = False
 
-        if should_sell and stage in ["instant", "confirm", "settle"]:
+        if should_sell and stage in ["instant", "confirm", "settle", "afternoon"]:
             # 执行卖出结算
             gross_sell_amount = shares * cur_price
             sell_fee = calc_sell_fee(gross_sell_amount)
