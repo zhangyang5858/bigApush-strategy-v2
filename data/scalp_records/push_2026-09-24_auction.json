@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-24",
+  "time": "09:26:45",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "600371",
+      "name": "万向德农",
+      "push_time": "09:26:45",
+      "stage": "auction",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 18.08,
+      "open_price": 18.08,
+      "pre_close": 17.28,
+      "stop_loss": 17.37,
+      "grade": "B",
+      "score": 64.5,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "种植业"
+    },
+    {
+      "code": "300164",
+      "name": "通源石油",
+      "push_time": "09:26:45",
+      "stage": "auction",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 9.13,
+      "open_price": 9.13,
+      "pre_close": 8.92,
+      "stop_loss": 8.77,
+      "grade": "B",
+      "score": 61.3,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "油服工程"
+    },
+    {
+      "code": "600743",
+      "name": "华远控股",
+      "push_time": "09:26:45",
+      "stage": "auction",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 2.88,
+      "open_price": 2.88,
+      "pre_close": 2.82,
+      "stop_loss": 2.76,
+      "grade": "B",
+      "score": 61.2,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "房地产服务"
+    }
+  ]
+}
