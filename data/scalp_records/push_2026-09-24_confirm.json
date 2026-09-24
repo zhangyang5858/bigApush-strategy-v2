@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-24",
+  "time": "09:38:52",
+  "stage": "confirm",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "003006",
+      "name": "百亚股份",
+      "push_time": "09:38:52",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 22.56,
+      "open_price": 22.0,
+      "pre_close": 21.59,
+      "stop_loss": 21.56,
+      "grade": "A",
+      "score": 78.5,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "个护用品"
+    },
+    {
+      "code": "300585",
+      "name": "奥联电子",
+      "push_time": "09:38:52",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 17.04,
+      "open_price": 16.32,
+      "pre_close": 16.04,
+      "stop_loss": 15.99,
+      "grade": "S",
+      "score": 82.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    }
+  ]
+}
