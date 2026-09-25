@@ -23,7 +23,8 @@
       "market_value": 23775.0,
       "highest_price": 18.5,
       "max_profit_pct": 1.0,
-      "is_zt": false
+      "is_zt": false,
+      "pre_market_stop": true
     },
     {
       "code": "003006",
@@ -300,10 +301,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-09-24 15:30:56",
+  "updated_at": "2026-09-25 09:26:35",
   "position_market_value": 77919.0,
-  "daily_profit": -4337.8,
-  "daily_return_pct": -4.2,
+  "daily_profit": 0.0,
+  "daily_return_pct": 0.0,
   "total_profit": -1056.32,
   "total_return_pct": -1.06
 }
