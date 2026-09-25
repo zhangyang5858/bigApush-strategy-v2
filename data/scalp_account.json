@@ -1,7 +1,7 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 98925.61,
-  "cash": 44781.61,
+  "total_assets": 98898.53,
+  "cash": 46440.53,
   "positions": [
     {
       "code": "003006",
@@ -28,22 +28,22 @@
     {
       "code": "300585",
       "name": "奥联电子",
-      "buy_date": "2026-09-24",
-      "buy_time": "09:38:51",
-      "buy_stage": "confirm",
+      "buy_date": "2026-09-25",
+      "buy_time": "09:55:39",
+      "buy_stage": "settle",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
-      "buy_price": 17.04,
+      "buy_price": 16.86,
       "current_price": 16.86,
       "open_price": 16.32,
       "stop_loss": 15.99,
-      "shares": 1600,
-      "cost_amount": 27271.09,
-      "fee": 7.09,
-      "unrealized_profit_pct": -1.06,
-      "unrealized_profit_amount": -295.09,
-      "regime": "中性",
-      "market_value": 26976.0,
-      "highest_price": 17.54,
+      "shares": 1500,
+      "cost_amount": 25296.58,
+      "fee": 6.58,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": -6.58,
+      "regime": "防守",
+      "market_value": 25290.0,
+      "highest_price": 16.86,
       "max_profit_pct": 0.0,
       "is_zt": false
     }
@@ -235,6 +235,23 @@
       "realized_profit_pct": -12.42,
       "action": "🚨 竞价破位抢跑成交",
       "reason": "执行开盘竞价低开抢跑纪律(-12.33%)，市价止损出局避免深亏"
+    },
+    {
+      "code": "300585",
+      "name": "奥联电子",
+      "buy_date": "2026-09-24",
+      "buy_price": 17.04,
+      "sell_date": "2026-09-25",
+      "sell_time": "09:55:39",
+      "sell_stage": "settle",
+      "sell_price": 16.86,
+      "shares": 1600,
+      "gross_sell_amount": 26976.0,
+      "fee": 20.5,
+      "realized_profit": -315.59,
+      "realized_profit_pct": -1.16,
+      "action": "⏱️ 超短调仓卖出",
+      "reason": "早盘半小时定势未走强(-1.06%)，清仓腾出资金"
     }
   ],
   "daily_history": [
@@ -295,10 +312,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-09-25 09:38:39",
-  "position_market_value": 54144.0,
-  "daily_profit": -18.07,
-  "daily_return_pct": -0.02,
-  "total_profit": -1074.39,
-  "total_return_pct": -1.07
+  "updated_at": "2026-09-25 09:55:39",
+  "position_market_value": 52458.0,
+  "daily_profit": -45.15,
+  "daily_return_pct": -0.05,
+  "total_profit": -1101.47,
+  "total_return_pct": -1.1
 }
