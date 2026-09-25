@@ -43,7 +43,7 @@
       "unrealized_profit_amount": -6.58,
       "regime": "防守",
       "market_value": 25290.0,
-      "highest_price": 16.86,
+      "highest_price": 17.54,
       "max_profit_pct": 0.0,
       "is_zt": false
     }
@@ -309,10 +309,21 @@
       "total_profit": -1056.32,
       "total_return_pct": -1.06,
       "position_count": 3
+    },
+    {
+      "date": "2026-09-25",
+      "total_assets": 98898.53,
+      "cash": 46440.53,
+      "position_market_value": 52458.0,
+      "daily_profit": -45.15,
+      "daily_return_pct": -0.05,
+      "total_profit": -1101.47,
+      "total_return_pct": -1.1,
+      "position_count": 2
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-09-25 09:55:39",
+  "updated_at": "2026-09-25 15:30:54",
   "position_market_value": 52458.0,
   "daily_profit": -45.15,
   "daily_return_pct": -0.05,
