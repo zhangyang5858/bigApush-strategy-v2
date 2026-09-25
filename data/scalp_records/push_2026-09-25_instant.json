@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-25",
+  "time": "09:32:09",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "300585",
+      "name": "奥联电子",
+      "push_time": "09:32:09",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 16.86,
+      "open_price": 16.32,
+      "pre_close": 16.04,
+      "stop_loss": 15.99,
+      "grade": "A",
+      "score": 74.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    },
+    {
+      "code": "301529",
+      "name": "福赛科技",
+      "push_time": "09:32:09",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 136.01,
+      "open_price": 137.0,
+      "pre_close": 133.7,
+      "stop_loss": 131.57,
+      "grade": "B",
+      "score": 66.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    },
+    {
+      "code": "300384",
+      "name": "三联虹普",
+      "push_time": "09:32:09",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 12.24,
+      "open_price": 12.14,
+      "pre_close": 11.9,
+      "stop_loss": 11.66,
+      "grade": "B",
+      "score": 65.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "专业工程"
+    }
+  ]
+}
