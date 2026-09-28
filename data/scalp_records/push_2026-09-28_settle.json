@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-28",
+  "time": "09:55:49",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "600616",
+      "name": "金枫酒业",
+      "push_time": "09:55:49",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 5.37,
+      "open_price": 5.23,
+      "pre_close": 5.11,
+      "stop_loss": 5.13,
+      "grade": "A",
+      "score": 71.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "非白酒"
+    }
+  ]
+}
