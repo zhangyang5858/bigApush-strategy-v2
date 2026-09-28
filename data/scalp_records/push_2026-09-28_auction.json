@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-28",
+  "time": "09:26:45",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002640",
+      "name": "跨境通",
+      "push_time": "09:26:45",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 3.8,
+      "open_price": 3.8,
+      "pre_close": 3.6,
+      "stop_loss": 3.72,
+      "grade": "B",
+      "score": 65.0,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "互联网电商"
+    },
+    {
+      "code": "002705",
+      "name": "新宝股份",
+      "push_time": "09:26:45",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 12.01,
+      "open_price": 12.01,
+      "pre_close": 11.77,
+      "stop_loss": 11.77,
+      "grade": "B",
+      "score": 60.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "小家电"
+    }
+  ]
+}

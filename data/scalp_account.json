@@ -1,6 +1,6 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 98898.53,
+  "total_assets": 96948.53,
   "cash": 46440.53,
   "positions": [
     {
@@ -11,18 +11,18 @@
       "buy_stage": "confirm",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
       "buy_price": 22.56,
-      "current_price": 22.64,
+      "current_price": 22.99,
       "open_price": 22.0,
       "stop_loss": 21.56,
       "shares": 1200,
       "cost_amount": 27079.04,
       "fee": 7.04,
-      "unrealized_profit_pct": 0.35,
-      "unrealized_profit_amount": 88.96,
+      "unrealized_profit_pct": 1.91,
+      "unrealized_profit_amount": 508.96,
       "regime": "中性",
-      "market_value": 27168.0,
-      "highest_price": 22.75,
-      "max_profit_pct": 0.49,
+      "market_value": 27588.0,
+      "highest_price": 22.99,
+      "max_profit_pct": 1.91,
       "is_zt": false
     },
     {
@@ -33,19 +33,20 @@
       "buy_stage": "settle",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
       "buy_price": 16.86,
-      "current_price": 16.86,
+      "current_price": 15.28,
       "open_price": 16.32,
       "stop_loss": 15.99,
       "shares": 1500,
       "cost_amount": 25296.58,
       "fee": 6.58,
-      "unrealized_profit_pct": 0.0,
-      "unrealized_profit_amount": -6.58,
+      "unrealized_profit_pct": -9.37,
+      "unrealized_profit_amount": -2376.58,
       "regime": "防守",
-      "market_value": 25290.0,
+      "market_value": 22920.0,
       "highest_price": 17.54,
       "max_profit_pct": 0.0,
-      "is_zt": false
+      "is_zt": false,
+      "pre_market_stop": true
     }
   ],
   "closed_trades": [
@@ -323,10 +324,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-09-25 15:30:54",
-  "position_market_value": 52458.0,
-  "daily_profit": -45.15,
-  "daily_return_pct": -0.05,
-  "total_profit": -1101.47,
-  "total_return_pct": -1.1
+  "updated_at": "2026-09-28 09:26:45",
+  "position_market_value": 50508.0,
+  "daily_profit": -1950.0,
+  "daily_return_pct": -1.97,
+  "total_profit": -3051.47,
+  "total_return_pct": -3.05
 }
