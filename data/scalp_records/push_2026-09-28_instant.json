@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-28",
+  "time": "09:32:12",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "600616",
+      "name": "金枫酒业",
+      "push_time": "09:32:12",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 5.48,
+      "open_price": 5.23,
+      "pre_close": 5.11,
+      "stop_loss": 5.13,
+      "grade": "A",
+      "score": 70.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "非白酒"
+    },
+    {
+      "code": "600059",
+      "name": "古越龙山",
+      "push_time": "09:32:12",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 12.02,
+      "open_price": 11.2,
+      "pre_close": 11.0,
+      "stop_loss": 10.98,
+      "grade": "A",
+      "score": 70.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "非白酒"
+    },
+    {
+      "code": "000892",
+      "name": "欢瑞世纪",
+      "push_time": "09:32:12",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 4.76,
+      "open_price": 4.72,
+      "pre_close": 4.51,
+      "stop_loss": 4.63,
+      "grade": "A",
+      "score": 70.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "影视院线"
+    }
+  ]
+}
