@@ -1,7 +1,7 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 95336.21,
-  "cash": 67904.21,
+  "total_assets": 95317.93,
+  "cash": 43747.93,
   "positions": [
     {
       "code": "003006",
@@ -11,18 +11,40 @@
       "buy_stage": "confirm",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
       "buy_price": 22.56,
-      "current_price": 22.86,
+      "current_price": 22.85,
       "open_price": 22.0,
       "stop_loss": 21.56,
       "shares": 1200,
       "cost_amount": 27079.04,
       "fee": 7.04,
-      "unrealized_profit_pct": 1.33,
-      "unrealized_profit_amount": 352.96,
+      "unrealized_profit_pct": 1.29,
+      "unrealized_profit_amount": 340.96,
       "regime": "中性",
-      "market_value": 27432.0,
+      "market_value": 27420.0,
       "highest_price": 22.99,
       "max_profit_pct": 1.91,
+      "is_zt": false
+    },
+    {
+      "code": "600616",
+      "name": "金枫酒业",
+      "buy_date": "2026-09-28",
+      "buy_time": "09:38:39",
+      "buy_stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "buy_price": 5.25,
+      "current_price": 5.25,
+      "open_price": 5.23,
+      "stop_loss": 5.13,
+      "shares": 4600,
+      "cost_amount": 24156.28,
+      "fee": 6.28,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": -6.28,
+      "regime": "防守",
+      "market_value": 24150.0,
+      "highest_price": 5.25,
+      "max_profit_pct": 0.0,
       "is_zt": false
     }
   ],
@@ -318,10 +340,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-09-28 09:32:11",
-  "position_market_value": 27432.0,
-  "daily_profit": -3562.32,
-  "daily_return_pct": -3.6,
-  "total_profit": -4663.79,
-  "total_return_pct": -4.66
+  "updated_at": "2026-09-28 09:38:39",
+  "position_market_value": 51570.0,
+  "daily_profit": -3580.6,
+  "daily_return_pct": -3.62,
+  "total_profit": -4682.07,
+  "total_return_pct": -4.68
 }
