@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-29",
+  "time": "09:26:37",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002640",
+      "name": "跨境通",
+      "push_time": "09:26:37",
+      "stage": "auction",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 4.05,
+      "open_price": 4.05,
+      "pre_close": 3.96,
+      "stop_loss": 3.89,
+      "grade": "B",
+      "score": 67.0,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "互联网电商"
+    },
+    {
+      "code": "000560",
+      "name": "我爱我家",
+      "push_time": "09:26:37",
+      "stage": "auction",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 3.79,
+      "open_price": 3.79,
+      "pre_close": 3.71,
+      "stop_loss": 3.64,
+      "grade": "B",
+      "score": 64.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "房地产服务"
+    },
+    {
+      "code": "002912",
+      "name": "中新赛克",
+      "push_time": "09:26:37",
+      "stage": "auction",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 27.55,
+      "open_price": 27.55,
+      "pre_close": 26.47,
+      "stop_loss": 26.46,
+      "grade": "B",
+      "score": 63.8,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "计算机设备"
+    }
+  ]
+}
