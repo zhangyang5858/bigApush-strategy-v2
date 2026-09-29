@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-29",
+  "time": "09:32:11",
+  "stage": "instant",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "000560",
+      "name": "我爱我家",
+      "push_time": "09:32:11",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 3.85,
+      "open_price": 3.79,
+      "pre_close": 3.71,
+      "stop_loss": 3.71,
+      "grade": "S",
+      "score": 83.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "房地产服务"
+    },
+    {
+      "code": "002640",
+      "name": "跨境通",
+      "push_time": "09:32:11",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 4.06,
+      "open_price": 4.05,
+      "pre_close": 3.96,
+      "stop_loss": 3.97,
+      "grade": "S",
+      "score": 80.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "互联网电商"
+    },
+    {
+      "code": "002285",
+      "name": "世联行",
+      "push_time": "09:32:11",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 3.36,
+      "open_price": 3.33,
+      "pre_close": 3.26,
+      "stop_loss": 3.26,
+      "grade": "S",
+      "score": 80.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "房地产服务"
+    }
+  ]
+}
