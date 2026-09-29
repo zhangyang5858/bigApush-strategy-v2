@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-29",
+  "time": "09:55:46",
+  "stage": "settle",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "002146",
+      "name": "荣盛发展",
+      "push_time": "09:55:46",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 1.32,
+      "open_price": 1.23,
+      "pre_close": 1.21,
+      "stop_loss": 1.21,
+      "grade": "S",
+      "score": 82.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "房地产开发"
+    }
+  ]
+}
