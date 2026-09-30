@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-30",
+  "time": "09:32:04",
+  "stage": "instant",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "301699",
+      "name": "洛轴股份",
+      "push_time": "09:32:04",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 39.76,
+      "open_price": 38.38,
+      "pre_close": 37.71,
+      "stop_loss": 37.61,
+      "grade": "S",
+      "score": 87.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    },
+    {
+      "code": "603042",
+      "name": "华脉科技",
+      "push_time": "09:32:04",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 17.75,
+      "open_price": 16.95,
+      "pre_close": 16.55,
+      "stop_loss": 16.61,
+      "grade": "S",
+      "score": 86.6,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "通信设备"
+    },
+    {
+      "code": "603200",
+      "name": "上海洗霸",
+      "push_time": "09:32:04",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 42.2,
+      "open_price": 41.48,
+      "pre_close": 40.67,
+      "stop_loss": 39.84,
+      "grade": "S",
+      "score": 85.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "环境治理"
+    }
+  ]
+}
