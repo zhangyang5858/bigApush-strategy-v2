@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-30",
+  "time": "09:55:47",
+  "stage": "settle",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "002975",
+      "name": "博杰股份",
+      "push_time": "09:55:47",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 106.69,
+      "open_price": 105.9,
+      "pre_close": 102.05,
+      "stop_loss": 103.78,
+      "grade": "A",
+      "score": 77.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "自动化设备"
+    }
+  ]
+}
