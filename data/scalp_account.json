@@ -23,7 +23,8 @@
       "market_value": 22656.0,
       "highest_price": 41.33,
       "max_profit_pct": 0.15,
-      "is_zt": false
+      "is_zt": false,
+      "pre_market_stop": true
     },
     {
       "code": "603538",
@@ -68,7 +69,8 @@
       "market_value": 23120.0,
       "highest_price": 14.71,
       "max_profit_pct": 0.0,
-      "is_zt": false
+      "is_zt": false,
+      "pre_market_stop": true
     }
   ],
   "closed_trades": [
@@ -481,10 +483,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-09-30 15:30:59",
+  "updated_at": "2026-10-01 09:26:35",
   "position_market_value": 71507.0,
-  "daily_profit": -3927.06,
-  "daily_return_pct": -4.13,
+  "daily_profit": 0.0,
+  "daily_return_pct": 0.0,
   "total_profit": -8917.99,
   "total_return_pct": -8.92
 }
