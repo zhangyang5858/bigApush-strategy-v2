@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-02",
+  "time": "09:32:05",
+  "stage": "instant",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "002805",
+      "name": "丰元股份",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 16.06,
+      "open_price": 16.02,
+      "pre_close": 15.7,
+      "stop_loss": 15.7,
+      "grade": "S",
+      "score": 84.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电池"
+    },
+    {
+      "code": "002708",
+      "name": "光洋股份",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 17.43,
+      "open_price": 17.32,
+      "pre_close": 17.04,
+      "stop_loss": 16.63,
+      "grade": "A",
+      "score": 75.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    },
+    {
+      "code": "000523",
+      "name": "红棉股份",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 3.3,
+      "open_price": 3.26,
+      "pre_close": 3.17,
+      "stop_loss": 3.13,
+      "grade": "A",
+      "score": 75.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "综合Ⅱ"
+    }
+  ]
+}
