@@ -1,7 +1,7 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 90989.59,
-  "cash": 17912.59,
+  "total_assets": 90965.02,
+  "cash": 17888.02,
   "positions": [
     {
       "code": "603538",
@@ -27,28 +27,6 @@
       "is_breakeven_locked": true
     },
     {
-      "code": "002805",
-      "name": "丰元股份",
-      "buy_date": "2026-10-02",
-      "buy_time": "09:55:41",
-      "buy_stage": "settle",
-      "strategy_tag": "S1 竞价首板 (开盘确认)",
-      "buy_price": 16.06,
-      "current_price": 16.06,
-      "open_price": 16.02,
-      "stop_loss": 15.7,
-      "shares": 1500,
-      "cost_amount": 24096.26,
-      "fee": 6.26,
-      "unrealized_profit_pct": 0.0,
-      "unrealized_profit_amount": -6.26,
-      "regime": "中性",
-      "market_value": 24090.0,
-      "highest_price": 16.51,
-      "max_profit_pct": 0.0,
-      "is_zt": false
-    },
-    {
       "code": "603170",
       "name": "宝立食品",
       "buy_date": "2026-10-05",
@@ -67,6 +45,28 @@
       "regime": "中性",
       "market_value": 23256.0,
       "highest_price": 13.68,
+      "max_profit_pct": 0.0,
+      "is_zt": false
+    },
+    {
+      "code": "002805",
+      "name": "丰元股份",
+      "buy_date": "2026-10-05",
+      "buy_time": "09:55:40",
+      "buy_stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "buy_price": 16.06,
+      "current_price": 16.06,
+      "open_price": 16.02,
+      "stop_loss": 15.7,
+      "shares": 1500,
+      "cost_amount": 24096.26,
+      "fee": 6.26,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": -6.26,
+      "regime": "中性",
+      "market_value": 24090.0,
+      "highest_price": 16.06,
       "max_profit_pct": 0.0,
       "is_zt": false
     }
@@ -445,6 +445,23 @@
       "realized_profit_pct": -0.1,
       "action": "⏱️ 超短调仓卖出",
       "reason": "早盘半小时定势未走强(+0.00%)，清仓腾出资金"
+    },
+    {
+      "code": "002805",
+      "name": "丰元股份",
+      "buy_date": "2026-10-02",
+      "buy_price": 16.06,
+      "sell_date": "2026-10-05",
+      "sell_time": "09:55:40",
+      "sell_stage": "settle",
+      "sell_price": 16.06,
+      "shares": 1500,
+      "gross_sell_amount": 24090.0,
+      "fee": 18.31,
+      "realized_profit": -24.57,
+      "realized_profit_pct": -0.1,
+      "action": "⏱️ 超短调仓卖出",
+      "reason": "早盘半小时定势未走强(+0.00%)，清仓腾出资金"
     }
   ],
   "daily_history": [
@@ -571,10 +588,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-10-05 09:38:38",
+  "updated_at": "2026-10-05 09:55:40",
   "position_market_value": 73077.0,
-  "daily_profit": -6.05,
-  "daily_return_pct": -0.01,
-  "total_profit": -9010.41,
-  "total_return_pct": -9.01
+  "daily_profit": -30.62,
+  "daily_return_pct": -0.03,
+  "total_profit": -9034.98,
+  "total_return_pct": -9.03
 }
