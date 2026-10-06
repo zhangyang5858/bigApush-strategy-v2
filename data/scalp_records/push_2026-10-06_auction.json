@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-06",
+  "time": "09:26:37",
+  "stage": "auction",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "002805",
+      "name": "丰元股份",
+      "push_time": "09:26:37",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 16.06,
+      "open_price": 16.02,
+      "pre_close": 15.7,
+      "stop_loss": 15.7,
+      "grade": "S",
+      "score": 84.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电池"
+    },
+    {
+      "code": "603170",
+      "name": "宝立食品",
+      "push_time": "09:26:37",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 13.68,
+      "open_price": 13.74,
+      "pre_close": 13.53,
+      "stop_loss": 13.47,
+      "grade": "A",
+      "score": 73.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "调味发酵品Ⅱ"
+    }
+  ]
+}

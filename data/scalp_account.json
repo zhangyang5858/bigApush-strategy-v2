@@ -599,10 +599,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-10-05 15:30:54",
+  "updated_at": "2026-10-06 09:26:37",
   "position_market_value": 73077.0,
-  "daily_profit": -30.62,
-  "daily_return_pct": -0.03,
+  "daily_profit": 0.0,
+  "daily_return_pct": 0.0,
   "total_profit": -9034.98,
   "total_return_pct": -9.03
 }
