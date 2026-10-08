@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-08",
+  "time": "09:32:11",
+  "stage": "instant",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "002585",
+      "name": "双星新材",
+      "push_time": "09:32:11",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 10.81,
+      "open_price": 10.81,
+      "pre_close": 10.35,
+      "stop_loss": 10.59,
+      "grade": "S",
+      "score": 82.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "塑料"
+    },
+    {
+      "code": "002361",
+      "name": "神剑股份",
+      "push_time": "09:32:11",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 9.95,
+      "open_price": 9.77,
+      "pre_close": 9.58,
+      "stop_loss": 9.57,
+      "grade": "S",
+      "score": 82.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "塑料"
+    },
+    {
+      "code": "603928",
+      "name": "兴业股份",
+      "push_time": "09:32:11",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 13.72,
+      "open_price": 13.43,
+      "pre_close": 13.07,
+      "stop_loss": 13.16,
+      "grade": "S",
+      "score": 82.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "塑料"
+    }
+  ]
+}
