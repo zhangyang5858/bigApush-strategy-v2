@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-08",
+  "time": "09:38:39",
+  "stage": "confirm",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "002361",
+      "name": "神剑股份",
+      "push_time": "09:38:39",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 10.11,
+      "open_price": 9.77,
+      "pre_close": 9.58,
+      "stop_loss": 9.57,
+      "grade": "S",
+      "score": 89.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "塑料"
+    },
+    {
+      "code": "601091",
+      "name": "沈鼓集团",
+      "push_time": "09:38:39",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 24.34,
+      "open_price": 23.55,
+      "pre_close": 23.15,
+      "stop_loss": 23.08,
+      "grade": "S",
+      "score": 89.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "专用设备"
+    }
+  ]
+}
