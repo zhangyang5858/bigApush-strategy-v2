@@ -1,6 +1,6 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 91391.06,
+  "total_assets": 90346.06,
   "cash": 43961.06,
   "positions": [
     {
@@ -11,20 +11,21 @@
       "buy_stage": "instant",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 9.95,
-      "current_price": 10.1,
+      "current_price": 9.95,
       "open_price": 9.77,
       "stop_loss": 10.0,
       "shares": 2300,
       "cost_amount": 22890.95,
       "fee": 5.95,
-      "unrealized_profit_pct": 1.51,
-      "unrealized_profit_amount": 339.05,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": -5.95,
       "regime": "中性",
-      "market_value": 23230.0,
+      "market_value": 22885.0,
       "highest_price": 10.54,
       "max_profit_pct": 4.12,
       "is_zt": false,
-      "is_breakeven_locked": true
+      "is_breakeven_locked": true,
+      "pre_market_stop": true
     },
     {
       "code": "601091",
@@ -34,19 +35,20 @@
       "buy_stage": "confirm",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
       "buy_price": 24.34,
-      "current_price": 24.2,
+      "current_price": 23.5,
       "open_price": 23.55,
       "stop_loss": 23.08,
       "shares": 1000,
       "cost_amount": 24346.33,
       "fee": 6.33,
-      "unrealized_profit_pct": -0.58,
-      "unrealized_profit_amount": -146.33,
+      "unrealized_profit_pct": -3.45,
+      "unrealized_profit_amount": -846.33,
       "regime": "进攻",
-      "market_value": 24200.0,
+      "market_value": 23500.0,
       "highest_price": 25.47,
       "max_profit_pct": 0.0,
-      "is_zt": false
+      "is_zt": false,
+      "pre_market_stop": true
     }
   ],
   "closed_trades": [
@@ -712,10 +714,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-10-08 15:30:51",
-  "position_market_value": 47430.0,
-  "daily_profit": 498.9,
-  "daily_return_pct": 0.55,
-  "total_profit": -8608.94,
-  "total_return_pct": -8.61
+  "updated_at": "2026-10-09 09:26:39",
+  "position_market_value": 46385.0,
+  "daily_profit": -1045.0,
+  "daily_return_pct": -1.14,
+  "total_profit": -9653.94,
+  "total_return_pct": -9.65
 }
