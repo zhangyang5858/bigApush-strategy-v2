@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-09",
+  "time": "09:55:54",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "600354",
+      "name": "敦煌种业",
+      "push_time": "09:55:54",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 9.69,
+      "open_price": 9.26,
+      "pre_close": 9.08,
+      "stop_loss": 9.07,
+      "grade": "A",
+      "score": 72.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "种植业"
+    }
+  ]
+}
