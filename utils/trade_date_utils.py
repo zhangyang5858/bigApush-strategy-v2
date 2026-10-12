@@ -13,12 +13,30 @@ from typing import List, Optional
 logger = logging.getLogger(__name__)
 
 
+# A股常见法定节假日休市日集合 (YYYYMMDD 及固定月日 MMDD 兜底，防无 Tushare 环境下节假日误触发)
+CN_FIXED_HOLIDAY_MMDD = {
+    "0101",                                                  # 元旦
+    "0501", "0502", "0503", "0504", "0505",                  # 劳动节
+    "1001", "1002", "1003", "1004", "1005", "1006", "1007",  # 国庆节
+}
+
+CN_SPECIFIC_HOLIDAYS = {
+    # 2025-2026 春节、清明、端午、中秋等休市日
+    "20250128", "20250129", "20250130", "20250131", "20250203", "20250204",
+    "20250404", "20250602", "20251008",
+    "20260101", "20260102",
+    "20260216", "20260217", "20260218", "20260219", "20260220", "20260223",
+    "20260406", "20260619", "20260925",
+    "20261001", "20261002", "20261005", "20261006", "20261007",
+}
+
+
 def is_trading_day(date_str: str) -> bool:
     """
     判断指定日期是否为交易日
 
     优先使用 Tushare 获取真实交易日历，包含节假日判断。
-    如果 Tushare 不可用，则回退到简单的周末排除逻辑。
+    如果 Tushare 不可用，则使用内置法定节假日与周末排除逻辑。
 
     参数:
         date_str: 日期字符串，支持 YYYY-MM-DD 或 YYYYMMDD 格式
@@ -32,8 +50,13 @@ def is_trading_day(date_str: str) -> bool:
         else:
             date_str_fmt = date_str
             date = datetime.strptime(date_str, '%Y%m%d')
-        
-        # 先尝试使用 Tushare 获取真实交易日历
+
+        # 1. 内置法定节假日硬性拦截（元旦、五一、国庆及春节等）
+        if date_str_fmt in CN_SPECIFIC_HOLIDAYS or date_str_fmt[4:] in CN_FIXED_HOLIDAY_MMDD:
+            logger.debug(f"日期 {date_str} 属于A股法定节假日休市期，不是交易日")
+            return False
+
+        # 2. 先尝试使用 Tushare 获取真实交易日历
         try:
             import tushare as ts
             from pathlib import Path
@@ -60,7 +83,7 @@ def is_trading_day(date_str: str) -> bool:
         except Exception as e:
             logger.debug(f"Tushare 交易日查询失败，使用周末判断: {e}")
         
-        # 回退：排除周六(5)和周日(6)
+        # 3. 回退：排除周六(5)和周日(6)
         if '-' in date_str:
             date = datetime.strptime(date_str, '%Y-%m-%d')
         else:
@@ -71,7 +94,7 @@ def is_trading_day(date_str: str) -> bool:
             logger.debug(f"日期 {date_str} 是周末，不是交易日")
             return False
         
-        logger.debug(f"日期 {date_str} 是交易日（基于周末判断）")
+        logger.debug(f"日期 {date_str} 是交易日（基于节假日与周末判断）")
         return True
     except Exception as e:
         logger.error(f"判断交易日时出错: {e}")

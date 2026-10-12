@@ -112,8 +112,9 @@ def detect_s1_auction_first_board(
     cur_price = float(confirm_stock.get("price") or price)
     cur_amt = float(confirm_stock.get("amount") or 0.0)
     cur_chg = float(confirm_stock.get("change") or auction_chg)
+    cur_high = float(confirm_stock.get("high") or cur_price)
 
-    # 失效判断：跌破开盘价超过2% 或 高开低走超2%
+    # 失效判断：跌破开盘价超过2%、高开低走超2%、或冲高回落较盘中高点回撤超1.8%
     if cur_price < open_price * 0.98:
         return {
             "strategy_id": "S1", "strategy_name": "S1 竞价首板", "code": code, "name": name,
@@ -127,6 +128,14 @@ def detect_s1_auction_first_board(
             "status": "INVALIDATED", "stage_desc": "高开低走走弱失效",
             "price": cur_price, "open_price": open_price, "support_price": open_price,
             "reasons": reasons, "invalid_reason": f"开盘走弱超2% (差值{cur_chg - auction_chg:+.2f}%)"
+        }
+    if cur_high > cur_price and (cur_high - cur_price) / cur_high > 0.018:
+        pullback_pct = (cur_high - cur_price) / cur_high * 100
+        return {
+            "strategy_id": "S1", "strategy_name": "S1 竞价首板", "code": code, "name": name,
+            "status": "INVALIDATED", "stage_desc": "冲高回落受阻失效",
+            "price": cur_price, "open_price": open_price, "support_price": open_price,
+            "reasons": reasons, "invalid_reason": f"较盘中高点￥{cur_high:.2f}回撤{pullback_pct:.2f}%(>1.8%)"
         }
 
     # 确认通过：守住开盘价且成交放量

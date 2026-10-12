@@ -374,31 +374,43 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
     if regime == "防守" and stage == "confirm":
         stage_limit = 1  # 防守期开盘承接降为 1 只
 
-    # 3. 极速秒板阶段质量门槛 (P2)
-    min_instant_score = 86.0 if regime == "防守" else 82.0 if regime == "中性" else 75.0
-    min_instant_net_flow = 2e7 if regime == "防守" else 1e7 if regime == "中性" else 0.0
+    # 3. 阶段质量门槛校准 (适配未封板标的真实得分分布，避免 86 分虚高门槛误杀冲板真龙)
+    min_instant_score = 71.5 if regime == "防守" else 69.0 if regime == "中性" else 65.0
+    min_instant_net_flow = 1.5e7 if regime == "防守" else 8e6 if regime == "中性" else 0.0
+    min_confirm_score = 68.0 if regime == "防守" else 65.0 if regime == "中性" else 60.0
 
     existing_codes = {p["code"] for p in account.get("positions", [])}
+    # 同日已卖出标的冷却池：禁止当天卖出后又在后续时段买回同一只弱势票
+    sold_today_codes = {
+        str(c.get("code") or "")
+        for c in account.get("closed_trades", [])
+        if c.get("sell_date") == today_str
+    }
     buy_records = []
 
-    cur_pos_count = len(account.get("positions", []))
+    def count_active_positions(acc):
+        """计算有效占用名额的持仓数（09:26 竞价阶段已标记开盘必卖抢跑的旧仓不占用新开仓名额）"""
+        return sum(1 for p in acc.get("positions", []) if not p.get("pre_market_stop"))
+
+    cur_pos_count = count_active_positions(account)
     if cur_pos_count >= effective_max_positions:
         if regime == "防守":
-            print(f"  🛡️ [防守模式控仓] 当前持仓已达上限 {effective_max_positions}只 (50%仓位)，防守期强制保留半仓现金避险，跳过买入。")
+            print(f"  🛡️ [防守模式控仓] 当前有效持仓已达上限 {effective_max_positions}只 (50%仓位)，防守期强制保留半仓现金避险，跳过买入。")
         elif regime == "中性":
-            print(f"  ⚖️ [中性模式控仓] 当前持仓已达上限 {effective_max_positions}只 (75%仓位)，中性期保持现金防御，跳过买入。")
+            print(f"  ⚖️ [中性模式控仓] 当前有效持仓已达上限 {effective_max_positions}只 (75%仓位)，中性期保持现金防御，跳过买入。")
         return buy_records
 
     for stock in pushed_stocks:
         if len(buy_records) >= stage_limit:
             break
-        if len(account.get("positions", [])) >= effective_max_positions:
+        if count_active_positions(account) >= effective_max_positions:
             break
 
         code = str(stock.get("code") or "")
         name = stock.get("name") or ""
         push_price = n(stock.get("push_price") or stock.get("price") or stock.get("open_price"))
         open_price = n(stock.get("open_price") or push_price)
+        high_price = n(stock.get("high") or stock.get("highest_price") or push_price)
         stop_loss = n(stock.get("stop_loss") or (open_price * 0.98))
         strategy_tag = stock.get("strategy_tag", "🎯 综合短线")
         score = n(stock.get("score") or 0.0)
@@ -406,18 +418,34 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
 
         if code in existing_codes:
             continue
+        if code in sold_today_codes:
+            print(f"  🚫 [同日回买拦截] {code} {name} 今日已执行卖出平仓，禁止同日二次回买")
+            continue
         if push_price <= 0:
             continue
         if stock.get("is_zt"):
             continue
+
+        # 盘中冲高回落过滤器 (防止 09:38/09:55 买进冲板失败掉队的回落股，如 2026-10-09 龙蟠科技)
+        if stage in ["instant", "confirm", "settle"] and high_price > push_price:
+            pullback_ratio = (high_price - push_price) / high_price
+            if pullback_ratio > 0.018:
+                print(f"  🛡️ [冲高回落拦截] {code} {name} 现价￥{push_price:.2f} 较盘中高点￥{high_price:.2f} 回撤 {pullback_ratio*100:.2f}% (>1.8%)，冲高受阻放弃买入")
+                continue
 
         # P2: 极速秒板 (09:31:30) 弱势环境防诱多门槛校验
         if stage == "instant":
             if score < min_instant_score:
                 print(f"  🛡️ [{regime}行情·秒板拦截] {code} {name} (评分 {score:.1f} < 门槛 {min_instant_score:.1f})，跳过以防开盘冲高诱多回落")
                 continue
-            if net_flow < min_instant_net_flow:
-                print(f"  🛡️ [{regime}行情·秒板拦截] {code} {name} (主力净流入 {net_flow/1e4:.0f}万 < 门槛 {min_instant_net_flow/1e4:.0f}万)，主力资金支持不足，跳过")
+            # 开盘90秒内若价格较开盘价强势拉升 >= 2.0%，即使东财主力净流入字段尚未刷新也放行
+            intraday_surge = ((push_price - open_price) / open_price) if open_price > 0 else 0.0
+            if net_flow < min_instant_net_flow and intraday_surge < 0.02:
+                print(f"  🛡️ [{regime}行情·秒板拦截] {code} {name} (主力净流入 {net_flow/1e4:.0f}万 < 门槛 {min_instant_net_flow/1e4:.0f}万 且拉升动能不足)，跳过")
+                continue
+        elif stage in ["confirm", "settle"]:
+            if score < min_confirm_score:
+                print(f"  🛡️ [{regime}行情·承接拦截] {code} {name} (评分 {score:.1f} < 门槛 {min_confirm_score:.1f})，跳过边缘标的")
                 continue
 
         # 10万小资金高价股过滤：若单价过高，买1手占资不均，买2手超额，跳过以避免大量闲置资金
