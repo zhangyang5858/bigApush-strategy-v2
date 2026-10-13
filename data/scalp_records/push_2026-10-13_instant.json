@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-13",
+  "time": "09:32:16",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "603919",
+      "name": "XD金徽酒",
+      "push_time": "09:32:16",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 16.99,
+      "open_price": 16.8,
+      "pre_close": 16.41,
+      "stop_loss": 16.46,
+      "grade": "B",
+      "score": 68.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "白酒Ⅱ"
+    },
+    {
+      "code": "300006",
+      "name": "莱美药业",
+      "push_time": "09:32:16",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 6.9,
+      "open_price": 6.8,
+      "pre_close": 6.56,
+      "stop_loss": 6.53,
+      "grade": "B",
+      "score": 67.1,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "化学制药"
+    },
+    {
+      "code": "000833",
+      "name": "粤桂股份",
+      "push_time": "09:32:16",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 20.29,
+      "open_price": 19.67,
+      "pre_close": 18.77,
+      "stop_loss": 19.28,
+      "grade": "B",
+      "score": 66.0,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "综合Ⅱ"
+    }
+  ]
+}
