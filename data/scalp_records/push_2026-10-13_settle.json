@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-13",
+  "time": "09:55:42",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "603919",
+      "name": "XD金徽酒",
+      "push_time": "09:55:42",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 16.97,
+      "open_price": 16.8,
+      "pre_close": 16.41,
+      "stop_loss": 16.13,
+      "grade": "A",
+      "score": 73.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "白酒Ⅱ"
+    },
+    {
+      "code": "000799",
+      "name": "酒鬼酒",
+      "push_time": "09:55:42",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 38.31,
+      "open_price": 36.78,
+      "pre_close": 36.42,
+      "stop_loss": 35.32,
+      "grade": "B",
+      "score": 68.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "白酒Ⅱ"
+    },
+    {
+      "code": "600702",
+      "name": "舍得酒业",
+      "push_time": "09:55:42",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 34.1,
+      "open_price": 32.9,
+      "pre_close": 32.67,
+      "stop_loss": 31.6,
+      "grade": "B",
+      "score": 68.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "白酒Ⅱ"
+    }
+  ]
+}
