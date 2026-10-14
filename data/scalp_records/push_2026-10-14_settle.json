@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-14",
+  "time": "09:55:39",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "300164",
+      "name": "通源石油",
+      "push_time": "09:55:39",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 8.81,
+      "open_price": 8.66,
+      "pre_close": 8.52,
+      "stop_loss": 8.49,
+      "grade": "A",
+      "score": 72.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "油服工程"
+    }
+  ]
+}
