@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-14",
+  "time": "09:38:40",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "300530",
+      "name": "领湃科技",
+      "push_time": "09:38:40",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 30.1,
+      "open_price": 28.57,
+      "pre_close": 27.54,
+      "stop_loss": 28.0,
+      "grade": "B",
+      "score": 69.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电池"
+    },
+    {
+      "code": "002811",
+      "name": "郑中设计",
+      "push_time": "09:38:40",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 21.52,
+      "open_price": 20.7,
+      "pre_close": 20.27,
+      "stop_loss": 20.29,
+      "grade": "B",
+      "score": 64.6,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "装修装饰Ⅱ"
+    }
+  ]
+}
