@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-15",
+  "time": "09:55:40",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "600199",
+      "name": "金种子酒",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 7.88,
+      "open_price": 7.1,
+      "pre_close": 7.25,
+      "stop_loss": 6.82,
+      "grade": "B",
+      "score": 67.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "白酒Ⅱ"
+    },
+    {
+      "code": "301052",
+      "name": "果麦文化",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 36.01,
+      "open_price": 33.54,
+      "pre_close": 34.06,
+      "stop_loss": 32.21,
+      "grade": "B",
+      "score": 67.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "出版"
+    },
+    {
+      "code": "603096",
+      "name": "新经典",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 23.58,
+      "open_price": 21.86,
+      "pre_close": 23.07,
+      "stop_loss": 20.99,
+      "grade": "B",
+      "score": 67.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "出版"
+    }
+  ]
+}
