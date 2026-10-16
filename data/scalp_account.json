@@ -1,30 +1,29 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 88385.44,
-  "cash": 64751.44,
+  "total_assets": 87237.41,
+  "cash": 64461.41,
   "positions": [
     {
-      "code": "000823",
-      "name": "超声电子",
-      "buy_date": "2026-10-15",
-      "buy_time": "09:26:39",
-      "buy_stage": "auction",
+      "code": "300006",
+      "name": "莱美药业",
+      "buy_date": "2026-10-16",
+      "buy_time": "09:32:13",
+      "buy_stage": "instant",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
-      "buy_price": 25.13,
-      "current_price": 26.26,
-      "open_price": 25.13,
-      "stop_loss": 25.26,
-      "shares": 900,
-      "cost_amount": 22622.88,
-      "fee": 5.88,
-      "unrealized_profit_pct": 4.5,
-      "unrealized_profit_amount": 1011.12,
-      "regime": "防守",
-      "market_value": 23634.0,
-      "highest_price": 26.88,
-      "max_profit_pct": 4.5,
-      "is_zt": false,
-      "is_breakeven_locked": true
+      "buy_price": 8.76,
+      "current_price": 8.76,
+      "open_price": 8.36,
+      "stop_loss": 8.19,
+      "shares": 2600,
+      "cost_amount": 22781.92,
+      "fee": 5.92,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": -5.92,
+      "regime": "进攻",
+      "market_value": 22776.0,
+      "highest_price": 8.76,
+      "max_profit_pct": 0.0,
+      "is_zt": false
     }
   ],
   "closed_trades": [
@@ -673,6 +672,23 @@
       "realized_profit_pct": -14.77,
       "action": "🚨 竞价破位抢跑成交",
       "reason": "执行开盘竞价低开抢跑纪律(-14.68%)，市价止损出局避免深亏"
+    },
+    {
+      "code": "000823",
+      "name": "超声电子",
+      "buy_date": "2026-10-15",
+      "buy_price": 25.13,
+      "sell_date": "2026-10-16",
+      "sell_time": "09:32:13",
+      "sell_stage": "instant",
+      "sell_price": 25.01,
+      "shares": 900,
+      "gross_sell_amount": 22509.0,
+      "fee": 17.11,
+      "realized_profit": -130.99,
+      "realized_profit_pct": -0.58,
+      "action": "🛡️ 触发保本锁盈止损",
+      "reason": "曾浮盈+4.5%，回落跌破保本防守线(-0.48%)，锁定本金出局"
     }
   ],
   "daily_history": [
@@ -898,10 +914,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-10-16 09:26:43",
-  "position_market_value": 23634.0,
-  "daily_profit": 351.0,
-  "daily_return_pct": 0.4,
-  "total_profit": -11614.56,
-  "total_return_pct": -11.61
+  "updated_at": "2026-10-16 09:32:13",
+  "position_market_value": 22776.0,
+  "daily_profit": -797.03,
+  "daily_return_pct": -0.91,
+  "total_profit": -12762.59,
+  "total_return_pct": -12.76
 }

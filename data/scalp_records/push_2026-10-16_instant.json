@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-16",
+  "time": "09:32:13",
+  "stage": "instant",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "300006",
+      "name": "莱美药业",
+      "push_time": "09:32:13",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 8.76,
+      "open_price": 8.36,
+      "pre_close": 8.13,
+      "stop_loss": 8.19,
+      "grade": "S",
+      "score": 92.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "化学制药"
+    },
+    {
+      "code": "600127",
+      "name": "金健米业",
+      "push_time": "09:32:13",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 14.13,
+      "open_price": 13.77,
+      "pre_close": 13.43,
+      "stop_loss": 13.49,
+      "grade": "S",
+      "score": 89.9,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "农产品加工"
+    },
+    {
+      "code": "000993",
+      "name": "闽东电力",
+      "push_time": "09:32:13",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 18.41,
+      "open_price": 17.74,
+      "pre_close": 17.46,
+      "stop_loss": 17.39,
+      "grade": "S",
+      "score": 88.6,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "电力"
+    }
+  ]
+}
