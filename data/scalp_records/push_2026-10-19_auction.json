@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-19",
+  "time": "09:26:38",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002510",
+      "name": "天汽模",
+      "push_time": "09:26:38",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 6.2,
+      "open_price": 6.2,
+      "pre_close": 5.96,
+      "stop_loss": 6.08,
+      "grade": "B",
+      "score": 64.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    },
+    {
+      "code": "600721",
+      "name": "百花医药",
+      "push_time": "09:26:38",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 11.23,
+      "open_price": 11.23,
+      "pre_close": 11.02,
+      "stop_loss": 11.01,
+      "grade": "B",
+      "score": 60.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "医疗服务"
+    }
+  ]
+}
