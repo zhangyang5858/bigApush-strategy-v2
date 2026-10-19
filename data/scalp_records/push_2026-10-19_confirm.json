@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-19",
+  "time": "09:38:37",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002124",
+      "name": "天邦食品",
+      "push_time": "09:38:37",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 2.09,
+      "open_price": 1.98,
+      "pre_close": 1.95,
+      "stop_loss": 1.94,
+      "grade": "B",
+      "score": 66.1,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "养殖业"
+    }
+  ]
+}
