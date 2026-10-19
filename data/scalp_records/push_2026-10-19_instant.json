@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-19",
+  "time": "09:32:03",
+  "stage": "instant",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "600721",
+      "name": "百花医药",
+      "push_time": "09:32:03",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 11.24,
+      "open_price": 11.23,
+      "pre_close": 11.02,
+      "stop_loss": 11.01,
+      "grade": "S",
+      "score": 80.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "医疗服务"
+    },
+    {
+      "code": "605058",
+      "name": "澳弘电子",
+      "push_time": "09:32:03",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 67.83,
+      "open_price": 67.64,
+      "pre_close": 65.83,
+      "stop_loss": 66.29,
+      "grade": "A",
+      "score": 79.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "元件"
+    },
+    {
+      "code": "301132",
+      "name": "满坤科技",
+      "push_time": "09:32:03",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 71.98,
+      "open_price": 69.96,
+      "pre_close": 68.34,
+      "stop_loss": 68.56,
+      "grade": "A",
+      "score": 78.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "元件"
+    }
+  ]
+}
