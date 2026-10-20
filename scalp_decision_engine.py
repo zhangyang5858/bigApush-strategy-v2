@@ -826,7 +826,7 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
         title_text = f"🌙 缅A尾盘低吸与突破回踩决胜榜 ({now_str[11:16]})"
         header_color = "indigo"
     elif stage == "settle":
-        title_text = f"🏆 缅A早盘定势主线龙头榜 ({now_str[11:16]})"
+        title_text = f"🎯 缅A早盘定势盯盘与持仓诊断 ({now_str[11:16]})"
         header_color = "purple"
     elif stage == "confirm":
         title_text = f"🚀 缅A开盘承接强攻榜 ({now_str[11:16]})"
