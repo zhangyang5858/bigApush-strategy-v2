@@ -637,7 +637,8 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
 
         is_qualified = (not is_hard_veto) and (final_score >= min_score)
 
-        if not code or pre_close <= 0 or code.startswith(("688", "8", "4")):
+        # 【防核按钮优化】：全面剔除 300/301(创业板) 与 688(科创板) 20cm 标的，超短打板专注 60/00 主板
+        if not code or pre_close <= 0 or code.startswith(("300", "301", "688", "8", "4")):
             continue
 
         is_leader = (sec_info["leader"] == name)
@@ -720,11 +721,11 @@ def get_stage_pushed_stocks(analysis_res, stage="auction"):
         if s.get("is_zt"):
             return False
         code = str(s.get("code") or "")
+        # 【防核按钮优化】：禁止推荐 20cm 创业板/科创板标的
+        if code.startswith(("300", "301", "688", "8", "4")):
+            return False
         chg = float(s.get("change") or s.get("auction_change") or 0.0)
-        if code.startswith(("30", "688")):
-            return chg < 19.5
-        else:
-            return chg < 9.7
+        return chg < 9.7
 
     buyable_qualified = [s for s in stocks if s.get("qualified") and is_buyable_unsealed(s)]
     buyable_all = [s for s in stocks if is_buyable_unsealed(s)]

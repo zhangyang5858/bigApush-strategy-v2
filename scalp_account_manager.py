@@ -193,9 +193,16 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
             # 09:26 竞价阶段：预警与开盘抢跑指令
             auction_chg = ((cur_price / buy_price) - 1) * 100 if buy_price > 0 else 0
             if cur_price <= stop_loss or auction_chg <= -3.0:
-                action_desc = "🚨 竞价破位·开盘抢跑"
-                reason = f"竞价大幅低开({auction_chg:+.2f}%)跌破防守线，指令：09:30:00 开盘市价挂单抢跑止损，杜绝深套"
-                pos["pre_market_stop"] = True
+                # 强势龙头豁免机制：若此前最高浮盈>=6%或持股1天强势股，且非一字跌停(-8.5%以内)，给予09:35~09:40观察反抽期，杜绝开盘第一分钟在地板价恐慌割肉
+                if max_profit_pct >= 6.0 and auction_chg > -8.5:
+                    action_desc = "⚠️ 龙头低开·反抽观察"
+                    reason = f"前日强势涨停(最高+{max_profit_pct:.1f}%)，竞价低开({auction_chg:+.2f}%)，给予09:35~09:40反抽观察期，暂不抢跑"
+                    pos["pre_market_stop"] = False
+                    pos["observe_rebound"] = True
+                else:
+                    action_desc = "🚨 竞价破位·开盘抢跑"
+                    reason = f"竞价大幅低开({auction_chg:+.2f}%)跌破防守线，指令：09:30:00 开盘市价挂单抢跑止损，杜绝深套"
+                    pos["pre_market_stop"] = True
             elif auction_chg <= -1.5:
                 action_desc = "⚠️ 竞价偏弱·盯盘预警"
                 reason = f"竞价微幅低开({auction_chg:+.2f}%)，建议开盘观察反抽分时均线力度，若不回抽择机减仓"
@@ -214,6 +221,13 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
                 action_desc = "🚨 竞价破位抢跑成交"
                 reason = f"执行开盘竞价低开抢跑纪律({unrealized_profit_pct:+.2f}%)，市价止损出局避免深亏"
                 should_sell = True
+
+            # 1.1 龙头低开观察期：若到了 09:38/09:55 仍无力反抽且跌破防守线，按纪律止损
+            elif pos.get("observe_rebound") and stage in ["confirm", "settle", "afternoon"] and not is_zt:
+                if cur_price <= stop_loss or unrealized_profit_pct <= -2.5:
+                    action_desc = "🚨 反抽无力止损"
+                    reason = f"观察期({stage})反抽未果({unrealized_profit_pct:+.2f}%)，跌破防守线，止损离场"
+                    should_sell = True
 
             # 2. 触发保本防守线（此前大肉回落）
             elif pos.get("is_breakeven_locked") and cur_price <= stop_loss:
@@ -337,10 +351,10 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
 
 STAGE_MAX_BUYS = {
     "auction": 1,   # 09:26 竞价阶段：严格限购 1 只（探针试错，仓位上限 25%，防大额诱多）
-    "instant": 1,   # 09:31:30 极速秒板：限购 1 只（专抓开盘 90 秒主力闪电封板龙头）
-    "confirm": 2,   # 09:35/09:38 开盘确认：核心主战场，允许买入 1~2 只（确定性最高）
-    "settle": 1,    # 09:55 早盘定势：机动补仓 1 只
-    "afternoon": 2  # 14:30 尾盘低吸与突破回踩：按需配置 1~2 只 (S3回调/S4回踩)
+    "instant": 2,   # 09:31:30 极速秒板：主力进攻打板时段（封板率最高达41.7%，限购 1~2 只）
+    "confirm": 1,   # 09:35/09:38 开盘确认：龙头二次确认，限购 1 只
+    "settle": 0,    # 09:55 早盘定势：超短系统彻底关闭定势买入，杜绝高位追高接盘！
+    "afternoon": 0  # 尾盘超短不盲目潜伏
 }
 
 
@@ -424,6 +438,11 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
         if push_price <= 0:
             continue
         if stock.get("is_zt"):
+            continue
+
+        # 【防核按钮风控】：超短系统全面剔除 300/301(创业板) 与 688(科创板) 20cm 个股，仅做 60/00 主板
+        if code.startswith(("300", "301", "688", "8", "4")):
+            print(f"  🛡️ [20cm风控拦截] {code} {name} 为创业板/科创板/北交所标的，超短系统强制禁买以规避次日核按钮风险。")
             continue
 
         # 盘中冲高回落过滤器 (防止 09:38/09:55 买进冲板失败掉队的回落股，如 2026-10-09 龙蟠科技)
