@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-20",
+  "time": "09:38:45",
+  "stage": "confirm",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "002164",
+      "name": "宁波东力",
+      "push_time": "09:38:45",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 15.87,
+      "open_price": 15.18,
+      "pre_close": 14.69,
+      "stop_loss": 14.88,
+      "grade": "S",
+      "score": 82.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    },
+    {
+      "code": "603341",
+      "name": "龙旗科技",
+      "push_time": "09:38:45",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 36.47,
+      "open_price": 35.5,
+      "pre_close": 34.78,
+      "stop_loss": 34.79,
+      "grade": "A",
+      "score": 76.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "消费电子"
+    }
+  ]
+}
