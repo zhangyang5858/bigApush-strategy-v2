@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-20",
+  "time": "09:26:38",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "600148",
+      "name": "长春一东",
+      "push_time": "09:26:38",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 19.0,
+      "open_price": 19.0,
+      "pre_close": 17.91,
+      "stop_loss": 18.62,
+      "grade": "B",
+      "score": 63.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    },
+    {
+      "code": "002164",
+      "name": "宁波东力",
+      "push_time": "09:26:38",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 15.18,
+      "open_price": 15.18,
+      "pre_close": 14.69,
+      "stop_loss": 14.88,
+      "grade": "B",
+      "score": 60.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    }
+  ]
+}
