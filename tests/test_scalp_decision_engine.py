@@ -73,3 +73,74 @@ def test_build_scalp_feishu_card_v2_sections():
     card_str = str(card)
     # 验证卡片中包含 S1 或 S2 等策略标识
     assert "S1" in card_str or "S2" in card_str or "短线" in card_str
+
+
+def test_weak_to_strong_auction_factor():
+    """测试竞价爆量弱转强判定"""
+    from strategy_four_pillars import detect_s1_auction_first_board
+
+    stock = {
+        "code": "000001",
+        "name": "测试龙头",
+        "open_price": 10.40,
+        "pre_close": 10.00,
+        "auction_amount": 25_000_000,
+        "vr": 2.5,
+        "float_cap": 30.0
+    }
+    sec = {"name": "算力", "breadth": 0.6, "avg_pct": 1.2}
+    yesterday = {"is_limit_up": False, "amount": 200_000_000}
+
+    sig = detect_s1_auction_first_board(stock=stock, yesterday=yesterday, sector_info=sec)
+    assert sig is not None
+    assert sig["is_weak_to_strong"] is True
+    assert "弱转强" in sig["strategy_variant"]
+
+
+def test_sector_exclusivity():
+    """测试同板块先锋身位排他，屏蔽后排跟风标的"""
+    fake_res = {
+        "stocks": [
+            {"code": "600001", "name": "龙头A", "sector": "半导体", "score": 92, "qualified": True, "is_zt": False, "change": 3.5, "s1_signal": {"status": "CONFIRMED"}},
+            {"code": "600002", "name": "跟风B", "sector": "半导体", "score": 85, "qualified": True, "is_zt": False, "change": 2.5, "s1_signal": {"status": "CONFIRMED"}},
+            {"code": "000003", "name": "龙头C", "sector": "低空经济", "score": 88, "qualified": True, "is_zt": False, "change": 4.0, "s2_signal": {"status": "CONFIRMED"}},
+        ]
+    }
+    pushed = get_stage_pushed_stocks(fake_res, stage="confirm")
+    codes = [s["code"] for s in pushed]
+    assert "600001" in codes
+    assert "600002" not in codes  # 跟风B同板块被排他剔除
+    assert "000003" in codes
+
+
+def test_morning_limit_up_lock_in_account_manager():
+    """测试次日一字或秒板锁仓，严禁在早盘过早卖出"""
+    from scalp_account_manager import check_and_execute_sells
+
+    account = {
+        "cash": 20000.0,
+        "positions": [
+            {
+                "code": "600001",
+                "name": "连板龙",
+                "buy_date": "2026-10-19",
+                "buy_price": 10.0,
+                "shares": 1000,
+                "cost_amount": 10000.0,
+                "stop_loss": 9.75
+            }
+        ],
+        "closed_trades": []
+    }
+    # 模拟 09:31 开盘秒板至 +9.2%（未正式上报zt_set或封板瞬间）
+    live_map = {
+        "600001": {"f2": 10.92, "f3": 9.2, "f15": 10.92, "f16": 10.5, "f17": 10.5}
+    }
+    sells = check_and_execute_sells(account, live_map, zt_set=set(), stage="instant", today_str="2026-10-20")
+
+    # 验证未被卖出，而是锁仓
+    assert len(sells) == 1
+    assert sells[0]["is_executed"] is False
+    assert "锁仓" in sells[0]["action"]
+    assert len(account["positions"]) == 1
+

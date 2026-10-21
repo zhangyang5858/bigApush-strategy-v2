@@ -516,14 +516,35 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
 
         final_score = (auction_score * 0.4 + confirm_score * 0.6) if is_confirm_stage else auction_score
 
-        # 涨停判定与连板数
+        # 涨停判定与封成比评级
         is_zt = (code in zt_dict) or (cur_chg >= 9.85 and (cur_price == n(x.get("f2"))))
         zt_info = zt_dict.get(code, {})
         lbc = zt_info.get("lbc") or zt_info.get("lb") or 1
         seal_fund = zt_info.get("fund") or (amt * 0.15 if is_zt else 0)
 
+        seal_ratio = (seal_fund / amt) if (amt > 0 and seal_fund > 0) else 0.0
         if is_zt:
             final_score = clamp(final_score + 10, 0, 100)
+            if seal_ratio >= 0.20 or seal_fund >= 1e8:
+                seal_grade = "🏆 铁板/秒板 (极硬)"
+                seal_tag = f"🏆 极硬板(封成比{seal_ratio * 100:.1f}%)"
+                seal_desc = f"封单{fmt_amount(seal_fund)}/封成比{seal_ratio * 100:.1f}%(极硬铁板防炸)"
+            elif seal_ratio >= 0.08 or seal_fund >= 3e7:
+                seal_grade = "🥇 优质硬板"
+                seal_tag = f"🥇 硬板(封成比{seal_ratio * 100:.1f}%)"
+                seal_desc = f"封单{fmt_amount(seal_fund)}/封成比{seal_ratio * 100:.1f}%(结构稳固)"
+            elif seal_ratio < 0.03 or seal_fund < 1.5e7:
+                seal_grade = "⚠️ 弱板防炸"
+                seal_tag = f"⚠️ 弱板(封成比{seal_ratio * 100:.1f}%)"
+                seal_desc = f"封单仅{fmt_amount(seal_fund)}/封成比{seal_ratio * 100:.1f}%(防范开板跳水风险)"
+            else:
+                seal_grade = "⚡ 普通封板"
+                seal_tag = f"⚡ 封单{fmt_amount(seal_fund)}"
+                seal_desc = f"封单{fmt_amount(seal_fund)}/封成比{seal_ratio * 100:.1f}%"
+        else:
+            seal_grade = None
+            seal_tag = None
+            seal_desc = None
 
         final_score = clamp(final_score, 0, 100)
         grade = "S" if final_score >= 80 else "A" if final_score >= 70 else "B" if final_score >= 60 else "C"
@@ -602,6 +623,9 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
             strat_invalid_reason = primary_sig.get("invalid_reason")
             if primary_sig.get("reasons"):
                 reasons.extend(primary_sig["reasons"][:3])
+            if primary_sig.get("is_weak_to_strong"):
+                final_score = clamp(final_score + 8, 0, 100)
+                grade = "S" if final_score >= 80 else "A" if final_score >= 70 else "B" if final_score >= 60 else "C"
         else:
             strategy_id = "GENERIC"
             strategy_tag = "🎯 综合短线先锋"
@@ -679,10 +703,15 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
             "s2_signal": s2_sig,
             "s3_signal": s3_sig,
             "s4_signal": s4_sig,
+            "is_weak_to_strong": bool(s1_sig and s1_sig.get("is_weak_to_strong")),
             "is_leader": is_leader,
             "is_zt": is_zt,
             "lbc": lbc,
             "seal_fund": seal_fund,
+            "seal_ratio": round(seal_ratio, 4),
+            "seal_grade": seal_grade,
+            "seal_tag": seal_tag,
+            "seal_desc": seal_desc,
             "reasons": reasons,
             "risks": risks,
         })
@@ -790,22 +819,38 @@ def get_stage_pushed_stocks(analysis_res, stage="auction"):
         if not pushed_list:
             pushed_list.extend(strategy_groups["S2"][:2])
 
-    # 去重处理
-    seen = set()
+    # 去重处理与同板块先锋身位排他（同一行业仅保留排名最靠前的先锋龙头，坚决屏蔽后排跟风）
+    seen_codes = set()
+    seen_sectors = set()
     final_pushed = []
     for s in pushed_list:
-        if s["code"] not in seen:
-            seen.add(s["code"])
-            final_pushed.append(s)
+        if s["code"] in seen_codes:
+            continue
+        sec = s.get("sector") or ""
+        if sec and sec not in ["其他", "--", "综合"]:
+            if sec in seen_sectors:
+                # 同板块已有先锋龙一入选，屏蔽同板块后排跟风标的
+                continue
+            seen_sectors.add(sec)
+        seen_codes.add(s["code"])
+        final_pushed.append(s)
 
     if not final_pushed:
-        # 兜底避免空榜
-        final_pushed = buyable_qualified[:3] or buyable_all[:2]
+        # 兜底避免空榜（依然遵循板块排他原则）
+        for s in (buyable_qualified or buyable_all):
+            if s["code"] in seen_codes:
+                continue
+            sec = s.get("sector") or ""
+            if sec and sec not in ["其他", "--", "综合"] and sec in seen_sectors:
+                continue
+            seen_codes.add(s["code"])
+            if sec:
+                seen_sectors.add(sec)
+            final_pushed.append(s)
+            if len(final_pushed) >= 3:
+                break
 
     return final_pushed
-
-
-    return buyable_qualified[:4] or buyable_all[:3]
 
 
 def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None, sell_actions=None, buy_records=None, account_data=None):
@@ -968,10 +1013,13 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
             else:
                 veto_tips = f"跌破防守止损线 `￥{s.get('stop_loss', 0.0):.2f}` 即失效"
 
+            seal_badge = f" | {s['seal_tag']}" if s.get("seal_tag") else ""
+            seal_line = f"\n> 封板评级: **{s['seal_desc']}**" if s.get("seal_desc") else ""
+
             stock_md_list.append(
                 f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
-                f"> 战法: **`{s.get('strategy_tag')}`** | 评级: **{grade_badge}**\n"
-                f"> 行业: {sec_tag} | {flow_tag}\n"
+                f"> 战法: **`{s.get('strategy_tag')}`** | 评级: **{grade_badge}**{seal_badge}\n"
+                f"> 行业: {sec_tag} | {flow_tag}{seal_line}\n"
                 f"> 核心依据: {reasons_str}{buy_info_str}\n"
                 f"> 🚨 **风控失效线**: {veto_tips}"
             )

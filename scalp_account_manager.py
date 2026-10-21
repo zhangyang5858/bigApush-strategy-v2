@@ -184,15 +184,20 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
             continue
 
         # ── T+1 可卖持仓处置策略 ──
-        if is_zt:
-            action_desc = "🏆 连板格局持股"
-            reason = "早盘强势封死涨停板，继续持有享受连板溢价"
+        # 次日一字/秒板锁仓格局机制（开盘秒板或一字涨停严禁过早减仓）
+        is_sealing_or_limit = is_zt or (cur_chg >= 8.8 and cur_price >= high_price * 0.995)
+        if is_sealing_or_limit:
+            action_desc = "⚡ 秒板/一字连板锁仓"
+            reason = f"早盘强势秒板/一字连板格局({cur_chg:+.2f}%)，锁定筹码博弈主升溢价，严禁过早减仓"
             should_sell = False
 
         elif stage == "auction":
             # 09:26 竞价阶段：预警与开盘抢跑指令
             auction_chg = ((cur_price / buy_price) - 1) * 100 if buy_price > 0 else 0
-            if cur_price <= stop_loss or auction_chg <= -3.0:
+            if auction_chg >= 8.5:
+                action_desc = "⚡ 竞价一字涨停锁仓"
+                reason = f"竞价一字涨停预期({auction_chg:+.2f}%)，全天坚决持股锁仓，杜绝过早抢跑"
+            elif cur_price <= stop_loss or auction_chg <= -3.0:
                 # 强势龙头豁免机制：若此前最高浮盈>=6%或持股1天强势股，且非一字跌停(-8.5%以内)，给予09:35~09:40观察反抽期，杜绝开盘第一分钟在地板价恐慌割肉
                 if max_profit_pct >= 6.0 and auction_chg > -8.5:
                     action_desc = "⚠️ 龙头低开·反抽观察"
@@ -247,11 +252,16 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
                 reason = f"跌破防守线({unrealized_profit_pct:+.2f}%)，无条件止损控制风险"
                 should_sell = True
 
-            # 5. 冲高未板分批止盈
+            # 5. 冲高未板分批止盈 (保护秒板/冲板标的：若 cur_chg >= 7.5% 且逼近日内最高价，视为冲板中，锁仓观察)
             elif unrealized_profit_pct >= 3.5 and not is_zt:
-                action_desc = "🎯 冲高止盈卖出"
-                reason = f"早盘冲高获利({unrealized_profit_pct:+.2f}%)，未封涨停，分批落袋为安"
-                should_sell = True
+                if cur_chg >= 7.5 and cur_price >= high_price * 0.99:
+                    action_desc = "⚡ 强攻冲板锁仓"
+                    reason = f"分时逼近涨停({cur_chg:+.2f}%)，多头强攻封板中，锁定筹码博弈封板，暂不卖出"
+                    should_sell = False
+                else:
+                    action_desc = "🎯 冲高止盈卖出"
+                    reason = f"早盘冲高获利({unrealized_profit_pct:+.2f}%)，未封涨停，分批落袋为安"
+                    should_sell = True
 
             elif unrealized_profit_pct < 0 and low_price <= stop_loss:
                 action_desc = "🚨 盘中破位止损"

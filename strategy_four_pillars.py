@@ -73,6 +73,15 @@ def detect_s1_auction_first_board(
     if y_zt:
         return None  # 连板票不属于 S1 首板候选
 
+    # 竞价爆量弱转强超预期因子判定
+    yesterday_amt = float((yesterday or {}).get("amount", 0.0) or (stock.get("yesterday_amount") or 0.0))
+    is_burst_auction = (
+        (yesterday_amt > 0 and (auction_amt / yesterday_amt) >= 0.08)
+        or (auction_amt >= 20_000_000.0)
+        or (float_cap > 0 and (auction_amt / (float_cap * 1e8)) >= 0.012 and auction_amt >= 10_000_000.0)
+    )
+    is_weak_to_strong = is_burst_auction and (2.0 <= auction_chg <= 6.5)
+
     # 竞价初筛基础条件
     is_auction_qualified = (
         auction_amt >= min_amount
@@ -85,6 +94,9 @@ def detect_s1_auction_first_board(
         # 若金额或涨幅不符合，不触发 S1
         return None
 
+    if is_weak_to_strong:
+        burst_ratio_str = f"，竞价占比{((auction_amt / yesterday_amt) * 100):.1f}%" if yesterday_amt > 0 else ""
+        reasons.append(f"🔥竞价爆量弱转强(抢筹{auction_amt / 1e4:.0f}万{burst_ratio_str})")
     reasons.append(f"竞价金额{auction_amt / 1e4:.0f}万(门槛500万)")
     reasons.append(f"黄金高开{auction_chg:+.2f}%")
     reasons.append(f"量比{vr:.1f}")
@@ -105,7 +117,9 @@ def detect_s1_auction_first_board(
             "support_price": open_price,
             "reasons": reasons,
             "invalid_reason": None,
-            "strategy_variant": "竞价首板入选"
+            "strategy_variant": "竞价爆量弱转强" if is_weak_to_strong else "竞价首板入选",
+            "is_weak_to_strong": is_weak_to_strong,
+            "auction_amount": auction_amt
         }
 
     # 09:32~09:38 开盘确认阶段
@@ -154,7 +168,8 @@ def detect_s1_auction_first_board(
             "support_price": open_price,
             "reasons": reasons,
             "invalid_reason": None,
-            "strategy_variant": "开盘承接确认"
+            "strategy_variant": "竞价爆量弱转强(开盘确认)" if is_weak_to_strong else "开盘承接确认",
+            "is_weak_to_strong": is_weak_to_strong
         }
 
     return {
@@ -169,7 +184,8 @@ def detect_s1_auction_first_board(
         "support_price": open_price,
         "reasons": reasons,
         "invalid_reason": None,
-        "strategy_variant": "竞价首板观察"
+        "strategy_variant": "竞价爆量弱转强(观察)" if is_weak_to_strong else "竞价首板观察",
+        "is_weak_to_strong": is_weak_to_strong
     }
 
 
