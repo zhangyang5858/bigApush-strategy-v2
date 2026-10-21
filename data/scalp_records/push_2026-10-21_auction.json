@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-21",
+  "time": "09:26:36",
+  "stage": "auction",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "603466",
+      "name": "风语筑",
+      "push_time": "09:26:36",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 14.5,
+      "open_price": 14.5,
+      "pre_close": 14.23,
+      "stop_loss": 14.21,
+      "grade": "A",
+      "score": 75.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "数字媒体"
+    },
+    {
+      "code": "603068",
+      "name": "博通集成",
+      "push_time": "09:26:36",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 42.6,
+      "open_price": 42.6,
+      "pre_close": 41.67,
+      "stop_loss": 41.75,
+      "grade": "A",
+      "score": 75.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "半导体"
+    }
+  ]
+}
