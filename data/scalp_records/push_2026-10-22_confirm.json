@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-22",
+  "time": "09:38:34",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "603926",
+      "name": "铁流股份",
+      "push_time": "09:38:34",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 16.56,
+      "open_price": 16.22,
+      "pre_close": 15.93,
+      "stop_loss": 15.9,
+      "grade": "B",
+      "score": 66.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    }
+  ]
+}
