@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-22",
+  "time": "09:55:40",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "603926",
+      "name": "铁流股份",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 16.99,
+      "open_price": 16.22,
+      "pre_close": 15.93,
+      "stop_loss": 15.58,
+      "grade": "A",
+      "score": 71.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    },
+    {
+      "code": "002196",
+      "name": "方正电机",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 10.08,
+      "open_price": 9.66,
+      "pre_close": 9.64,
+      "stop_loss": 9.28,
+      "grade": "B",
+      "score": 69.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电机Ⅱ"
+    },
+    {
+      "code": "601177",
+      "name": "杭齿前进",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 14.05,
+      "open_price": 13.26,
+      "pre_close": 13.23,
+      "stop_loss": 12.73,
+      "grade": "B",
+      "score": 69.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    }
+  ]
+}

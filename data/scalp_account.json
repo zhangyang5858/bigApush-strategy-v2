@@ -1,30 +1,8 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 85288.08,
-  "cash": 42000.08,
+  "total_assets": 84765.55,
+  "cash": 63733.55,
   "positions": [
-    {
-      "code": "603068",
-      "name": "博通集成",
-      "buy_date": "2026-10-21",
-      "buy_time": "09:32:10",
-      "buy_stage": "instant",
-      "strategy_tag": "S1 竞价首板 (竞价入选)",
-      "buy_price": 43.64,
-      "current_price": 43.44,
-      "open_price": 42.6,
-      "stop_loss": 41.75,
-      "shares": 500,
-      "cost_amount": 21825.67,
-      "fee": 5.67,
-      "unrealized_profit_pct": -0.46,
-      "unrealized_profit_amount": -105.67,
-      "regime": "进攻",
-      "market_value": 21720.0,
-      "highest_price": 43.99,
-      "max_profit_pct": 0.0,
-      "is_zt": false
-    },
     {
       "code": "003029",
       "name": "吉大正元",
@@ -33,16 +11,16 @@
       "buy_stage": "instant",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 26.98,
-      "current_price": 26.96,
+      "current_price": 26.29,
       "open_price": 26.41,
       "stop_loss": 25.88,
       "shares": 800,
       "cost_amount": 21589.61,
       "fee": 5.61,
-      "unrealized_profit_pct": -0.07,
-      "unrealized_profit_amount": -21.61,
+      "unrealized_profit_pct": -2.56,
+      "unrealized_profit_amount": -557.61,
       "regime": "中性",
-      "market_value": 21568.0,
+      "market_value": 21032.0,
       "highest_price": 26.98,
       "max_profit_pct": 0.0,
       "is_zt": false
@@ -864,6 +842,23 @@
       "realized_profit_pct": -2.17,
       "action": "🚨 触发止损卖出",
       "reason": "跌破防守线(-2.07%)，无条件止损控制风险"
+    },
+    {
+      "code": "603068",
+      "name": "博通集成",
+      "buy_date": "2026-10-21",
+      "buy_price": 43.64,
+      "sell_date": "2026-10-22",
+      "sell_time": "09:55:40",
+      "sell_stage": "settle",
+      "sell_price": 43.5,
+      "shares": 500,
+      "gross_sell_amount": 21750.0,
+      "fee": 16.53,
+      "realized_profit": -92.2,
+      "realized_profit_pct": -0.42,
+      "action": "⏱️ 超短调仓卖出",
+      "reason": "早盘半小时定势未走强(-0.32%)，清仓腾出资金"
     }
   ],
   "daily_history": [
@@ -1133,10 +1128,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-10-22 09:38:34",
-  "position_market_value": 43288.0,
-  "daily_profit": -829.75,
-  "daily_return_pct": -0.96,
-  "total_profit": -14711.92,
-  "total_return_pct": -14.71
+  "updated_at": "2026-10-22 09:55:40",
+  "position_market_value": 21032.0,
+  "daily_profit": -1352.28,
+  "daily_return_pct": -1.57,
+  "total_profit": -15234.45,
+  "total_return_pct": -15.23
 }
