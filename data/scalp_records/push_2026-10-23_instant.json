@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-23",
+  "time": "09:32:11",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002696",
+      "name": "百洋股份",
+      "push_time": "09:32:11",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 10.52,
+      "open_price": 10.09,
+      "pre_close": 9.81,
+      "stop_loss": 9.89,
+      "grade": "A",
+      "score": 75.5,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "饲料"
+    },
+    {
+      "code": "600326",
+      "name": "西藏天路",
+      "push_time": "09:32:11",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 6.77,
+      "open_price": 6.68,
+      "pre_close": 6.35,
+      "stop_loss": 6.42,
+      "grade": "B",
+      "score": 64.2,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "水泥"
+    },
+    {
+      "code": "002343",
+      "name": "慈文传媒",
+      "push_time": "09:32:11",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 10.55,
+      "open_price": 9.91,
+      "pre_close": 9.9,
+      "stop_loss": 9.52,
+      "grade": "B",
+      "score": 60.9,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "影视院线"
+    }
+  ]
+}
