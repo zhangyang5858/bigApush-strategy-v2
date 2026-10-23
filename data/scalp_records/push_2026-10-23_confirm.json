@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-23",
+  "time": "09:38:31",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "603919",
+      "name": "金徽酒",
+      "push_time": "09:38:31",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 16.76,
+      "open_price": 15.7,
+      "pre_close": 15.62,
+      "stop_loss": 15.08,
+      "grade": "B",
+      "score": 66.4,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "白酒Ⅱ"
+    },
+    {
+      "code": "600326",
+      "name": "西藏天路",
+      "push_time": "09:38:31",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 6.77,
+      "open_price": 6.68,
+      "pre_close": 6.35,
+      "stop_loss": 6.42,
+      "grade": "B",
+      "score": 64.0,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "水泥"
+    },
+    {
+      "code": "002561",
+      "name": "徐家汇",
+      "push_time": "09:38:31",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 7.41,
+      "open_price": 7.15,
+      "pre_close": 7.11,
+      "stop_loss": 6.87,
+      "grade": "B",
+      "score": 62.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "一般零售"
+    }
+  ]
+}
