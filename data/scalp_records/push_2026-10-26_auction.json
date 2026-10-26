@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-26",
+  "time": "09:26:38",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002535",
+      "name": "林州重机",
+      "push_time": "09:26:38",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 3.12,
+      "open_price": 3.12,
+      "pre_close": 3.03,
+      "stop_loss": 3.06,
+      "grade": "A",
+      "score": 72.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "专用设备"
+    },
+    {
+      "code": "603466",
+      "name": "风语筑",
+      "push_time": "09:26:38",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 15.58,
+      "open_price": 15.58,
+      "pre_close": 14.69,
+      "stop_loss": 15.27,
+      "grade": "A",
+      "score": 71.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "数字媒体"
+    }
+  ]
+}
