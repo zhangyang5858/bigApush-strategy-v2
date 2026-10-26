@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-26",
+  "time": "09:38:35",
+  "stage": "confirm",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "603901",
+      "name": "永创智能",
+      "push_time": "09:38:35",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 10.4,
+      "open_price": 10.14,
+      "pre_close": 9.66,
+      "stop_loss": 9.94,
+      "grade": "S",
+      "score": 90.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "专用设备"
+    },
+    {
+      "code": "002708",
+      "name": "光洋股份",
+      "push_time": "09:38:35",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 15.45,
+      "open_price": 14.45,
+      "pre_close": 14.23,
+      "stop_loss": 14.16,
+      "grade": "A",
+      "score": 80.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    }
+  ]
+}
