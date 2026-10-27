@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-27",
+  "time": "09:32:05",
+  "stage": "instant",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "000678",
+      "name": "襄阳轴承",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 15.89,
+      "open_price": 15.24,
+      "pre_close": 14.55,
+      "stop_loss": 14.94,
+      "grade": "S",
+      "score": 99.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    },
+    {
+      "code": "002535",
+      "name": "林州重机",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 3.48,
+      "open_price": 3.4,
+      "pre_close": 3.33,
+      "stop_loss": 3.33,
+      "grade": "S",
+      "score": 96.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "专用设备"
+    },
+    {
+      "code": "003026",
+      "name": "中晶科技",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 27.84,
+      "open_price": 28.0,
+      "pre_close": 26.51,
+      "stop_loss": 27.44,
+      "grade": "S",
+      "score": 95.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "半导体"
+    }
+  ]
+}
