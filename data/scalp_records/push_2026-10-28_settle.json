@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-28",
+  "time": "09:55:53",
+  "stage": "settle",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "002119",
+      "name": "康强电子",
+      "push_time": "09:55:53",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 20.02,
+      "open_price": 19.92,
+      "pre_close": 19.51,
+      "stop_loss": 19.52,
+      "grade": "S",
+      "score": 97.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "半导体"
+    }
+  ]
+}
