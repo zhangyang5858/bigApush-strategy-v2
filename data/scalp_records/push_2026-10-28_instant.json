@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-28",
+  "time": "09:32:08",
+  "stage": "instant",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "000678",
+      "name": "襄阳轴承",
+      "push_time": "09:32:08",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 17.36,
+      "open_price": 16.96,
+      "pre_close": 16.01,
+      "stop_loss": 16.62,
+      "grade": "S",
+      "score": 99.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    },
+    {
+      "code": "605058",
+      "name": "澳弘电子",
+      "push_time": "09:32:08",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 51.83,
+      "open_price": 51.26,
+      "pre_close": 49.28,
+      "stop_loss": 50.23,
+      "grade": "S",
+      "score": 96.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "元件"
+    },
+    {
+      "code": "002077",
+      "name": "大港股份",
+      "push_time": "09:32:08",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 12.94,
+      "open_price": 12.86,
+      "pre_close": 12.6,
+      "stop_loss": 12.6,
+      "grade": "S",
+      "score": 95.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "半导体"
+    }
+  ]
+}
