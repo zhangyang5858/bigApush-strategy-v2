@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-29",
+  "time": "09:38:41",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002679",
+      "name": "福建金森",
+      "push_time": "09:38:41",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 10.42,
+      "open_price": 10.03,
+      "pre_close": 9.68,
+      "stop_loss": 9.83,
+      "grade": "A",
+      "score": 76.4,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "林业Ⅱ"
+    },
+    {
+      "code": "002943",
+      "name": "宇晶股份",
+      "push_time": "09:38:41",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 25.8,
+      "open_price": 25.75,
+      "pre_close": 25.11,
+      "stop_loss": 25.23,
+      "grade": "A",
+      "score": 75.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    }
+  ]
+}
