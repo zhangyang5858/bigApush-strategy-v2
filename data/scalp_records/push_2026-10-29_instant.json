@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-29",
+  "time": "09:32:03",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002943",
+      "name": "宇晶股份",
+      "push_time": "09:32:03",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 25.5,
+      "open_price": 25.75,
+      "pre_close": 25.11,
+      "stop_loss": 25.23,
+      "grade": "A",
+      "score": 75.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    },
+    {
+      "code": "603043",
+      "name": "广州酒家",
+      "push_time": "09:32:03",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 14.47,
+      "open_price": 14.2,
+      "pre_close": 13.71,
+      "stop_loss": 13.92,
+      "grade": "A",
+      "score": 72.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "休闲食品"
+    },
+    {
+      "code": "002679",
+      "name": "福建金森",
+      "push_time": "09:32:03",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 10.32,
+      "open_price": 10.03,
+      "pre_close": 9.68,
+      "stop_loss": 9.83,
+      "grade": "A",
+      "score": 71.5,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "林业Ⅱ"
+    }
+  ]
+}
