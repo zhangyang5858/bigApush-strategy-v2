@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-29",
+  "time": "09:55:48",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "000812",
+      "name": "陕西金叶",
+      "push_time": "09:55:48",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 3.57,
+      "open_price": 3.52,
+      "pre_close": 3.36,
+      "stop_loss": 3.45,
+      "grade": "A",
+      "score": 70.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "包装印刷"
+    }
+  ]
+}
