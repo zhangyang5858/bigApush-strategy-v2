@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-30",
+  "time": "09:38:40",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002582",
+      "name": "好想你",
+      "push_time": "09:38:40",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 9.77,
+      "open_price": 9.4,
+      "pre_close": 9.03,
+      "stop_loss": 9.21,
+      "grade": "A",
+      "score": 74.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "休闲食品"
+    },
+    {
+      "code": "002073",
+      "name": "软控股份",
+      "push_time": "09:38:40",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 5.7,
+      "open_price": 5.61,
+      "pre_close": 5.36,
+      "stop_loss": 5.5,
+      "grade": "A",
+      "score": 74.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "专用设备"
+    }
+  ]
+}
