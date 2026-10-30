@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-30",
+  "time": "09:26:40",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002172",
+      "name": "澳洋健康",
+      "push_time": "09:26:40",
+      "stage": "auction",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 5.61,
+      "open_price": 5.61,
+      "pre_close": 5.37,
+      "stop_loss": 5.39,
+      "grade": "B",
+      "score": 62.9,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "医疗服务"
+    },
+    {
+      "code": "002086",
+      "name": "东方海洋",
+      "push_time": "09:26:40",
+      "stage": "auction",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 2.7,
+      "open_price": 2.7,
+      "pre_close": 2.57,
+      "stop_loss": 2.6,
+      "grade": "B",
+      "score": 61.5,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "农产品加工"
+    },
+    {
+      "code": "002275",
+      "name": "桂林三金",
+      "push_time": "09:26:40",
+      "stage": "auction",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 14.3,
+      "open_price": 14.3,
+      "pre_close": 13.62,
+      "stop_loss": 13.73,
+      "grade": "B",
+      "score": 61.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "中药Ⅱ"
+    }
+  ]
+}
