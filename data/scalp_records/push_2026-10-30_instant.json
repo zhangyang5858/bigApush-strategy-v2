@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-30",
+  "time": "09:32:05",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002582",
+      "name": "好想你",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 9.43,
+      "open_price": 9.4,
+      "pre_close": 9.03,
+      "stop_loss": 9.21,
+      "grade": "A",
+      "score": 73.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "休闲食品"
+    },
+    {
+      "code": "601083",
+      "name": "锦江航运",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 13.79,
+      "open_price": 13.11,
+      "pre_close": 12.66,
+      "stop_loss": 12.85,
+      "grade": "A",
+      "score": 72.6,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "航运港口"
+    },
+    {
+      "code": "600501",
+      "name": "航天晨光",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 18.04,
+      "open_price": 17.29,
+      "pre_close": 16.89,
+      "stop_loss": 16.6,
+      "grade": "B",
+      "score": 67.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "专用设备"
+    }
+  ]
+}
