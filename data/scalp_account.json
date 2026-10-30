@@ -1,6 +1,6 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 84655.78,
+  "total_assets": 86289.78,
   "cash": 41543.78,
   "positions": [
     {
@@ -11,19 +11,19 @@
       "buy_stage": "auction",
       "strategy_tag": "🎯 综合短线先锋",
       "buy_price": 5.61,
-      "current_price": 5.48,
+      "current_price": 5.91,
       "open_price": 5.61,
       "stop_loss": 5.39,
       "shares": 3800,
       "cost_amount": 21323.54,
       "fee": 5.54,
-      "unrealized_profit_pct": -2.32,
-      "unrealized_profit_amount": -499.54,
+      "unrealized_profit_pct": 5.35,
+      "unrealized_profit_amount": 1134.46,
       "regime": "防守",
-      "market_value": 20824.0,
-      "highest_price": 5.61,
-      "max_profit_pct": 0.0,
-      "is_zt": false
+      "market_value": 22458.0,
+      "highest_price": 5.91,
+      "max_profit_pct": 5.35,
+      "is_zt": true
     },
     {
       "code": "601083",
@@ -1366,13 +1366,24 @@
       "total_profit": -15672.51,
       "total_return_pct": -15.67,
       "position_count": 1
+    },
+    {
+      "date": "2026-10-30",
+      "total_assets": 86289.78,
+      "cash": 41543.78,
+      "position_market_value": 44746.0,
+      "daily_profit": 1962.29,
+      "daily_return_pct": 2.33,
+      "total_profit": -13710.22,
+      "total_return_pct": -13.71,
+      "position_count": 2
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-10-30 09:55:43",
-  "position_market_value": 43112.0,
-  "daily_profit": 328.29,
-  "daily_return_pct": 0.39,
-  "total_profit": -15344.22,
-  "total_return_pct": -15.34
+  "updated_at": "2026-10-30 15:30:48",
+  "position_market_value": 44746.0,
+  "daily_profit": 1962.29,
+  "daily_return_pct": 2.33,
+  "total_profit": -13710.22,
+  "total_return_pct": -13.71
 }
