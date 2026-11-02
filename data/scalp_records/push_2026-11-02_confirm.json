@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-02",
+  "time": "09:38:35",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "600779",
+      "name": "水井坊",
+      "push_time": "09:38:35",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 27.88,
+      "open_price": 26.94,
+      "pre_close": 25.56,
+      "stop_loss": 26.4,
+      "grade": "A",
+      "score": 78.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "白酒Ⅱ"
+    },
+    {
+      "code": "002552",
+      "name": "宝鼎科技",
+      "push_time": "09:38:35",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 33.77,
+      "open_price": 33.43,
+      "pre_close": 32.74,
+      "stop_loss": 32.76,
+      "grade": "A",
+      "score": 78.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "元件"
+    }
+  ]
+}
