@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-02",
+  "time": "09:55:44",
+  "stage": "settle",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "002582",
+      "name": "好想你",
+      "push_time": "09:55:44",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 10.37,
+      "open_price": 10.23,
+      "pre_close": 9.93,
+      "stop_loss": 10.03,
+      "grade": "S",
+      "score": 90.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "休闲食品"
+    }
+  ]
+}
