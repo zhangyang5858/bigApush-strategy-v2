@@ -1,7 +1,7 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 87493.6,
-  "cash": 42249.6,
+  "total_assets": 85469.86,
+  "cash": 20183.86,
   "positions": [
     {
       "code": "603703",
@@ -11,19 +11,20 @@
       "buy_stage": "auction",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 12.66,
-      "current_price": 11.74,
+      "current_price": 10.57,
       "open_price": 12.66,
       "stop_loss": 12.41,
       "shares": 1800,
       "cost_amount": 22793.92,
       "fee": 5.92,
-      "unrealized_profit_pct": -7.27,
-      "unrealized_profit_amount": -1661.92,
+      "unrealized_profit_pct": -16.51,
+      "unrealized_profit_amount": -3767.92,
       "regime": "中性",
-      "market_value": 21132.0,
+      "market_value": 19026.0,
       "highest_price": 13.14,
       "max_profit_pct": 0.0,
-      "is_zt": false
+      "is_zt": false,
+      "pre_market_stop": true
     },
     {
       "code": "603989",
@@ -33,19 +34,41 @@
       "buy_stage": "instant",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 21.72,
-      "current_price": 21.92,
+      "current_price": 22.0,
       "open_price": 21.0,
       "stop_loss": 20.58,
       "shares": 1100,
       "cost_amount": 23898.21,
       "fee": 6.21,
-      "unrealized_profit_pct": 0.92,
-      "unrealized_profit_amount": 213.79,
+      "unrealized_profit_pct": 1.29,
+      "unrealized_profit_amount": 301.79,
       "regime": "防守",
-      "market_value": 24112.0,
-      "highest_price": 21.92,
-      "max_profit_pct": 0.92,
-      "is_zt": true
+      "market_value": 24200.0,
+      "highest_price": 22.0,
+      "max_profit_pct": 1.29,
+      "is_zt": false
+    },
+    {
+      "code": "000603",
+      "name": "盛达资源",
+      "buy_date": "2026-11-03",
+      "buy_time": "09:26:35",
+      "buy_stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "buy_price": 22.06,
+      "current_price": 22.06,
+      "open_price": 22.06,
+      "stop_loss": 21.62,
+      "shares": 1000,
+      "cost_amount": 22065.74,
+      "fee": 5.74,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": -5.74,
+      "regime": "防守",
+      "market_value": 22060.0,
+      "highest_price": 22.06,
+      "max_profit_pct": 0.0,
+      "is_zt": false
     }
   ],
   "closed_trades": [
@@ -1425,10 +1448,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-02 15:30:50",
-  "position_market_value": 45244.0,
-  "daily_profit": 1203.82,
-  "daily_return_pct": 1.4,
-  "total_profit": -12506.4,
-  "total_return_pct": -12.51
+  "updated_at": "2026-11-03 09:26:35",
+  "position_market_value": 65286.0,
+  "daily_profit": -2023.74,
+  "daily_return_pct": -2.31,
+  "total_profit": -14530.14,
+  "total_return_pct": -14.53
 }
