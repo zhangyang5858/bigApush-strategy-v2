@@ -1,30 +1,8 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 84681.16,
-  "cash": 39195.16,
+  "total_assets": 85909.32,
+  "cash": 63959.32,
   "positions": [
-    {
-      "code": "603989",
-      "name": "艾华集团",
-      "buy_date": "2026-11-02",
-      "buy_time": "09:32:21",
-      "buy_stage": "instant",
-      "strategy_tag": "S1 竞价首板 (竞价入选)",
-      "buy_price": 21.72,
-      "current_price": 21.66,
-      "open_price": 21.0,
-      "stop_loss": 20.58,
-      "shares": 1100,
-      "cost_amount": 23898.21,
-      "fee": 6.21,
-      "unrealized_profit_pct": -0.28,
-      "unrealized_profit_amount": -72.21,
-      "regime": "防守",
-      "market_value": 23826.0,
-      "highest_price": 22.0,
-      "max_profit_pct": 1.29,
-      "is_zt": false
-    },
     {
       "code": "000603",
       "name": "盛达资源",
@@ -33,16 +11,16 @@
       "buy_stage": "auction",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 22.06,
-      "current_price": 21.66,
+      "current_price": 21.95,
       "open_price": 22.06,
       "stop_loss": 21.62,
       "shares": 1000,
       "cost_amount": 22065.74,
       "fee": 5.74,
-      "unrealized_profit_pct": -1.81,
-      "unrealized_profit_amount": -405.74,
+      "unrealized_profit_pct": -0.5,
+      "unrealized_profit_amount": -115.74,
       "regime": "防守",
-      "market_value": 21660.0,
+      "market_value": 21950.0,
       "highest_price": 22.06,
       "max_profit_pct": 0.0,
       "is_zt": false
@@ -1085,6 +1063,23 @@
       "realized_profit_pct": -16.59,
       "action": "🚨 竞价破位抢跑成交",
       "reason": "执行开盘竞价低开抢跑纪律(-16.51%)，市价止损出局避免深亏"
+    },
+    {
+      "code": "603989",
+      "name": "艾华集团",
+      "buy_date": "2026-11-02",
+      "buy_price": 21.72,
+      "sell_date": "2026-11-03",
+      "sell_time": "09:55:43",
+      "sell_stage": "settle",
+      "sell_price": 22.53,
+      "shares": 1100,
+      "gross_sell_amount": 24783.0,
+      "fee": 18.84,
+      "realized_profit": 865.95,
+      "realized_profit_pct": 3.62,
+      "action": "🎯 冲高止盈卖出",
+      "reason": "早盘冲高获利(+3.73%)，未封涨停，分批落袋为安"
     }
   ],
   "daily_history": [
@@ -1442,10 +1437,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-03 09:38:40",
-  "position_market_value": 45486.0,
-  "daily_profit": -2812.44,
-  "daily_return_pct": -3.21,
-  "total_profit": -15318.84,
-  "total_return_pct": -15.32
+  "updated_at": "2026-11-03 09:55:43",
+  "position_market_value": 21950.0,
+  "daily_profit": -1584.28,
+  "daily_return_pct": -1.81,
+  "total_profit": -14090.68,
+  "total_return_pct": -14.09
 }
