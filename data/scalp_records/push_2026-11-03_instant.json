@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-03",
+  "time": "09:32:05",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002425",
+      "name": "凯撒文化",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 3.44,
+      "open_price": 3.23,
+      "pre_close": 3.15,
+      "stop_loss": 3.17,
+      "grade": "A",
+      "score": 77.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "游戏Ⅱ"
+    },
+    {
+      "code": "000892",
+      "name": "欢瑞世纪",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 4.74,
+      "open_price": 4.56,
+      "pre_close": 4.41,
+      "stop_loss": 4.47,
+      "grade": "A",
+      "score": 76.4,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "影视院线"
+    },
+    {
+      "code": "000603",
+      "name": "盛达资源",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 21.84,
+      "open_price": 22.06,
+      "pre_close": 21.44,
+      "stop_loss": 21.62,
+      "grade": "A",
+      "score": 75.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "贵金属"
+    }
+  ]
+}
