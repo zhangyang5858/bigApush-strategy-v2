@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-03",
+  "time": "09:38:41",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "600779",
+      "name": "水井坊",
+      "push_time": "09:38:41",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 29.35,
+      "open_price": 29.23,
+      "pre_close": 28.12,
+      "stop_loss": 28.65,
+      "grade": "A",
+      "score": 77.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "白酒Ⅱ"
+    },
+    {
+      "code": "002928",
+      "name": "华夏航空",
+      "push_time": "09:38:41",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 6.41,
+      "open_price": 6.28,
+      "pre_close": 6.14,
+      "stop_loss": 6.15,
+      "grade": "A",
+      "score": 77.0,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "航空机场"
+    }
+  ]
+}
