@@ -1,6 +1,6 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 85623.72,
+  "total_assets": 86810.72,
   "cash": 42427.72,
   "positions": [
     {
@@ -11,16 +11,16 @@
       "buy_stage": "auction",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 22.06,
-      "current_price": 21.67,
+      "current_price": 21.87,
       "open_price": 22.06,
       "stop_loss": 21.62,
       "shares": 1000,
       "cost_amount": 22065.74,
       "fee": 5.74,
-      "unrealized_profit_pct": -1.77,
-      "unrealized_profit_amount": -395.74,
+      "unrealized_profit_pct": -0.86,
+      "unrealized_profit_amount": -195.74,
       "regime": "防守",
-      "market_value": 21670.0,
+      "market_value": 21870.0,
       "highest_price": 22.83,
       "max_profit_pct": 0.0,
       "is_zt": false
@@ -33,19 +33,20 @@
       "buy_stage": "auction",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 4.58,
-      "current_price": 4.58,
+      "current_price": 4.79,
       "open_price": 4.58,
-      "stop_loss": 4.49,
+      "stop_loss": 4.6,
       "shares": 4700,
       "cost_amount": 21531.6,
       "fee": 5.6,
-      "unrealized_profit_pct": 0.0,
-      "unrealized_profit_amount": -5.6,
+      "unrealized_profit_pct": 4.59,
+      "unrealized_profit_amount": 981.4,
       "regime": "中性",
-      "market_value": 21526.0,
-      "highest_price": 4.58,
-      "max_profit_pct": 0.0,
-      "is_zt": false
+      "market_value": 22513.0,
+      "highest_price": 4.79,
+      "max_profit_pct": 4.59,
+      "is_zt": true,
+      "is_breakeven_locked": true
     }
   ],
   "closed_trades": [
@@ -1470,10 +1471,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-04 09:26:36",
-  "position_market_value": 43196.0,
-  "daily_profit": 134.4,
-  "daily_return_pct": 0.16,
-  "total_profit": -14376.28,
-  "total_return_pct": -14.38
+  "updated_at": "2026-11-04 09:32:07",
+  "position_market_value": 44383.0,
+  "daily_profit": 1321.4,
+  "daily_return_pct": 1.55,
+  "total_profit": -13189.28,
+  "total_return_pct": -13.19
 }
