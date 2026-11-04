@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-04",
+  "time": "09:55:42",
+  "stage": "settle",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "603115",
+      "name": "海星股份",
+      "push_time": "09:55:42",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 41.71,
+      "open_price": 41.61,
+      "pre_close": 40.95,
+      "stop_loss": 40.78,
+      "grade": "A",
+      "score": 70.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "元件"
+    }
+  ]
+}
