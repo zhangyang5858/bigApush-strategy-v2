@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-04",
+  "time": "09:38:44",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002842",
+      "name": "翔鹭钨业",
+      "push_time": "09:38:44",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 24.07,
+      "open_price": 22.47,
+      "pre_close": 22.38,
+      "stop_loss": 21.58,
+      "grade": "B",
+      "score": 69.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "小金属"
+    },
+    {
+      "code": "000506",
+      "name": "招金黄金",
+      "push_time": "09:38:44",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 12.71,
+      "open_price": 12.36,
+      "pre_close": 12.19,
+      "stop_loss": 11.87,
+      "grade": "B",
+      "score": 67.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "贵金属"
+    },
+    {
+      "code": "002077",
+      "name": "大港股份",
+      "push_time": "09:38:44",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 11.27,
+      "open_price": 11.06,
+      "pre_close": 10.93,
+      "stop_loss": 10.62,
+      "grade": "B",
+      "score": 67.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "半导体"
+    }
+  ]
+}
