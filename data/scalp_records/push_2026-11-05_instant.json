@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-05",
+  "time": "09:32:05",
+  "stage": "instant",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "002150",
+      "name": "正泰电源",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 20.65,
+      "open_price": 20.55,
+      "pre_close": 20.01,
+      "stop_loss": 20.14,
+      "grade": "S",
+      "score": 89.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "光伏设备"
+    },
+    {
+      "code": "000995",
+      "name": "皇台酒业",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 16.94,
+      "open_price": 17.23,
+      "pre_close": 16.36,
+      "stop_loss": 16.89,
+      "grade": "S",
+      "score": 87.7,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "白酒Ⅱ"
+    },
+    {
+      "code": "002811",
+      "name": "郑中设计",
+      "push_time": "09:32:05",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 21.35,
+      "open_price": 20.78,
+      "pre_close": 20.37,
+      "stop_loss": 20.36,
+      "grade": "S",
+      "score": 87.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "装修装饰Ⅱ"
+    }
+  ]
+}
