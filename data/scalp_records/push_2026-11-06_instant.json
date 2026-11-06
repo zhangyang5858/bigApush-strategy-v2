@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-06",
+  "time": "09:32:09",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "603598",
+      "name": "引力传媒",
+      "push_time": "09:32:09",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 22.07,
+      "open_price": 22.45,
+      "pre_close": 21.66,
+      "stop_loss": 22.0,
+      "grade": "A",
+      "score": 77.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "广告营销"
+    },
+    {
+      "code": "002086",
+      "name": "东方海洋",
+      "push_time": "09:32:09",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 3.78,
+      "open_price": 3.67,
+      "pre_close": 3.61,
+      "stop_loss": 3.6,
+      "grade": "B",
+      "score": 68.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "农产品加工"
+    },
+    {
+      "code": "600261",
+      "name": "阳光照明",
+      "push_time": "09:32:09",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 5.38,
+      "open_price": 5.16,
+      "pre_close": 4.91,
+      "stop_loss": 4.96,
+      "grade": "B",
+      "score": 66.9,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "照明设备Ⅱ"
+    }
+  ]
+}
