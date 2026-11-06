@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-06",
+  "time": "09:55:40",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "603212",
+      "name": "赛伍技术",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 11.06,
+      "open_price": 10.68,
+      "pre_close": 10.67,
+      "stop_loss": 10.26,
+      "grade": "B",
+      "score": 69.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "光伏设备"
+    },
+    {
+      "code": "600354",
+      "name": "敦煌种业",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 7.5,
+      "open_price": 7.0,
+      "pre_close": 7.14,
+      "stop_loss": 6.72,
+      "grade": "B",
+      "score": 67.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "种植业"
+    },
+    {
+      "code": "001393",
+      "name": "维通利",
+      "push_time": "09:55:40",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 42.66,
+      "open_price": 41.8,
+      "pre_close": 40.91,
+      "stop_loss": 40.14,
+      "grade": "B",
+      "score": 67.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电网设备"
+    }
+  ]
+}
