@@ -221,8 +221,16 @@ def check_and_execute_sells(account, live_price_map, zt_set, stage="auction", to
 
         else:
             # 09:31 / 09:35 / 09:55 开盘实盘操作阶段
+            # 0. 龙头量化风控铁律：破今开-5%坚决弃龙止损
+            open_p_val = float(pos.get("open_price") or open_price or cur_price)
+            chg_from_open = ((cur_price / open_p_val) - 1) * 100 if open_p_val > 0 else 0
+            if chg_from_open <= -5.0 and not is_zt:
+                action_desc = "🪓 破今开-5%坚决弃龙"
+                reason = f"日内跌破开盘价-5%({chg_from_open:.1f}%)主力弃守，坚决斩仓止损杜绝深套"
+                should_sell = True
+
             # 1. 竞价已标记开盘抢跑止损
-            if pos.get("pre_market_stop") and not is_zt:
+            elif pos.get("pre_market_stop") and not is_zt:
                 action_desc = "🚨 竞价破位抢跑成交"
                 reason = f"执行开盘竞价低开抢跑纪律({unrealized_profit_pct:+.2f}%)，市价止损出局避免深亏"
                 should_sell = True
@@ -388,10 +396,16 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
     # 1. 大盘状态机动态持仓上限 (P1)
     if regime == "进攻":
         effective_max_positions = min(max_positions, 4)
+    elif regime == "退潮防守":
+        effective_max_positions = 0
     elif regime == "防守":
         effective_max_positions = min(max_positions, 2)
     else:  # 中性
         effective_max_positions = min(max_positions, 3)
+
+    if regime == "退潮防守":
+        print("  🛑 [退潮期强制刹车] 当前全市场处于退潮防守期(跌停扩大/冰点)，系统强制空仓，暂停一切新开仓。")
+        return []
 
     # 2. 时段配额动态调整 (P2)
     stage_limit = STAGE_MAX_BUYS.get(stage, 2)

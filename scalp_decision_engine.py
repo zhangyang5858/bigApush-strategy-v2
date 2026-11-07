@@ -266,23 +266,30 @@ def get_demo_stocks():
 def calc_line67_auction_score(amount, auction_change, vol_ratio, sector_score=50, sector_breadth=0.5, float_cap=50.0, min_cap=15.0, max_cap=160.0, regime="中性"):
     """
     Line 67 竞价评分模型（满分 100）
+    融入龙头平台驼峰曲线：0~2% 满分黄金起爆点，2~4% 次优，>4% 衰减，>5.5% 高开过度负分惩罚
     AuctionScore = clamp(S_amount + S_price + S_vr + S_sector + S_cap + S_market, 0, 100)
     """
     amt_wan = max(float(amount) / 1e4, 1.0)
     s_amt = clamp(math.log10(amt_wan) * 7.0 - 8.0, 0.0, 24.0)
     chg = float(auction_change)
-    if 1.5 <= chg <= 6.5:
-        s_price = 18.0
-    elif (0.0 < chg < 1.5) or (6.5 < chg <= 9.0):
-        s_price = 10.0
+    if 0.0 <= chg <= 2.0:
+        s_price = 20.0  # 黄金起爆点
+    elif 2.0 < chg <= 4.0:
+        s_price = 18.0  # 次优起爆区间
+    elif 4.0 < chg <= 5.5:
+        s_price = 10.0  # 偏高预警
+    elif chg > 5.5:
+        s_price = -4.0  # 高开过度惩罚(防主力大面诱多出货)
+    elif -1.5 <= chg < 0.0:
+        s_price = 6.0   # 微幅低开
     else:
-        s_price = 2.0
+        s_price = 0.0
     vr = float(vol_ratio)
     s_vr = clamp((vr - 1.0) * 6.0 + 5.0, 0.0, 15.0)
     s_sec = clamp(float(sector_score) * 0.12 + float(sector_breadth) * 10.0, 0.0, 20.0)
     cap = float(float_cap)
     s_cap = 10.0 if (20.0 <= cap <= 100.0) else 6.0 if (min_cap <= cap <= max_cap) else 2.0
-    s_mkt = 8.0 if regime == "进攻" else -8.0 if regime == "防守" else 2.0
+    s_mkt = 8.0 if regime in ["进攻", "发酵"] else -12.0 if regime in ["防守", "退潮防守"] else 2.0
     return clamp(s_amt + s_price + s_vr + s_sec + s_cap + s_mkt, 0.0, 100.0)
 
 
@@ -454,10 +461,16 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
     total_net_flow = sum(n(x.get("f62")) for x in raw_stocks)
     up_ratio = ups / len(raw_stocks) if raw_stocks else 0
 
-    # 大盘状态机（上涨家数 + 全市场主力资金流向共振）
-    if up_ratio > 0.58 and total_net_flow > 0:
+    # 统计跌停与涨停数（退潮期熔断特征）
+    dt_count = sum(1 for x in raw_stocks if n(x.get("f3")) <= -9.85)
+    zt_count = len(zt_pool) if zt_pool else sum(1 for x in raw_stocks if n(x.get("f3")) >= 9.85)
+
+    # 大盘状态机（上涨家数 + 全市场主力资金流向共振 + 跌停/退潮熔断）
+    if dt_count >= 15 or (up_ratio < 0.35 and total_net_flow < -1.5e10):
+        regime = "退潮防守"
+    elif up_ratio > 0.58 and total_net_flow > 0:
         regime = "进攻"
-    elif up_ratio < 0.38 or total_net_flow < -1.5e10:
+    elif up_ratio < 0.38 or total_net_flow < -1.0e10:
         regime = "防守"
     else:
         regime = "中性"
@@ -651,6 +664,18 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
             risks.append(f"开盘跌破竞价价2%({hold_diff * 100:.1f}%)")
         if trend_diff < -2.0 and not is_zt:
             risks.append(f"冲高回落走弱超2%({trend_diff:+.1f}%)")
+
+        # 龙头量化排雷与弃龙拦截
+        cur_from_open = (cur_price / open_price - 1) * 100 if open_price > 0 else 0.0
+        if cur_from_open <= -5.0 and not is_zt:
+            risks.append(f"破今开-5%弃龙线({cur_from_open:.1f}%)")
+        m_data = (primary_sig or {}).get("m_score") or {}
+        q_data = (primary_sig or {}).get("q_score") or {}
+        if m_data.get("grade") == "out" and not is_zt and stage == "auction":
+            risks.append(f"竞价M值({m_data.get('M', 0):.2f})淘汰")
+        if q_data.get("action") == "弃龙" and not is_zt:
+            risks.append("日内E5走弱弃龙")
+
         if strat_invalid_reason:
             risks.append(strat_invalid_reason)
 
@@ -703,6 +728,8 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
             "s2_signal": s2_sig,
             "s3_signal": s3_sig,
             "s4_signal": s4_sig,
+            "m_score": m_data,
+            "q_score": q_data,
             "is_weak_to_strong": bool(s1_sig and s1_sig.get("is_weak_to_strong")),
             "is_leader": is_leader,
             "is_zt": is_zt,
@@ -754,7 +781,14 @@ def get_stage_pushed_stocks(analysis_res, stage="auction"):
         if code.startswith(("300", "301", "688", "8", "4")):
             return False
         chg = float(s.get("change") or s.get("auction_change") or 0.0)
-        return chg < 9.7
+        if chg >= 9.7:
+            return False
+        # 龙头量化排雷：M值淘汰或盘中弃龙标的一律不推
+        if (s.get("m_score") or {}).get("grade") == "out" and stage == "auction":
+            return False
+        if (s.get("q_score") or {}).get("action") == "弃龙":
+            return False
+        return True
 
     buyable_qualified = [s for s in stocks if s.get("qualified") and is_buyable_unsealed(s)]
     buyable_all = [s for s in stocks if is_buyable_unsealed(s)]
@@ -777,9 +811,21 @@ def get_stage_pushed_stocks(analysis_res, stage="auction"):
         if s.get("s4_signal") and s["s4_signal"].get("status") == "CONFIRMED"
     ]
 
-    # 策略内部严格按 Line 67 score 排序（评分仅作为排序字段，不替代策略定义）
-    s1_candidates.sort(key=lambda s: (s.get("score", 0) + (5 if s.get("net_flow", 0) > 1e7 else 0)), reverse=True)
-    s2_candidates.sort(key=lambda s: (s.get("score", 0) + (5 if s.get("net_flow", 0) > 1e7 else 0)), reverse=True)
+    # 策略内部严格按 Line 67 score 排序并融入龙头平台 M 值/Q 值加成
+    def s_rank_key(s):
+        base_s = s.get("score", 0) + (5 if s.get("net_flow", 0) > 1e7 else 0)
+        m_grade = (s.get("m_score") or {}).get("grade")
+        if m_grade == "dragon":
+            base_s += 10
+        elif m_grade == "watch":
+            base_s += 3
+        q_act = (s.get("q_score") or {}).get("action")
+        if q_act == "追龙":
+            base_s += 8
+        return base_s
+
+    s1_candidates.sort(key=s_rank_key, reverse=True)
+    s2_candidates.sort(key=s_rank_key, reverse=True)
     s3_candidates.sort(key=lambda s: s.get("score", 0), reverse=True)
     s4_candidates.sort(key=lambda s: s.get("score", 0), reverse=True)
 
@@ -893,7 +939,7 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
     }
 
     # 1. 市场大盘姿态与全市场资金流向
-    regime_emoji = "🔥" if regime == "进攻" else "🛡️" if regime == "防守" else "⚖️"
+    regime_emoji = "🔥" if regime == "进攻" else "🛑" if regime == "退潮防守" else "🛡️" if regime == "防守" else "⚖️"
     lead_sec_str = " | ".join([f"{s['name']}(+{s['avg_pct']:.1f}%/{s['flow_str']})" for s in sectors[:3]]) if sectors else "暂无"
     flow_emoji = "🟢 净流入" if total_flow_val >= 0 else "🔴 净流出"
     flow_desc = f"{flow_emoji} **{fmt_amount(abs(total_flow_val))}**"
@@ -921,6 +967,8 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
         regime = analysis_res.get("regime", "中性")
         if regime == "进攻":
             regime_tag = " [🔥进攻·满仓4只]"
+        elif regime == "退潮防守":
+            regime_tag = " [🛑退潮防守·强制空仓刹车/暂停开仓]"
         elif regime == "防守":
             regime_tag = " [🛡️防守·上限2只/50%避险]"
         else:
@@ -989,7 +1037,19 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
 
         stock_md_list = []
         for s in s_list:
-            grade_badge = f"【{s['grade']}级 {s['score']}分】"
+            m_info = s.get("m_score") or {}
+            m_tag = ""
+            if m_info.get("grade") == "dragon":
+                m_tag = f" 👑真龙(M={m_info.get('M', 0):.2f})"
+            elif m_info.get("grade") == "watch":
+                m_tag = f" 👀(M={m_info.get('M', 0):.2f})"
+
+            q_info = s.get("q_score") or {}
+            q_tag = ""
+            if q_info.get("action") == "追龙":
+                q_tag = f" ⚡追龙(Q={q_info.get('Q', 0):.2f})"
+
+            grade_badge = f"【{s['grade']}级 {s['score']}分】{m_tag}{q_tag}"
             leader_tag = " 👑板块龙头" if s.get("is_leader") else ""
             reasons_str = "、".join(s.get("reasons", [])[:3]) if s.get("reasons") else "符合战法量化模型"
             flow_tag = f"净买 **{fmt_amount(s.get('net_flow', 0))}** (占{s.get('flow_ratio', 0) * 100:+.1f}%)" if s.get('net_flow') else f"成交 {fmt_amount(s['amount'])}"

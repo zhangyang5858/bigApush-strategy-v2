@@ -144,3 +144,122 @@ def test_morning_limit_up_lock_in_account_manager():
     assert "锁仓" in sells[0]["action"]
     assert len(account["positions"]) == 1
 
+
+def test_auction_m_score_camel_hump_penalty():
+    """测试龙头平台 M 值模型与驼峰曲线：黄金起爆(0~2%) vs 高开出货陷阱(>5.5%)"""
+    from strategy_four_pillars import calc_auction_m_score
+
+    # 1. 黄金起爆点：高开+1.5%，成交活跃，板块前排
+    gold_stock = {
+        "code": "600001",
+        "open_price": 10.15,
+        "pre_close": 10.00,
+        "auction_amount": 18_000_000,
+        "vr": 3.2,
+        "float_cap": 45.0,
+    }
+    sec_info = {"flow_rank": 1, "breadth": 0.75, "avg_pct": 2.8}
+    m_gold = calc_auction_m_score(gold_stock, sector_info=sec_info)
+    assert m_gold["M"] >= 0.60
+    assert m_gold["grade"] in ["dragon", "watch"]
+    assert m_gold["gap_over"] is False
+
+    # 2. 高开诱多出货陷阱：高开+6.8%，成交额平平
+    trap_stock = {
+        "code": "600002",
+        "open_price": 10.68,
+        "pre_close": 10.00,
+        "auction_amount": 8_000_000,
+        "vr": 1.5,
+        "float_cap": 40.0,
+    }
+    m_trap = calc_auction_m_score(trap_stock, sector_info={"flow_rank": 6})
+    assert m_trap["gap_over"] is True
+    assert m_trap["grade"] == "out"  # 驼峰惩罚直接淘汰
+
+
+def test_intraday_q_score_and_e5_abandonment():
+    """测试盘中 Q 值评估与 E5 走弱弃龙"""
+    from strategy_four_pillars import calc_intraday_q_score
+
+    # 1. 触发追龙：开盘拉升 +2.5%，量比 2.8，均线之上
+    strong_stock = {
+        "code": "000001",
+        "price": 10.45,
+        "open_price": 10.20,
+        "pre_close": 10.00,
+        "change": 4.5,
+        "vr": 2.8,
+        "vwap_diff": 1.2,
+        "high": 10.50,
+    }
+    q_strong = calc_intraday_q_score(strong_stock)
+    assert q_strong["Q"] >= 0.40
+    assert q_strong["action"] == "追龙"
+    assert "E1 拉升" in q_strong["events"]
+
+    # 2. 触发弃龙：现价砸穿分时均线且较开盘价下跌 -3.5%
+    weak_stock = {
+        "code": "000002",
+        "price": 9.80,
+        "open_price": 10.15,
+        "pre_close": 10.00,
+        "change": -2.0,
+        "vr": 1.8,
+        "vwap_diff": -1.5,
+        "high": 10.25,
+    }
+    q_weak = calc_intraday_q_score(weak_stock)
+    assert q_weak["is_e5"] is True
+    assert q_weak["action"] == "弃龙"
+    assert "E5 走弱" in q_weak["events"]
+
+
+def test_break_open_price_strict_stop_loss():
+    """测试日内跌破开盘价-5%坚决弃龙清仓"""
+    from scalp_account_manager import check_and_execute_sells
+
+    account = {
+        "cash": 10000.0,
+        "positions": [
+            {
+                "code": "600001",
+                "name": "高开走弱龙",
+                "buy_date": "2026-10-18",
+                "buy_price": 10.0,
+                "shares": 1000,
+                "cost_amount": 10000.0,
+                "stop_loss": 9.20,
+                "open_price": 10.50
+            }
+        ],
+        "closed_trades": []
+    }
+    # 现价 9.90，较今开 10.50 跌幅达 -5.71%
+    live_map = {
+        "600001": {"f2": 9.90, "f3": -1.0, "f15": 10.50, "f16": 9.85, "f17": 10.50}
+    }
+    sells = check_and_execute_sells(account, live_map, zt_set=set(), stage="confirm", today_str="2026-10-19")
+    assert len(sells) == 1
+    assert sells[0]["is_executed"] is True
+    assert "破今开-5%" in sells[0]["action"] or "弃龙" in sells[0]["action"]
+    assert len(account["positions"]) == 0
+
+
+def test_ebb_tide_brake_prevents_new_buys():
+    """测试退潮防守期系统强制空仓刹车，禁止开新仓"""
+    from scalp_account_manager import execute_stage_buys
+
+    account = {
+        "cash": 100000.0,
+        "positions": [],
+        "closed_trades": []
+    }
+    mock_pushed = [
+        {"code": "600001", "name": "龙头股", "price": 10.0, "push_price": 10.0, "score": 85, "strategy_id": "S1"}
+    ]
+    buys = execute_stage_buys(account, mock_pushed, stage="instant", regime="退潮防守", today_str="2026-10-20")
+    assert len(buys) == 0
+    assert len(account["positions"]) == 0
+
+

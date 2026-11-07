@@ -28,6 +28,165 @@ def is_eligible_cap(float_cap: float, min_cap: float = 15.0, max_cap: float = 16
 
 
 # ─────────────────────────────────────────────────────────────
+# 龙头量化三维竞价 M 值与分时 Q 值引擎 (Borrowing from 龙头选股 V1)
+# ─────────────────────────────────────────────────────────────
+def calc_auction_m_score(
+    stock: Dict[str, Any],
+    yesterday: Optional[Dict[str, Any]] = None,
+    sector_info: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    龙头量化三维竞价分 M 模型 (M = 0.40*T + 0.30*P + 0.30*R)
+    - T: 类型分（净分限幅 ±5，T = (net + 5) / 10）
+    - P: 过程分（竞价换手率与量比）
+    - R: 涨幅驼峰与板块/市值（0~2% 满分黄金起爆，2~4% 递减，>4% 衰减，>5.5% 高开过度负分惩罚）
+    返回字典包含 M, T, P, R, net, grade ("dragon"|"watch"|"out"), gap_over, reasons
+    """
+    open_p = float(stock.get("open_price") or stock.get("price") or 0.0)
+    pre_c = float(stock.get("pre_close") or open_p)
+    chg = float(stock.get("auction_change") or ((open_p / pre_c - 1) * 100 if pre_c > 0 else 0.0))
+    amt = float(stock.get("auction_amount") or stock.get("amount") or 0.0)
+    vr = float(stock.get("vr") or stock.get("vol_ratio") or 1.0)
+    cap = float(stock.get("float_cap") or 0.0)
+    turnover = float(stock.get("turnover") or (amt / (cap * 1e8) * 100 if cap > 0 else 0.0))
+
+    # T: 类型分
+    net = 0
+    if chg >= 9.5 and amt >= 8e6:
+        net += 3
+    elif 2.0 <= chg < 5.0:
+        net += 2
+    if vr >= 2.5 and turnover >= 0.5:
+        net += 2
+    elif amt >= 1.5e7:
+        net += 2
+    if chg <= -9.5:
+        net -= 3
+    elif chg <= -3.0:
+        net -= 2
+    if chg < 0 and vr >= 2.0:
+        net -= 2
+
+    net = max(-5, min(5, net))
+    T = (net + 5.0) / 10.0
+
+    # P: 过程分
+    t_s = 1.0 if turnover >= 1.0 else 0.67 if turnover >= 0.5 else 0.33 if turnover >= 0.2 else 0.0
+    v_s = 1.0 if vr >= 4.0 else 0.67 if vr >= 3.0 else 0.33 if vr >= 2.0 else 0.2 if vr >= 1.4 else 0.0
+    P = (t_s + v_s) / 2.0
+
+    # R: 涨幅驼峰与板块/市值
+    gap_over = (chg > 5.0)
+    if 0.0 <= chg <= 2.0:
+        s_pct = 1.0  # 黄金起爆点
+    elif 2.0 < chg <= 4.0:
+        s_pct = 1.0 - (chg - 2.0) / 2.0 * 0.40  # 0.60 ~ 1.00
+    elif 4.0 < chg <= 5.5:
+        s_pct = 0.60 - (chg - 4.0) / 1.5 * 0.50  # 0.10 ~ 0.60
+    elif chg > 5.5:
+        s_pct = -0.30  # 高开过度惩罚(防大面开盘诱多出货)
+    else:
+        s_pct = max(-0.5, chg / 10.0)
+
+    sec = sector_info or {}
+    rk = int(sec.get("flow_rank") or sec.get("rank") or 999)
+    s_rk = 1.0 if rk <= 1 else 0.67 if rk <= 3 else 0.33 if rk <= 8 else 0.0
+    s_mv = 1.0 if (25.0 <= cap <= 85.0) else 0.67 if (15.0 <= cap <= 120.0) else 0.33 if cap <= 160.0 else 0.0
+
+    R = 0.50 * s_pct + 0.30 * s_rk + 0.20 * s_mv
+    M = max(0.0, min(1.0, 0.40 * T + 0.30 * P + 0.30 * R))
+
+    if net < 0 or M < 0.45 or (gap_over and amt < 2e7):
+        grade = "out"
+    elif M >= 0.65 and net > 0 and not gap_over:
+        grade = "dragon"
+    else:
+        grade = "watch"
+
+    return {
+        "M": round(M, 3),
+        "T": round(T, 3),
+        "P": round(P, 3),
+        "R": round(R, 3),
+        "net": net,
+        "grade": grade,
+        "gap_over": gap_over
+    }
+
+
+def calc_intraday_q_score(
+    stock: Dict[str, Any],
+    stage: str = "confirm",
+) -> Dict[str, Any]:
+    """
+    龙头量化盘中 Q 值评估模型 (Q = 0.35*R + 0.25*G + 0.40*P) 与 E1~E5 异动识别
+    - E1 拉升: 现价较开盘价拉升 >= 2.0%
+    - E2 放量: 分时量比 >= 2.0
+    - E5 走弱: 现价低于分时均线且较开盘跌超 3.0% (或较日内最高点回撤 >= 4.0%)
+    - 动作输出: "追龙" | "弃龙" | "封板锁定" | "观察"
+    """
+    price = float(stock.get("price") or stock.get("open_price") or 0.0)
+    open_price = float(stock.get("open_price") or price)
+    pre_close = float(stock.get("pre_close") or open_price)
+    cur_chg = float(stock.get("change") or ((price / pre_close - 1) * 100 if pre_close > 0 else 0.0))
+    open_pct = ((price / open_price - 1) * 100) if open_price > 0 else 0.0
+    vr = float(stock.get("vr") or stock.get("vol_ratio") or 1.0)
+    high_price = float(stock.get("high") or price)
+    is_zt = bool(stock.get("is_zt") or cur_chg >= 9.85)
+
+    vwap_diff = float(stock.get("vwap_diff") or 0.0)
+    if "vwap_diff" not in stock and open_price > 0:
+        vwap_est = (open_price + price) / 2.0
+        vwap_diff = ((price / vwap_est - 1) * 100) if vwap_est > 0 else 0.0
+
+    events = []
+    if open_pct >= 2.0:
+        events.append("E1 拉升")
+    if vr >= 2.0:
+        events.append("E2 放量")
+    if is_zt:
+        events.append("封板")
+
+    pullback_from_high = ((high_price - price) / high_price * 100) if high_price > 0 else 0.0
+    is_e5 = (vwap_diff < -0.3 and open_pct <= -3.0) or (pullback_from_high >= 4.0 and cur_chg < 8.0)
+    if is_e5:
+        events.append("E5 走弱")
+
+    r_score = 0.85 if ("E1 拉升" in events and "E2 放量" in events) else 0.65 if ("E1 拉升" in events or "E2 放量" in events) else 0.35
+    g_score = min(1.0, max(0.0, cur_chg / 10.0))
+    p_score = 0.90 if vwap_diff >= 0.5 else 0.70 if vwap_diff >= 0 else 0.30 if vwap_diff >= -1.0 else 0.0
+
+    q_val = round(max(0.0, min(1.0, 0.35 * r_score + 0.25 * g_score + 0.40 * p_score)), 3)
+
+    action = "观察"
+    why = ""
+    if is_e5:
+        action = "弃龙"
+        why = f"E5 走弱: 破分时均线且开盘{open_pct:+.1f}%(回撤{pullback_from_high:.1f}%)"
+    elif is_zt:
+        action = "封板锁定"
+        why = "已涨停封死"
+    elif q_val >= 0.40 and ("E1 拉升" in events or "E2 放量" in events) and vwap_diff >= -0.3:
+        action = "追龙"
+        why = f"E1/E2脉冲放量且Q值({q_val:.2f})达标，稳在分时均线上"
+    else:
+        why = f"Q值({q_val:.2f})跟踪观察中"
+
+    return {
+        "Q": q_val,
+        "R": round(r_score, 2),
+        "G": round(g_score, 2),
+        "P": round(p_score, 2),
+        "events": events,
+        "action": action,
+        "why": why,
+        "is_e5": is_e5,
+        "open_pct": round(open_pct, 2),
+        "vwap_diff": round(vwap_diff, 2),
+    }
+
+
+# ─────────────────────────────────────────────────────────────
 # S1: 竞价首板 (Auction First Board)
 # ─────────────────────────────────────────────────────────────
 def detect_s1_auction_first_board(
@@ -94,6 +253,22 @@ def detect_s1_auction_first_board(
         # 若金额或涨幅不符合，不触发 S1
         return None
 
+    # 龙头量化三维竞价分 M 判定
+    m_res = calc_auction_m_score(stock, yesterday=yesterday, sector_info=sec)
+    if m_res["grade"] == "out":
+        return {
+            "strategy_id": "S1", "strategy_name": "S1 竞价首板", "code": code, "name": name,
+            "status": "INVALIDATED", "stage_desc": "竞价M值淘汰",
+            "price": open_price, "open_price": open_price, "support_price": open_price,
+            "reasons": reasons, "invalid_reason": f"竞价M值({m_res['M']:.2f})或异动净分({m_res['net']:+d})淘汰(高开过度/量能不足)",
+            "m_score": m_res
+        }
+
+    if m_res["grade"] == "dragon":
+        reasons.append(f"👑竞价真龙(M={m_res['M']:.2f}, 净分{m_res['net']:+d})")
+    elif m_res["grade"] == "watch":
+        reasons.append(f"👀竞价M值达标({m_res['M']:.2f})")
+
     if is_weak_to_strong:
         burst_ratio_str = f"，竞价占比{((auction_amt / yesterday_amt) * 100):.1f}%" if yesterday_amt > 0 else ""
         reasons.append(f"🔥竞价爆量弱转强(抢筹{auction_amt / 1e4:.0f}万{burst_ratio_str})")
@@ -119,7 +294,8 @@ def detect_s1_auction_first_board(
             "invalid_reason": None,
             "strategy_variant": "竞价爆量弱转强" if is_weak_to_strong else "竞价首板入选",
             "is_weak_to_strong": is_weak_to_strong,
-            "auction_amount": auction_amt
+            "auction_amount": auction_amt,
+            "m_score": m_res
         }
 
     # 09:32~09:38 开盘确认阶段
@@ -128,20 +304,33 @@ def detect_s1_auction_first_board(
     cur_chg = float(confirm_stock.get("change") or auction_chg)
     cur_high = float(confirm_stock.get("high") or cur_price)
 
+    # 分时 Q 值与 E5 走弱弃龙判定
+    q_res = calc_intraday_q_score(confirm_stock, stage="confirm")
+    if q_res["action"] == "弃龙":
+        return {
+            "strategy_id": "S1", "strategy_name": "S1 竞价首板", "code": code, "name": name,
+            "status": "INVALIDATED", "stage_desc": "分时弃龙失效",
+            "price": cur_price, "open_price": open_price, "support_price": open_price,
+            "reasons": reasons, "invalid_reason": f"分时E5走弱弃龙 ({q_res['why']})",
+            "q_score": q_res, "m_score": m_res
+        }
+
     # 失效判断：跌破开盘价超过2%、高开低走超2%、或冲高回落较盘中高点回撤超1.8%
     if cur_price < open_price * 0.98:
         return {
             "strategy_id": "S1", "strategy_name": "S1 竞价首板", "code": code, "name": name,
             "status": "INVALIDATED", "stage_desc": "开盘破位失效",
             "price": cur_price, "open_price": open_price, "support_price": open_price,
-            "reasons": reasons, "invalid_reason": f"现价跌破开盘价超过2% ({cur_price:.2f} < {open_price * 0.98:.2f})"
+            "reasons": reasons, "invalid_reason": f"现价跌破开盘价超过2% ({cur_price:.2f} < {open_price * 0.98:.2f})",
+            "q_score": q_res, "m_score": m_res
         }
     if cur_chg - auction_chg < -2.0:
         return {
             "strategy_id": "S1", "strategy_name": "S1 竞价首板", "code": code, "name": name,
             "status": "INVALIDATED", "stage_desc": "高开低走走弱失效",
             "price": cur_price, "open_price": open_price, "support_price": open_price,
-            "reasons": reasons, "invalid_reason": f"开盘走弱超2% (差值{cur_chg - auction_chg:+.2f}%)"
+            "reasons": reasons, "invalid_reason": f"开盘走弱超2% (差值{cur_chg - auction_chg:+.2f}%)",
+            "q_score": q_res, "m_score": m_res
         }
     if cur_high > cur_price and (cur_high - cur_price) / cur_high > 0.018:
         pullback_pct = (cur_high - cur_price) / cur_high * 100
@@ -149,13 +338,16 @@ def detect_s1_auction_first_board(
             "strategy_id": "S1", "strategy_name": "S1 竞价首板", "code": code, "name": name,
             "status": "INVALIDATED", "stage_desc": "冲高回落受阻失效",
             "price": cur_price, "open_price": open_price, "support_price": open_price,
-            "reasons": reasons, "invalid_reason": f"较盘中高点￥{cur_high:.2f}回撤{pullback_pct:.2f}%(>1.8%)"
+            "reasons": reasons, "invalid_reason": f"较盘中高点￥{cur_high:.2f}回撤{pullback_pct:.2f}%(>1.8%)",
+            "q_score": q_res, "m_score": m_res
         }
 
     # 确认通过：守住开盘价且成交放量
     if cur_price >= open_price and cur_amt >= auction_amt:
         reasons.append(f"守住开盘价￥{open_price:.2f}")
         reasons.append("成交活跃持续放量")
+        if q_res.get("action") == "追龙":
+            reasons.append(f"⚡触发追龙买点(Q={q_res['Q']:.2f})")
         return {
             "strategy_id": "S1",
             "strategy_name": "S1 竞价首板",
@@ -169,7 +361,9 @@ def detect_s1_auction_first_board(
             "reasons": reasons,
             "invalid_reason": None,
             "strategy_variant": "竞价爆量弱转强(开盘确认)" if is_weak_to_strong else "开盘承接确认",
-            "is_weak_to_strong": is_weak_to_strong
+            "is_weak_to_strong": is_weak_to_strong,
+            "m_score": m_res,
+            "q_score": q_res
         }
 
     return {
@@ -185,7 +379,9 @@ def detect_s1_auction_first_board(
         "reasons": reasons,
         "invalid_reason": None,
         "strategy_variant": "竞价爆量弱转强(观察)" if is_weak_to_strong else "竞价首板观察",
-        "is_weak_to_strong": is_weak_to_strong
+        "is_weak_to_strong": is_weak_to_strong,
+        "m_score": m_res,
+        "q_score": q_res
     }
 
 
@@ -237,6 +433,22 @@ def detect_s2_mainline_leader(
         f"成交额{amt / 1e4:.0f}万(超3000万流动性门槛)"
     ]
 
+    # 龙头量化三维竞价 M 值判定
+    m_res = calc_auction_m_score(stock, yesterday=None, sector_info=sector_rank_info)
+    if m_res["grade"] == "out" and stage == "auction":
+        return {
+            "strategy_id": "S2", "strategy_name": "S2 主线龙头主升", "code": code, "name": name,
+            "status": "INVALIDATED", "stage_desc": "竞价M值淘汰",
+            "price": price, "open_price": open_price, "support_price": open_price,
+            "reasons": reasons, "invalid_reason": f"竞价M值({m_res['M']:.2f})淘汰(高开过度/量能偏弱)",
+            "m_score": m_res
+        }
+
+    if m_res["grade"] == "dragon":
+        reasons.append(f"👑竞价真龙(M={m_res['M']:.2f})")
+    elif m_res["grade"] == "watch":
+        reasons.append(f"👀竞价M值达标({m_res['M']:.2f})")
+
     # 早盘候选阶段
     if stage in ["auction", "instant"]:
         return {
@@ -251,29 +463,44 @@ def detect_s2_mainline_leader(
             "support_price": open_price,
             "reasons": reasons,
             "invalid_reason": None,
-            "strategy_variant": "主线龙头候选"
+            "strategy_variant": "主线龙头候选",
+            "m_score": m_res
         }
 
     # 09:40 / 10:00 早盘定势承接阶段
+    q_res = calc_intraday_q_score(stock, stage=stage)
+    if q_res["action"] == "弃龙":
+        return {
+            "strategy_id": "S2", "strategy_name": "S2 主线龙头主升", "code": code, "name": name,
+            "status": "INVALIDATED", "stage_desc": "分时弃龙失效",
+            "price": price, "open_price": open_price, "support_price": open_price,
+            "reasons": reasons, "invalid_reason": f"分时E5走弱弃龙 ({q_res['why']})",
+            "q_score": q_res, "m_score": m_res
+        }
+
     # 失效判定：板块大额资金断崖流出 或 个股跌破开盘价超过2%
     if sec_flow < -4e8:
         return {
             "strategy_id": "S2", "strategy_name": "S2 主线龙头主升", "code": code, "name": name,
             "status": "INVALIDATED", "stage_desc": "板块退潮失效",
             "price": price, "open_price": open_price, "support_price": open_price,
-            "reasons": reasons, "invalid_reason": f"所属板块主力大额净流出({sec_flow / 1e8:.2f}亿)"
+            "reasons": reasons, "invalid_reason": f"所属板块主力大额净流出({sec_flow / 1e8:.2f}亿)",
+            "q_score": q_res, "m_score": m_res
         }
     if price < open_price * 0.98:
         return {
             "strategy_id": "S2", "strategy_name": "S2 主线龙头主升", "code": code, "name": name,
             "status": "INVALIDATED", "stage_desc": "承接走弱失效",
             "price": price, "open_price": open_price, "support_price": open_price,
-            "reasons": reasons, "invalid_reason": f"现价跌破开盘价超过2% ({price:.2f} < {open_price * 0.98:.2f})"
+            "reasons": reasons, "invalid_reason": f"现价跌破开盘价超过2% ({price:.2f} < {open_price * 0.98:.2f})",
+            "q_score": q_res, "m_score": m_res
         }
 
     # 承接确认：现价保持在开盘价及 VWAP 均线之上
     if price >= open_price and vwap_diff >= -0.5:
         reasons.append(f"稳居分时均线之上({vwap_diff:+.1f}%)")
+        if q_res.get("action") == "追龙":
+            reasons.append(f"⚡触发追龙买点(Q={q_res['Q']:.2f})")
         return {
             "strategy_id": "S2",
             "strategy_name": "S2 主线龙头主升",
@@ -286,7 +513,9 @@ def detect_s2_mainline_leader(
             "support_price": open_price,
             "reasons": reasons,
             "invalid_reason": None,
-            "strategy_variant": "主线龙头定势"
+            "strategy_variant": "主线龙头定势",
+            "m_score": m_res,
+            "q_score": q_res
         }
 
     return {
@@ -301,7 +530,9 @@ def detect_s2_mainline_leader(
         "support_price": open_price,
         "reasons": reasons,
         "invalid_reason": None,
-        "strategy_variant": "主线龙头跟踪"
+        "strategy_variant": "主线龙头跟踪",
+        "m_score": m_res,
+        "q_score": q_res
     }
 
 
