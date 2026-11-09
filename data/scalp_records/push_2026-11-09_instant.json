@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-09",
+  "time": "09:32:04",
+  "stage": "instant",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "000530",
+      "name": "冰山冷热",
+      "push_time": "09:32:04",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 9.33,
+      "open_price": 9.17,
+      "pre_close": 8.7,
+      "stop_loss": 8.99,
+      "grade": "S",
+      "score": 98.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    },
+    {
+      "code": "002376",
+      "name": "新北洋",
+      "push_time": "09:32:04",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 7.14,
+      "open_price": 6.93,
+      "pre_close": 6.67,
+      "stop_loss": 6.79,
+      "grade": "S",
+      "score": 97.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "计算机设备"
+    },
+    {
+      "code": "002361",
+      "name": "神剑股份",
+      "push_time": "09:32:04",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 10.05,
+      "open_price": 9.97,
+      "pre_close": 9.5,
+      "stop_loss": 9.77,
+      "grade": "S",
+      "score": 97.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "塑料"
+    }
+  ]
+}
