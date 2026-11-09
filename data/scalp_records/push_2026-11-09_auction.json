@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-09",
+  "time": "09:26:36",
+  "stage": "auction",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "000530",
+      "name": "冰山冷热",
+      "push_time": "09:26:36",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 9.17,
+      "open_price": 9.17,
+      "pre_close": 8.7,
+      "stop_loss": 8.99,
+      "grade": "S",
+      "score": 85.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    },
+    {
+      "code": "000595",
+      "name": "新能股份",
+      "push_time": "09:26:36",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 5.62,
+      "open_price": 5.62,
+      "pre_close": 5.38,
+      "stop_loss": 5.51,
+      "grade": "S",
+      "score": 84.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电力"
+    }
+  ]
+}

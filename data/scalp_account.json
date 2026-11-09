@@ -1,8 +1,31 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 91342.52,
-  "cash": 91342.52,
-  "positions": [],
+  "total_assets": 91336.56,
+  "cash": 68411.56,
+  "positions": [
+    {
+      "code": "000530",
+      "name": "冰山冷热",
+      "buy_date": "2026-11-09",
+      "buy_time": "09:26:36",
+      "buy_stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "buy_price": 9.17,
+      "current_price": 9.17,
+      "open_price": 9.17,
+      "stop_loss": 8.99,
+      "shares": 2500,
+      "cost_amount": 22930.96,
+      "fee": 5.96,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": -5.96,
+      "regime": "中性",
+      "market_value": 22925.0,
+      "highest_price": 9.17,
+      "max_profit_pct": 0.0,
+      "is_zt": false
+    }
+  ],
   "closed_trades": [
     {
       "code": "301230",
@@ -1526,10 +1549,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-06 15:30:53",
-  "position_market_value": 0.0,
-  "daily_profit": 1034.82,
-  "daily_return_pct": 1.15,
-  "total_profit": -8657.48,
+  "updated_at": "2026-11-09 09:26:36",
+  "position_market_value": 22925.0,
+  "daily_profit": -5.96,
+  "daily_return_pct": -0.01,
+  "total_profit": -8663.44,
   "total_return_pct": -8.66
 }
