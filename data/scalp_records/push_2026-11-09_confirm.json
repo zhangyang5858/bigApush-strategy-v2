@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-09",
+  "time": "09:38:37",
+  "stage": "confirm",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "002376",
+      "name": "新北洋",
+      "push_time": "09:38:37",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 7.1,
+      "open_price": 6.93,
+      "pre_close": 6.67,
+      "stop_loss": 6.79,
+      "grade": "S",
+      "score": 97.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "计算机设备"
+    },
+    {
+      "code": "002009",
+      "name": "天奇股份",
+      "push_time": "09:38:37",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 18.04,
+      "open_price": 17.41,
+      "pre_close": 17.01,
+      "stop_loss": 17.06,
+      "grade": "S",
+      "score": 96.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "专用设备"
+    }
+  ]
+}
