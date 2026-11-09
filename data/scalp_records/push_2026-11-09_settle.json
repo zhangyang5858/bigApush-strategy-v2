@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-09",
+  "time": "09:55:43",
+  "stage": "settle",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "600121",
+      "name": "郑州煤电",
+      "push_time": "09:55:43",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 4.69,
+      "open_price": 4.44,
+      "pre_close": 4.3,
+      "stop_loss": 4.35,
+      "grade": "S",
+      "score": 97.6,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "煤炭开采"
+    }
+  ]
+}
