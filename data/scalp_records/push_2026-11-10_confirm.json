@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-10",
+  "time": "09:38:48",
+  "stage": "confirm",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "002164",
+      "name": "宁波东力",
+      "push_time": "09:38:48",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 20.55,
+      "open_price": 20.21,
+      "pre_close": 19.7,
+      "stop_loss": 19.81,
+      "grade": "S",
+      "score": 97.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    },
+    {
+      "code": "603011",
+      "name": "合锻智能",
+      "push_time": "09:38:48",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 18.33,
+      "open_price": 17.62,
+      "pre_close": 17.2,
+      "stop_loss": 17.27,
+      "grade": "S",
+      "score": 96.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "专用设备"
+    }
+  ]
+}
