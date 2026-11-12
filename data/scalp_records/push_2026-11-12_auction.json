@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-12",
+  "time": "09:26:36",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002506",
+      "name": "协鑫集成",
+      "push_time": "09:26:36",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 2.5,
+      "open_price": 2.5,
+      "pre_close": 2.44,
+      "stop_loss": 2.45,
+      "grade": "B",
+      "score": 65.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "光伏设备"
+    },
+    {
+      "code": "603028",
+      "name": "赛福天",
+      "push_time": "09:26:36",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 8.19,
+      "open_price": 8.19,
+      "pre_close": 7.95,
+      "stop_loss": 8.03,
+      "grade": "B",
+      "score": 62.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    }
+  ]
+}
