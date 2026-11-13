@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-13",
+  "time": "09:32:13",
+  "stage": "instant",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "603466",
+      "name": "风语筑",
+      "push_time": "09:32:13",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 17.19,
+      "open_price": 16.47,
+      "pre_close": 16.03,
+      "stop_loss": 16.14,
+      "grade": "S",
+      "score": 87.7,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "数字媒体"
+    },
+    {
+      "code": "002931",
+      "name": "锋龙股份",
+      "push_time": "09:32:13",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 57.54,
+      "open_price": 58.5,
+      "pre_close": 56.6,
+      "stop_loss": 57.33,
+      "grade": "S",
+      "score": 87.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    },
+    {
+      "code": "603666",
+      "name": "亿嘉和",
+      "push_time": "09:32:13",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 31.19,
+      "open_price": 31.5,
+      "pre_close": 29.99,
+      "stop_loss": 30.87,
+      "grade": "S",
+      "score": 86.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "自动化设备"
+    }
+  ]
+}
