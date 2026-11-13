@@ -1,6 +1,6 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 97090.4,
+  "total_assets": 95846.4,
   "cash": 50460.4,
   "positions": [
     {
@@ -34,17 +34,17 @@
       "buy_stage": "auction",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 58.5,
-      "current_price": 61.21,
+      "current_price": 58.1,
       "open_price": 58.5,
       "stop_loss": 58.79,
       "shares": 400,
       "cost_amount": 23406.08,
       "fee": 6.08,
-      "unrealized_profit_pct": 4.63,
-      "unrealized_profit_amount": 1077.92,
+      "unrealized_profit_pct": -0.68,
+      "unrealized_profit_amount": -166.08,
       "regime": "中性",
-      "market_value": 24484.0,
-      "highest_price": 61.21,
+      "market_value": 23240.0,
+      "highest_price": 62.26,
       "max_profit_pct": 4.63,
       "is_zt": false,
       "is_breakeven_locked": true
@@ -1767,13 +1767,24 @@
       "total_profit": -4503.39,
       "total_return_pct": -4.5,
       "position_count": 3
+    },
+    {
+      "date": "2026-11-13",
+      "total_assets": 95846.4,
+      "cash": 50460.4,
+      "position_market_value": 45386.0,
+      "daily_profit": 349.79,
+      "daily_return_pct": 0.37,
+      "total_profit": -4153.6,
+      "total_return_pct": -4.15,
+      "position_count": 2
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-13 09:55:45",
-  "position_market_value": 46630.0,
-  "daily_profit": 1593.79,
-  "daily_return_pct": 1.67,
-  "total_profit": -2909.6,
-  "total_return_pct": -2.91
+  "updated_at": "2026-11-13 15:30:54",
+  "position_market_value": 45386.0,
+  "daily_profit": 349.79,
+  "daily_return_pct": 0.37,
+  "total_profit": -4153.6,
+  "total_return_pct": -4.15
 }
