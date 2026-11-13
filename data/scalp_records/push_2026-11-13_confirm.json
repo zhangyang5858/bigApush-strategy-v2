@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-13",
+  "time": "09:38:38",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "600408",
+      "name": "安泰集团",
+      "push_time": "09:38:38",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 3.78,
+      "open_price": 3.73,
+      "pre_close": 3.65,
+      "stop_loss": 3.66,
+      "grade": "A",
+      "score": 76.0,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "焦炭Ⅱ"
+    }
+  ]
+}
