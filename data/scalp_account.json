@@ -1,30 +1,8 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 95306.21,
-  "cash": 25729.21,
+  "total_assets": 97090.4,
+  "cash": 50460.4,
   "positions": [
-    {
-      "code": "002957",
-      "name": "科瑞技术",
-      "buy_date": "2026-11-11",
-      "buy_time": "09:38:38",
-      "buy_stage": "confirm",
-      "strategy_tag": "S1 竞价首板 (开盘确认)",
-      "buy_price": 27.61,
-      "current_price": 27.01,
-      "open_price": 26.61,
-      "stop_loss": 26.08,
-      "shares": 900,
-      "cost_amount": 24855.46,
-      "fee": 6.46,
-      "unrealized_profit_pct": -2.17,
-      "unrealized_profit_amount": -546.46,
-      "regime": "中性",
-      "market_value": 24309.0,
-      "highest_price": 28.91,
-      "max_profit_pct": 3.44,
-      "is_zt": false
-    },
     {
       "code": "605255",
       "name": "天普股份",
@@ -33,19 +11,19 @@
       "buy_stage": "instant",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 66.49,
-      "current_price": 72.8,
+      "current_price": 73.82,
       "open_price": 62.29,
       "stop_loss": 66.82,
       "shares": 300,
       "cost_amount": 19952.2,
       "fee": 5.2,
-      "unrealized_profit_pct": 9.49,
-      "unrealized_profit_amount": 1887.8,
+      "unrealized_profit_pct": 11.02,
+      "unrealized_profit_amount": 2193.8,
       "regime": "中性",
-      "market_value": 21840.0,
+      "market_value": 22146.0,
       "highest_price": 73.82,
       "max_profit_pct": 11.02,
-      "is_zt": false,
+      "is_zt": true,
       "is_breakeven_locked": true
     },
     {
@@ -56,19 +34,20 @@
       "buy_stage": "auction",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 58.5,
-      "current_price": 58.57,
+      "current_price": 61.21,
       "open_price": 58.5,
-      "stop_loss": 57.33,
+      "stop_loss": 58.79,
       "shares": 400,
       "cost_amount": 23406.08,
       "fee": 6.08,
-      "unrealized_profit_pct": 0.12,
-      "unrealized_profit_amount": 21.92,
+      "unrealized_profit_pct": 4.63,
+      "unrealized_profit_amount": 1077.92,
       "regime": "中性",
-      "market_value": 23428.0,
-      "highest_price": 58.57,
-      "max_profit_pct": 0.12,
-      "is_zt": false
+      "market_value": 24484.0,
+      "highest_price": 61.21,
+      "max_profit_pct": 4.63,
+      "is_zt": false,
+      "is_breakeven_locked": true
     }
   ],
   "closed_trades": [
@@ -1329,6 +1308,23 @@
       "realized_profit_pct": -5.5,
       "action": "🚨 竞价破位抢跑成交",
       "reason": "执行开盘竞价低开抢跑纪律(-5.41%)，市价止损出局避免深亏"
+    },
+    {
+      "code": "002957",
+      "name": "科瑞技术",
+      "buy_date": "2026-11-11",
+      "buy_price": 27.61,
+      "sell_date": "2026-11-13",
+      "sell_time": "09:55:45",
+      "sell_stage": "settle",
+      "sell_price": 27.5,
+      "shares": 900,
+      "gross_sell_amount": 24750.0,
+      "fee": 18.81,
+      "realized_profit": -124.27,
+      "realized_profit_pct": -0.5,
+      "action": "⏱️ 超短调仓卖出",
+      "reason": "早盘半小时定势未走强(-0.40%)，清仓腾出资金"
     }
   ],
   "daily_history": [
@@ -1774,10 +1770,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-13 09:38:38",
-  "position_market_value": 69577.0,
-  "daily_profit": -190.4,
-  "daily_return_pct": -0.2,
-  "total_profit": -4693.79,
-  "total_return_pct": -4.69
+  "updated_at": "2026-11-13 09:55:45",
+  "position_market_value": 46630.0,
+  "daily_profit": 1593.79,
+  "daily_return_pct": 1.67,
+  "total_profit": -2909.6,
+  "total_return_pct": -2.91
 }
