@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-13",
+  "time": "09:26:43",
+  "stage": "auction",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "002931",
+      "name": "锋龙股份",
+      "push_time": "09:26:43",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 58.5,
+      "open_price": 58.5,
+      "pre_close": 56.6,
+      "stop_loss": 57.33,
+      "grade": "S",
+      "score": 82.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通用设备"
+    },
+    {
+      "code": "603666",
+      "name": "亿嘉和",
+      "push_time": "09:26:43",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 31.5,
+      "open_price": 31.5,
+      "pre_close": 29.99,
+      "stop_loss": 30.87,
+      "grade": "S",
+      "score": 81.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "自动化设备"
+    }
+  ]
+}
