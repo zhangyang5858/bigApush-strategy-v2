@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-16",
+  "time": "09:38:34",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002697",
+      "name": "红旗连锁",
+      "push_time": "09:38:34",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 5.18,
+      "open_price": 5.08,
+      "pre_close": 5.07,
+      "stop_loss": 4.88,
+      "grade": "B",
+      "score": 64.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "一般零售"
+    },
+    {
+      "code": "000521",
+      "name": "长虹美菱",
+      "push_time": "09:38:34",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 4.12,
+      "open_price": 3.93,
+      "pre_close": 3.92,
+      "stop_loss": 3.77,
+      "grade": "B",
+      "score": 60.5,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "白色家电"
+    }
+  ]
+}
