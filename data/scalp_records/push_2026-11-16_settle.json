@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-16",
+  "time": "09:55:44",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "000156",
+      "name": "华数传媒",
+      "push_time": "09:55:44",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 8.16,
+      "open_price": 7.88,
+      "pre_close": 7.76,
+      "stop_loss": 7.72,
+      "grade": "B",
+      "score": 63.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电视广播Ⅱ"
+    }
+  ]
+}
