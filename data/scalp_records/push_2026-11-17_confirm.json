@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-17",
+  "time": "09:38:49",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002119",
+      "name": "康强电子",
+      "push_time": "09:38:49",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 18.16,
+      "open_price": 17.86,
+      "pre_close": 18.0,
+      "stop_loss": 17.15,
+      "grade": "B",
+      "score": 64.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "半导体"
+    },
+    {
+      "code": "002959",
+      "name": "小熊电器",
+      "push_time": "09:38:49",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 38.05,
+      "open_price": 37.33,
+      "pre_close": 36.27,
+      "stop_loss": 35.85,
+      "grade": "B",
+      "score": 64.3,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "小家电"
+    },
+    {
+      "code": "002229",
+      "name": "鸿博股份",
+      "push_time": "09:38:49",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 10.23,
+      "open_price": 9.71,
+      "pre_close": 9.9,
+      "stop_loss": 9.33,
+      "grade": "B",
+      "score": 60.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "IT服务Ⅱ"
+    }
+  ]
+}
