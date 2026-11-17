@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-17",
+  "time": "09:26:39",
+  "stage": "auction",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002419",
+      "name": "天虹股份",
+      "push_time": "09:26:39",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 5.64,
+      "open_price": 5.64,
+      "pre_close": 5.4,
+      "stop_loss": 5.53,
+      "grade": "A",
+      "score": 71.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "一般零售"
+    },
+    {
+      "code": "000533",
+      "name": "顺钠股份",
+      "push_time": "09:26:39",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 10.4,
+      "open_price": 10.4,
+      "pre_close": 9.82,
+      "stop_loss": 10.19,
+      "grade": "A",
+      "score": 70.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电网设备"
+    }
+  ]
+}
