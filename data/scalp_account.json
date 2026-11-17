@@ -1,32 +1,8 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 92514.6,
-  "cash": 45204.6,
+  "total_assets": 92884.08,
+  "cash": 68245.08,
   "positions": [
-    {
-      "code": "600892",
-      "name": "大晟文化",
-      "buy_date": "2026-11-16",
-      "buy_time": "09:26:33",
-      "buy_stage": "auction",
-      "strategy_tag": "S1 竞价首板 (竞价入选)",
-      "buy_price": 5.84,
-      "current_price": 5.49,
-      "open_price": 5.84,
-      "stop_loss": 5.87,
-      "shares": 4200,
-      "cost_amount": 24534.38,
-      "fee": 6.38,
-      "unrealized_profit_pct": -5.99,
-      "unrealized_profit_amount": -1476.38,
-      "regime": "防守",
-      "market_value": 23058.0,
-      "highest_price": 6.19,
-      "max_profit_pct": 4.45,
-      "is_zt": false,
-      "is_breakeven_locked": true,
-      "pre_market_stop": true
-    },
     {
       "code": "002419",
       "name": "天虹股份",
@@ -35,18 +11,18 @@
       "buy_stage": "auction",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 5.64,
-      "current_price": 5.64,
+      "current_price": 5.73,
       "open_price": 5.64,
       "stop_loss": 5.53,
       "shares": 4300,
       "cost_amount": 24258.31,
       "fee": 6.31,
-      "unrealized_profit_pct": 0.0,
-      "unrealized_profit_amount": -6.31,
+      "unrealized_profit_pct": 1.6,
+      "unrealized_profit_amount": 380.69,
       "regime": "防守",
-      "market_value": 24252.0,
-      "highest_price": 5.64,
-      "max_profit_pct": 0.0,
+      "market_value": 24639.0,
+      "highest_price": 5.73,
+      "max_profit_pct": 1.6,
       "is_zt": false
     }
   ],
@@ -1359,6 +1335,23 @@
       "realized_profit_pct": -8.54,
       "action": "🚨 竞价破位抢跑成交",
       "reason": "执行开盘竞价低开抢跑纪律(-8.44%)，市价止损出局避免深亏"
+    },
+    {
+      "code": "600892",
+      "name": "大晟文化",
+      "buy_date": "2026-11-16",
+      "buy_price": 5.84,
+      "sell_date": "2026-11-17",
+      "sell_time": "09:32:17",
+      "sell_stage": "instant",
+      "sell_price": 5.49,
+      "shares": 4200,
+      "gross_sell_amount": 23058.0,
+      "fee": 17.52,
+      "realized_profit": -1493.9,
+      "realized_profit_pct": -6.09,
+      "action": "🚨 竞价破位抢跑成交",
+      "reason": "执行开盘竞价低开抢跑纪律(-5.99%)，市价止损出局避免深亏"
     }
   ],
   "daily_history": [
@@ -1826,10 +1819,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-17 09:26:39",
-  "position_market_value": 47310.0,
-  "daily_profit": -2568.31,
-  "daily_return_pct": -2.7,
-  "total_profit": -7485.4,
-  "total_return_pct": -7.49
+  "updated_at": "2026-11-17 09:32:17",
+  "position_market_value": 24639.0,
+  "daily_profit": -2198.83,
+  "daily_return_pct": -2.31,
+  "total_profit": -7115.92,
+  "total_return_pct": -7.12
 }

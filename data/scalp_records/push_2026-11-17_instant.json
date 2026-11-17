@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-17",
+  "time": "09:32:17",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "000533",
+      "name": "顺钠股份",
+      "push_time": "09:32:17",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 10.56,
+      "open_price": 10.4,
+      "pre_close": 9.82,
+      "stop_loss": 9.99,
+      "grade": "B",
+      "score": 69.6,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电网设备"
+    },
+    {
+      "code": "002419",
+      "name": "天虹股份",
+      "push_time": "09:32:17",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 5.73,
+      "open_price": 5.64,
+      "pre_close": 5.4,
+      "stop_loss": 5.42,
+      "grade": "B",
+      "score": 67.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "一般零售"
+    },
+    {
+      "code": "000521",
+      "name": "长虹美菱",
+      "push_time": "09:32:17",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 4.5,
+      "open_price": 4.4,
+      "pre_close": 4.31,
+      "stop_loss": 4.22,
+      "grade": "B",
+      "score": 65.2,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "白色家电"
+    }
+  ]
+}
