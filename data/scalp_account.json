@@ -1,7 +1,7 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 90930.44,
-  "cash": 66846.44,
+  "total_assets": 90924.53,
+  "cash": 44106.53,
   "positions": [
     {
       "code": "002148",
@@ -25,6 +25,28 @@
       "max_profit_pct": 3.72,
       "is_zt": true,
       "is_breakeven_locked": true
+    },
+    {
+      "code": "603037",
+      "name": "凯众股份",
+      "buy_date": "2026-11-18",
+      "buy_time": "09:38:37",
+      "buy_stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "buy_price": 12.63,
+      "current_price": 12.63,
+      "open_price": 12.49,
+      "stop_loss": 12.24,
+      "shares": 1800,
+      "cost_amount": 22739.91,
+      "fee": 5.91,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": -5.91,
+      "regime": "中性",
+      "market_value": 22734.0,
+      "highest_price": 12.63,
+      "max_profit_pct": 0.0,
+      "is_zt": false
     }
   ],
   "closed_trades": [
@@ -1848,10 +1870,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-18 09:32:04",
-  "position_market_value": 24084.0,
-  "daily_profit": -276.64,
-  "daily_return_pct": -0.3,
-  "total_profit": -9069.56,
-  "total_return_pct": -9.07
+  "updated_at": "2026-11-18 09:38:37",
+  "position_market_value": 46818.0,
+  "daily_profit": -282.55,
+  "daily_return_pct": -0.31,
+  "total_profit": -9075.47,
+  "total_return_pct": -9.08
 }
