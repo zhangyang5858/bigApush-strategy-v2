@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-18",
+  "time": "09:32:04",
+  "stage": "instant",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "001389",
+      "name": "广合科技",
+      "push_time": "09:32:04",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 82.05,
+      "open_price": 81.01,
+      "pre_close": 79.4,
+      "stop_loss": 79.39,
+      "grade": "S",
+      "score": 84.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "元件"
+    },
+    {
+      "code": "002980",
+      "name": "华盛昌",
+      "push_time": "09:32:04",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 60.28,
+      "open_price": 60.83,
+      "pre_close": 59.63,
+      "stop_loss": 59.61,
+      "grade": "S",
+      "score": 83.5,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电网设备"
+    },
+    {
+      "code": "600619",
+      "name": "海立股份",
+      "push_time": "09:32:04",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 13.45,
+      "open_price": 13.5,
+      "pre_close": 13.1,
+      "stop_loss": 13.23,
+      "grade": "S",
+      "score": 83.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "家电零部件Ⅱ"
+    }
+  ]
+}
