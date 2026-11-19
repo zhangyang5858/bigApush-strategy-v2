@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-19",
+  "time": "09:55:46",
+  "stage": "settle",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "002039",
+      "name": "黔源电力",
+      "push_time": "09:55:46",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 20.56,
+      "open_price": 19.69,
+      "pre_close": 19.43,
+      "stop_loss": 18.91,
+      "grade": "B",
+      "score": 66.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电力"
+    },
+    {
+      "code": "000656",
+      "name": "金科股份",
+      "push_time": "09:55:46",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 1.01,
+      "open_price": 0.98,
+      "pre_close": 0.93,
+      "stop_loss": 0.94,
+      "grade": "B",
+      "score": 63.4,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "房地产开发"
+    },
+    {
+      "code": "603078",
+      "name": "江化微",
+      "push_time": "09:55:46",
+      "stage": "settle",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 25.66,
+      "open_price": 24.3,
+      "pre_close": 24.42,
+      "stop_loss": 23.33,
+      "grade": "B",
+      "score": 63.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "电子化学品Ⅱ"
+    }
+  ]
+}
