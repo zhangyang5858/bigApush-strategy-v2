@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-19",
+  "time": "09:32:16",
+  "stage": "instant",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "603220",
+      "name": "中贝通信",
+      "push_time": "09:32:16",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 16.29,
+      "open_price": 16.0,
+      "pre_close": 15.62,
+      "stop_loss": 15.37,
+      "grade": "B",
+      "score": 65.7,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通信服务"
+    },
+    {
+      "code": "000711",
+      "name": "京蓝科技",
+      "push_time": "09:32:16",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 3.65,
+      "open_price": 3.57,
+      "pre_close": 3.48,
+      "stop_loss": 3.43,
+      "grade": "B",
+      "score": 64.9,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "环境治理"
+    },
+    {
+      "code": "002212",
+      "name": "天融信",
+      "push_time": "09:32:16",
+      "stage": "instant",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 5.67,
+      "open_price": 5.7,
+      "pre_close": 5.5,
+      "stop_loss": 5.48,
+      "grade": "B",
+      "score": 64.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "软件开发"
+    }
+  ]
+}
