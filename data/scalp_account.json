@@ -1941,10 +1941,21 @@
       "total_profit": -11402.45,
       "total_return_pct": -11.4,
       "position_count": 1
+    },
+    {
+      "date": "2026-11-20",
+      "total_assets": 91881.09,
+      "cash": 44154.09,
+      "position_market_value": 47727.0,
+      "daily_profit": 3283.54,
+      "daily_return_pct": 3.71,
+      "total_profit": -8118.91,
+      "total_return_pct": -8.12,
+      "position_count": 2
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-20 09:55:39",
+  "updated_at": "2026-11-20 15:30:51",
   "position_market_value": 47727.0,
   "daily_profit": 3283.54,
   "daily_return_pct": 3.71,
