@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-20",
+  "time": "09:38:50",
+  "stage": "confirm",
+  "regime": "防守",
+  "stocks": [
+    {
+      "code": "600106",
+      "name": "重庆路桥",
+      "push_time": "09:38:50",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 4.12,
+      "open_price": 3.94,
+      "pre_close": 3.88,
+      "stop_loss": 3.86,
+      "grade": "C",
+      "score": 58.4,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "铁路公路"
+    },
+    {
+      "code": "600408",
+      "name": "安泰集团",
+      "push_time": "09:38:50",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 3.63,
+      "open_price": 3.37,
+      "pre_close": 3.41,
+      "stop_loss": 3.23,
+      "grade": "C",
+      "score": 58.3,
+      "is_zt": false,
+      "is_leader": true,
+      "sector": "焦炭Ⅱ"
+    },
+    {
+      "code": "000656",
+      "name": "金科股份",
+      "push_time": "09:38:50",
+      "stage": "confirm",
+      "strategy_tag": "🎯 综合短线先锋",
+      "push_price": 1.1,
+      "open_price": 1.05,
+      "pre_close": 1.02,
+      "stop_loss": 1.01,
+      "grade": "C",
+      "score": 58.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "房地产开发"
+    }
+  ]
+}
