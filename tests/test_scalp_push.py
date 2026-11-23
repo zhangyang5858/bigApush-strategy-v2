@@ -28,8 +28,8 @@ def test_scalp_push_afternoon_demo(tmp_path, monkeypatch):
     assert success is True
 
 
-def test_scalp_account_manager_afternoon_allocation():
-    """测试 14:30 尾盘模拟账户买入配额与选股"""
+def test_scalp_account_manager_instant_allocation():
+    """测试 09:31 开盘极速秒板模拟账户买入配额与选股"""
     account = {
         "total_assets": 100000.0,
         "cash": 100000.0,
@@ -44,8 +44,9 @@ def test_scalp_account_manager_afternoon_allocation():
             "open_price": 10.30,
             "change": 1.9,
             "score": 85.0,
-            "strategy_id": "S3",
-            "strategy_tag": "🛡️ S3 涨停回调 (低吸到位)",
+            "net_flow": 15000000,
+            "strategy_id": "S1",
+            "strategy_tag": "⚡ S1 极速秒板",
             "support_price": 10.00,
             "stop_loss": 9.80,
             "is_zt": False
@@ -57,8 +58,9 @@ def test_scalp_account_manager_afternoon_allocation():
             "open_price": 8.40,
             "change": 1.2,
             "score": 82.0,
-            "strategy_id": "S4",
-            "strategy_tag": "⚡ S4 量价突破 (回踩确认)",
+            "net_flow": 15000000,
+            "strategy_id": "S2",
+            "strategy_tag": "👑 S2 连板接力",
             "support_price": 8.30,
             "stop_loss": 8.10,
             "is_zt": False
@@ -68,7 +70,7 @@ def test_scalp_account_manager_afternoon_allocation():
     buys = execute_stage_buys(
         account=account,
         pushed_stocks=pushed_stocks,
-        stage="afternoon",
+        stage="instant",
         today_str="2026-09-17",
         regime="中性"
     )

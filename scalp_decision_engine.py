@@ -914,19 +914,19 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
         pushed_stocks = get_stage_pushed_stocks(analysis_res, stage=stage)
 
     if stage == "afternoon":
-        title_text = f"🌙 缅A尾盘低吸与突破回踩决胜榜 ({now_str[11:16]})"
+        title_text = f"🌙 策略2 · 尾盘低吸决胜备用榜 ({now_str[11:16]})"
         header_color = "indigo"
     elif stage == "settle":
-        title_text = f"🎯 缅A早盘定势盯盘与持仓诊断 ({now_str[11:16]})"
+        title_text = f"🎯 策略2 · 早盘定势封板备用榜 ({now_str[11:16]})"
         header_color = "purple"
     elif stage == "confirm":
-        title_text = f"🚀 缅A开盘承接强攻榜 ({now_str[11:16]})"
+        title_text = f"👑 策略2 · 换手大龙回封决胜榜 (09:50)"
         header_color = "red"
     elif stage == "instant":
-        title_text = f"⚡ 缅A极速秒板突击榜 ({now_str[11:16]})"
+        title_text = f"⚡ 策略2 · 开盘极速秒板突击榜 (09:31)"
         header_color = "turquoise"
     else:
-        title_text = f"☀️ 缅A早盘竞价初筛榜 ({now_str[11:16]})"
+        title_text = f"🎯 策略2 · 早盘竞价爆量首板榜 (09:25:30)"
         header_color = "orange"
 
     card = {

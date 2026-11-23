@@ -1,4 +1,4 @@
-name: 早盘竞价初筛推送 (09:26)
+name: 早盘竞价首板推送 (09:25:30)
 
 on:
   workflow_dispatch:
