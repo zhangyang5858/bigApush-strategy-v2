@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '31 1 * * 1-5'  # UTC 01:31 = 北京时间 09:31 (周一至周五)
   workflow_dispatch:
+    inputs:
+      demo:
+        description: '演示模式测试（勾选后可随时在非交易时间/晚上测试推送）'
+        required: false
+        default: false
+        type: boolean
 
 env:
   TZ: Asia/Shanghai
@@ -26,12 +32,16 @@ jobs:
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
         run: |
-          sleep 30
-          python scalp_push.py --stage instant
+          if [ "${{ inputs.demo }}" = "true" ]; then
+            echo "🚀 运行演示测试模式 (--demo)"
+            python scalp_push.py --stage instant --demo
+          else
+            python scalp_push.py --stage instant
+          fi
       - name: Commit and push daily records
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main || true
           git add data/scalp_records/ data/scalp_account.json
-          git diff --staged --quiet || (git commit -m "chore(scalp): save 09:31:30 instant push & account [skip ci]" && git push origin main)
+          git diff --staged --quiet || (git commit -m "chore(scalp): save 09:31 instant push & account [skip ci]" && git push origin main)

@@ -1,9 +1,11 @@
 """
-短线决策台定时推送入口脚本 (Scalp Push Entrypoint)
-融合 10 万元实盘级模拟账户与 T+1 交易决策：
-- 09:26 竞价初筛 (`stage="auction"`): 竞价抢筹选股 + 昨日持仓竞价预警
-- 09:35 开盘确认 (`stage="confirm"`): 强攻/低吸选股 + 持仓止盈止损执行与资金释放 + 模拟分仓买入
-- 09:55 早盘定势 (`stage="settle"`): 主线封板/二波选股 + 调仓处置 + 模拟分仓买入
+短线决策台定时推送入口脚本 (Scalp Push Entrypoint) - 策略2 (超短打板·龙头接力)
+4 阶早盘超短进攻战阵 + 1 阶尾盘观察：
+- 09:25:30 竞价爆量 (`stage="auction"`): 竞价抢筹首板选股 + 昨日持仓竞价预警
+- 09:31:00 极速秒板 (`stage="instant"`): 开盘60秒闪电封板突击
+- 09:40:00 弱转强反包 (`stage="confirm"`): 10分钟分歧洗盘后转一致冲板
+- 09:50:00 换手大龙回封 (`stage="settle"`): 充分换手真龙回封确认收官
+- 14:30:00 尾盘观察 (`stage="afternoon"`): 尾盘备用观察（配额为0，仅盯盘不买）
 """
 import os
 import sys
@@ -46,16 +48,16 @@ def get_feishu_webhook():
 STAGE_NAME_MAP = {
     "auction": "早盘竞价首板 (09:25:30 爆量抢筹)",
     "instant": "开盘极速秒板 (09:31:00 闪电封死)",
-    "confirm": "换手大龙回封 (09:50:00 龙头收官)",
-    "settle": "早盘定势封板 (09:55 备用)",
-    "afternoon": "尾盘低吸决胜 (14:30 备用)"
+    "confirm": "弱转强反包冲板 (09:40:00 分歧转一致)",
+    "settle": "换手大龙回封 (09:50:00 龙头收官)",
+    "afternoon": "尾盘备用观察 (14:30 仅盯盘不买)"
 }
 
 STAGE_TIME_WINDOWS = {
     "auction": ("09:15", "09:32"),
-    "instant": ("09:30", "09:40"),
-    "confirm": ("09:40", "10:15"),
-    "settle":  ("09:50", "10:15"),
+    "instant": ("09:30", "09:38"),
+    "confirm": ("09:36", "09:48"),
+    "settle":  ("09:46", "10:15"),
     "afternoon": ("14:15", "14:55")
 }
 
@@ -63,7 +65,7 @@ STAGE_TIME_WINDOWS = {
 def run_scalp_push(stage="auction", is_demo=False, force=False):
     """
     执行短线决策台 V2 推送与 10万模拟账户联动
-    stage: 'auction' (09:26) | 'instant' (09:31) | 'confirm' (09:38) | 'settle' (10:00) | 'afternoon' (14:30)
+    stage: 'auction' (09:25:30) | 'instant' (09:31:00) | 'confirm' (09:40:00) | 'settle' (09:50:00) | 'afternoon' (14:30:00)
     """
     today_str = datetime.now().strftime("%Y-%m-%d")
     stage_label = STAGE_NAME_MAP.get(stage, stage)
@@ -166,7 +168,7 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
 def main():
     parser = argparse.ArgumentParser(description="短线决策台飞书自动推送脚本")
     parser.add_argument("--stage", choices=["auction", "instant", "confirm", "settle", "afternoon"], default="auction",
-                        help="推送阶段: auction(09:26 竞价初筛), instant(09:31:30 极速秒板), confirm(09:35 开盘确认), settle(09:55 早盘定势与二波), afternoon(14:30 尾盘低吸与突破回踩)")
+                        help="推送阶段: auction(09:25:30 竞价首板), instant(09:31:00 极速秒板), confirm(09:40:00 弱转强反包), settle(09:50:00 换手大龙回封), afternoon(14:30 尾盘备用观察)")
     parser.add_argument("--demo", action="store_true", help="使用演示模拟数据运行（非交易日测试）")
     parser.add_argument("--force", action="store_true", help="忽略交易日判断强制执行")
 

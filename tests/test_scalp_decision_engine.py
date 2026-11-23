@@ -71,8 +71,27 @@ def test_build_scalp_feishu_card_v2_sections():
     assert "header" in card
     assert "elements" in card
     card_str = str(card)
-    # 验证卡片中包含 S1 或 S2 等策略标识
-    assert "S1" in card_str or "S2" in card_str or "短线" in card_str
+    # 验证卡片中包含 S1/S2/S3/S4 等策略标识或风控失效线
+    assert any(tag in card_str for tag in ["S1", "S2", "S3", "S4", "风控失效线"])
+
+
+def test_all_stages_feishu_card_headers_and_tips():
+    """测试 4 阶段早盘超短 + 尾盘观察卡片标题与纪律提示符合设计"""
+    stages_expected = {
+        "auction": ("早盘竞价爆量首板榜 (09:25:30)", "竞价操作提醒"),
+        "instant": ("开盘极速秒板突击榜 (09:31)", "极速秒板提醒"),
+        "confirm": ("弱转强反包冲板榜 (09:40)", "弱转强反包提醒"),
+        "settle": ("换手大龙回封决胜榜 (09:50)", "换手大龙回封提醒"),
+        "afternoon": ("尾盘备用观察榜", "尾盘打板提醒"),
+    }
+    for stg, (title_sub, tip_sub) in stages_expected.items():
+        res = analyze_scalp_market_v2(stage=stg, is_demo=True)
+        pushed = get_stage_pushed_stocks(res, stage=stg)
+        card = build_scalp_feishu_card_v2(res, stage=stg, pushed_stocks=pushed)
+        card_title = card["header"]["title"]["content"]
+        assert title_sub in card_title, f"Stage {stg} card title mismatch: {card_title}"
+        card_str = str(card)
+        assert tip_sub in card_str, f"Stage {stg} card tip mismatch: {card_str}"
 
 
 def test_weak_to_strong_auction_factor():

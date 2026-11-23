@@ -1,7 +1,15 @@
-name: 换手大龙回封买点 (09:50:00)
+name: 弱转强反包冲板 (09:40:00)
 
 on:
+  schedule:
+    - cron: '40 1 * * 1-5'  # UTC 01:40 = 北京时间 09:40 (周一至周五)
   workflow_dispatch:
+    inputs:
+      demo:
+        description: '演示模式测试（勾选后可随时在非交易时间/晚上测试推送）'
+        required: false
+        default: false
+        type: boolean
 
 env:
   TZ: Asia/Shanghai
@@ -23,11 +31,17 @@ jobs:
       - name: Run scalp confirm push
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
-        run: python scalp_push.py --stage confirm
+        run: |
+          if [ "${{ inputs.demo }}" = "true" ]; then
+            echo "🚀 运行演示测试模式 (--demo)"
+            python scalp_push.py --stage confirm --demo
+          else
+            python scalp_push.py --stage confirm
+          fi
       - name: Commit and push daily records
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main || true
           git add data/scalp_records/ data/scalp_account.json
-          git diff --staged --quiet || (git commit -m "chore(scalp): save 09:50 confirm push & account [skip ci]" && git push origin main)
+          git diff --staged --quiet || (git commit -m "chore(scalp): save 09:40 confirm push & account [skip ci]" && git push origin main)

@@ -1,9 +1,11 @@
 """
-短线决策台 V2 量化计算引擎 (Scalp Decision Engine V2)
-深度融合主力资金与板块流向的多因子早盘量化推送体系：
-1. 09:26 竞价初筛 (`stage="auction"`): 聚焦【🔥 主力大单抢筹弱转强】与【🎯 综合短线先锋】
-2. 09:35 开盘确认 (`stage="confirm"`): 聚焦【💥 强攻打板先锋】与【🛡️ 资金共振VWAP低吸】
-3. 09:55 早盘定势 (`stage="settle"`): 聚焦【🏆 主线封板龙头确认/排板】与【🌊 主线二波蓄势低吸】
+短线决策台 V2 量化计算引擎 (Scalp Decision Engine V2) - 策略2 (超短打板·龙头接力)
+深度融合主力资金与板块流向的多因子早盘超短量化战阵：
+1. 09:25:30 竞价爆量 (`stage="auction"`): 聚焦【🔥 主力大单抢筹弱转强首板】与【🎯 竞价短线先锋】
+2. 09:31:00 极速秒板 (`stage="instant"`): 聚焦【⚡ 开盘60秒闪电封死秒板突击】
+3. 09:40:00 弱转强反包 (`stage="confirm"`): 聚焦【💥 10分钟分歧洗盘后转一致冲板龙头】
+4. 09:50:00 换手大龙回封 (`stage="settle"`): 聚焦【👑 充分换手真龙回封确认收官】
+5. 14:30:00 尾盘观察 (`stage="afternoon"`): 尾盘备用观察（打板彻底关闭，仅盯盘）
 """
 import math
 import time
@@ -843,23 +845,23 @@ def get_stage_pushed_stocks(analysis_res, stage="auction"):
         pushed_list.extend(strategy_groups["S1"][:2])
         pushed_list.extend(strategy_groups["S2"][:2])
     elif stage == "instant":
-        # 09:31:30 极速秒板：S1 开盘确认优先
+        # 09:31:00 极速秒板：S1 开盘确认优先 TOP2 + S2 极速先锋 TOP1
         pushed_list.extend(strategy_groups["S1"][:2])
         pushed_list.extend(strategy_groups["S2"][:1])
     elif stage == "confirm":
-        # 09:38 开盘承接：S1 开盘确认 TOP2 + S2 领涨跟踪 TOP2
+        # 09:40:00 弱转强反包冲板：S1 开盘冲板 TOP2 + S2 弱转强龙头 TOP2
         pushed_list.extend(strategy_groups["S1"][:2])
         pushed_list.extend(strategy_groups["S2"][:2])
         if strategy_groups["S3"]: pushed_list.extend(strategy_groups["S3"][:1])
         if strategy_groups["S4"]: pushed_list.extend(strategy_groups["S4"][:1])
     elif stage == "settle":
-        # 10:00 早盘定势：S2 主线龙头确认 TOP2 + S1 确认 TOP1
+        # 09:50:00 换手大龙回封：S2 主线真龙回封 TOP2 + S1 稳健确认 TOP1
         pushed_list.extend(strategy_groups["S2"][:2])
         pushed_list.extend(strategy_groups["S1"][:1])
         if strategy_groups["S3"]: pushed_list.extend(strategy_groups["S3"][:1])
         if strategy_groups["S4"]: pushed_list.extend(strategy_groups["S4"][:1])
     elif stage == "afternoon":
-        # 14:30 尾盘决胜：S3 涨停回调低吸确认 TOP2 + S4 量价突破回踩确认 TOP2
+        # 14:30 尾盘观察备用：S3 涨停回调低吸确认 TOP2 + S4 量价突破回踩确认 TOP2
         pushed_list.extend(strategy_groups["S3"][:2])
         pushed_list.extend(strategy_groups["S4"][:2])
         if not pushed_list:
@@ -914,13 +916,13 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
         pushed_stocks = get_stage_pushed_stocks(analysis_res, stage=stage)
 
     if stage == "afternoon":
-        title_text = f"🌙 策略2 · 尾盘低吸决胜备用榜 ({now_str[11:16]})"
+        title_text = f"🌙 策略2 · 尾盘备用观察榜 ({now_str[11:16]})"
         header_color = "indigo"
     elif stage == "settle":
-        title_text = f"🎯 策略2 · 早盘定势封板备用榜 ({now_str[11:16]})"
+        title_text = f"👑 策略2 · 换手大龙回封决胜榜 (09:50)"
         header_color = "purple"
     elif stage == "confirm":
-        title_text = f"👑 策略2 · 换手大龙回封决胜榜 (09:50)"
+        title_text = f"⚡ 策略2 · 弱转强反包冲板榜 (09:40)"
         header_color = "red"
     elif stage == "instant":
         title_text = f"⚡ 策略2 · 开盘极速秒板突击榜 (09:31)"
@@ -1093,11 +1095,13 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
 
     # 6. 底部短线纪律提示
     if stage == "afternoon":
-        tips_md = "🌙 **尾盘决胜提醒**: 14:30 尾盘确定性最高，优先低吸 S3 涨停回调到位与 S4 回踩守稳标的，防范次日诱多！"
+        tips_md = "🌙 **尾盘打板提醒**: 策略2为超短打板，尾盘原则上仅观察不建仓，防止次日低开被动！"
     elif stage == "settle":
-        tips_md = "💡 **早盘定势提醒**: 开盘半小时已过，主要主线已明朗，切忌追高无主力资金承接的后排杂毛股！"
+        tips_md = "👑 **换手大龙回封提醒**: 09:50 前后为真龙换手回封收官窗口，只做充分换手后的分歧转一致回封，不碰无量跟风！"
     elif stage == "confirm":
-        tips_md = "⚠️ **短线实战铁律**: A股严格执行 T+1 制度，买入当日锁定不可卖出，次日若破防守线且无法收回坚决止损！"
+        tips_md = "⚡ **弱转强反包提醒**: 09:40 经历开盘10分钟充分洗盘，重点关注低开高走、分时放量穿越均线冲板的弱转强真龙头！"
+    elif stage == "instant":
+        tips_md = "⚡ **极速秒板提醒**: 09:30-09:32 关注超预期大单封死秒板，若封单快速撤单或炸板坚决放弃。"
     else:
         tips_md = "💡 **竞价操作提醒**: 9:25-9:30 为锁单期不可撤单，请在 9:30 开盘后根据分时主力承接决定是否买入。"
 
