@@ -1,6 +1,6 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 101446.87,
+  "total_assets": 100791.87,
   "cash": 20034.87,
   "positions": [
     {
@@ -34,17 +34,17 @@
       "buy_stage": "auction",
       "strategy_tag": "S1 竞价首板 (竞价入选)",
       "buy_price": 11.4,
-      "current_price": 11.56,
+      "current_price": 11.41,
       "open_price": 11.4,
       "stop_loss": 11.17,
       "shares": 2200,
       "cost_amount": 25086.52,
       "fee": 6.52,
-      "unrealized_profit_pct": 1.4,
-      "unrealized_profit_amount": 345.48,
+      "unrealized_profit_pct": 0.09,
+      "unrealized_profit_amount": 15.48,
       "regime": "中性",
-      "market_value": 25432.0,
-      "highest_price": 11.58,
+      "market_value": 25102.0,
+      "highest_price": 11.68,
       "max_profit_pct": 1.58,
       "is_zt": false
     },
@@ -56,17 +56,17 @@
       "buy_stage": "confirm",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
       "buy_price": 52.82,
-      "current_price": 53.64,
+      "current_price": 52.99,
       "open_price": 50.48,
       "stop_loss": 49.47,
       "shares": 500,
       "cost_amount": 26416.87,
       "fee": 6.87,
-      "unrealized_profit_pct": 1.55,
-      "unrealized_profit_amount": 403.13,
+      "unrealized_profit_pct": 0.32,
+      "unrealized_profit_amount": 78.13,
       "regime": "进攻",
-      "market_value": 26820.0,
-      "highest_price": 53.64,
+      "market_value": 26495.0,
+      "highest_price": 53.83,
       "max_profit_pct": 1.55,
       "is_zt": false
     }
@@ -2001,13 +2001,24 @@
       "total_profit": -3312.91,
       "total_return_pct": -3.31,
       "position_count": 2
+    },
+    {
+      "date": "2026-11-24",
+      "total_assets": 100791.87,
+      "cash": 20034.87,
+      "position_market_value": 80757.0,
+      "daily_profit": 4104.78,
+      "daily_return_pct": 4.25,
+      "total_profit": 791.87,
+      "total_return_pct": 0.79,
+      "position_count": 3
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-24 09:50:59",
-  "position_market_value": 81412.0,
-  "daily_profit": 4759.78,
-  "daily_return_pct": 4.92,
-  "total_profit": 1446.87,
-  "total_return_pct": 1.45
+  "updated_at": "2026-11-24 15:30:54",
+  "position_market_value": 80757.0,
+  "daily_profit": 4104.78,
+  "daily_return_pct": 4.25,
+  "total_profit": 791.87,
+  "total_return_pct": 0.79
 }
