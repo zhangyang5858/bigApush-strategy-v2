@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-24",
+  "time": "09:26:31",
+  "stage": "auction",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "002148",
+      "name": "北纬科技",
+      "push_time": "09:26:31",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 11.4,
+      "open_price": 11.4,
+      "pre_close": 11.07,
+      "stop_loss": 11.17,
+      "grade": "S",
+      "score": 90.0,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通信服务"
+    },
+    {
+      "code": "002685",
+      "name": "华东重机",
+      "push_time": "09:26:31",
+      "stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 8.43,
+      "open_price": 8.43,
+      "pre_close": 8.14,
+      "stop_loss": 8.26,
+      "grade": "S",
+      "score": 89.9,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "工程机械"
+    }
+  ]
+}
