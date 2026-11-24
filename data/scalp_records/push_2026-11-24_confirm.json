@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-24",
+  "time": "09:40:53",
+  "stage": "confirm",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "603286",
+      "name": "日盈电子",
+      "push_time": "09:40:53",
+      "stage": "confirm",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 52.82,
+      "open_price": 50.48,
+      "pre_close": 48.94,
+      "stop_loss": 49.47,
+      "grade": "S",
+      "score": 96.1,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "汽车零部件"
+    }
+  ]
+}
