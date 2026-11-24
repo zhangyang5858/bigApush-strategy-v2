@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-24",
+  "time": "09:31:37",
+  "stage": "instant",
+  "regime": "进攻",
+  "stocks": [
+    {
+      "code": "002148",
+      "name": "北纬科技",
+      "push_time": "09:31:37",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 11.58,
+      "open_price": 11.4,
+      "pre_close": 11.07,
+      "stop_loss": 11.17,
+      "grade": "S",
+      "score": 100,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "通信服务"
+    },
+    {
+      "code": "002771",
+      "name": "真视通",
+      "push_time": "09:31:37",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 17.95,
+      "open_price": 17.8,
+      "pre_close": 17.4,
+      "stop_loss": 17.44,
+      "grade": "S",
+      "score": 99.3,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "IT服务Ⅱ"
+    },
+    {
+      "code": "002685",
+      "name": "华东重机",
+      "push_time": "09:31:37",
+      "stage": "instant",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "push_price": 8.38,
+      "open_price": 8.43,
+      "pre_close": 8.14,
+      "stop_loss": 8.26,
+      "grade": "S",
+      "score": 96.2,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "工程机械"
+    }
+  ]
+}
