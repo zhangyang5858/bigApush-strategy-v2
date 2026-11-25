@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-25",
+  "time": "09:51:00",
+  "stage": "settle",
+  "regime": "中性",
+  "stocks": [
+    {
+      "code": "603360",
+      "name": "百傲化学",
+      "push_time": "09:51:00",
+      "stage": "settle",
+      "strategy_tag": "S1 竞价首板 (开盘确认)",
+      "push_price": 10.06,
+      "open_price": 9.79,
+      "pre_close": 9.6,
+      "stop_loss": 9.59,
+      "grade": "A",
+      "score": 79.8,
+      "is_zt": false,
+      "is_leader": false,
+      "sector": "农化制品"
+    }
+  ]
+}
