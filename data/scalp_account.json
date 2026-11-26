@@ -1,7 +1,7 @@
 {
   "initial_capital": 100000.0,
-  "total_assets": 100441.27,
-  "cash": 72985.27,
+  "total_assets": 99810.2,
+  "cash": 45786.2,
   "positions": [
     {
       "code": "603360",
@@ -11,19 +11,42 @@
       "buy_stage": "confirm",
       "strategy_tag": "S1 竞价首板 (开盘确认)",
       "buy_price": 9.92,
-      "current_price": 10.56,
+      "current_price": 10.32,
       "open_price": 9.79,
-      "stop_loss": 9.59,
+      "stop_loss": 9.97,
       "shares": 2600,
       "cost_amount": 25798.71,
       "fee": 6.71,
-      "unrealized_profit_pct": 6.45,
-      "unrealized_profit_amount": 1657.29,
+      "unrealized_profit_pct": 4.03,
+      "unrealized_profit_amount": 1033.29,
       "regime": "中性",
-      "market_value": 27456.0,
+      "market_value": 26832.0,
       "highest_price": 10.56,
       "max_profit_pct": 6.45,
-      "is_zt": true
+      "is_zt": false,
+      "is_breakeven_locked": true
+    },
+    {
+      "code": "002931",
+      "name": "锋龙股份",
+      "buy_date": "2026-11-26",
+      "buy_time": "09:26:47",
+      "buy_stage": "auction",
+      "strategy_tag": "S1 竞价首板 (竞价入选)",
+      "buy_price": 45.32,
+      "current_price": 45.32,
+      "open_price": 45.32,
+      "stop_loss": 44.41,
+      "shares": 600,
+      "cost_amount": 27199.07,
+      "fee": 7.07,
+      "unrealized_profit_pct": 0.0,
+      "unrealized_profit_amount": -7.07,
+      "regime": "中性",
+      "market_value": 27192.0,
+      "highest_price": 45.32,
+      "max_profit_pct": 0.0,
+      "is_zt": false
     }
   ],
   "closed_trades": [
@@ -2032,10 +2055,10 @@
     }
   ],
   "created_at": "2026-09-18 00:00:00",
-  "updated_at": "2026-11-25 15:30:51",
-  "position_market_value": 27456.0,
-  "daily_profit": -350.6,
-  "daily_return_pct": -0.35,
-  "total_profit": 441.27,
-  "total_return_pct": 0.44
+  "updated_at": "2026-11-26 09:26:47",
+  "position_market_value": 54024.0,
+  "daily_profit": -631.07,
+  "daily_return_pct": -0.63,
+  "total_profit": -189.8,
+  "total_return_pct": -0.19
 }
