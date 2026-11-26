@@ -282,3 +282,39 @@ def test_ebb_tide_brake_prevents_new_buys():
     assert len(account["positions"]) == 0
 
 
+
+
+def test_instant_nbdl_snapshot_stays_on_watch_even_with_strong_flow():
+    from scalp_account_manager import execute_stage_buys
+
+    stock = {
+        "code": "002164", "name": "宁波东力", "price": 22.29, "open_price": 22.16,
+        "change": 2.72, "score": 94.7, "qualified": True, "vol_ratio": 2.0,
+        "net_flow": 20_000_000, "s1_signal": {"status": "WATCHING"},
+    }
+    # Even favorable hypothetical flow/volume cannot offset the recorded +0.59% move from the open.
+    pushed = get_stage_pushed_stocks({"regime": "进攻", "stocks": [stock]}, "instant")
+    assert len(pushed) == 1
+    assert pushed[0]["watch_only"] is True
+    assert pushed[0]["entry_block_reason"] == "较开盘价涨幅不足1%"
+    account = {"cash": 100000, "total_assets": 100000, "positions": [], "closed_trades": []}
+    assert not execute_stage_buys(account, pushed, "instant", today_str="2026-11-26", regime="进攻")
+
+
+def test_confirm_prefers_funded_above_vwap_and_fills_watch_slots_without_vetoes():
+    from scalp_account_manager import execute_stage_buys
+
+    template = {"price": 10.18, "open_price": 10, "traded_vwap": 10.12, "vol_ratio": 1.5,
+                "net_flow": 5_000_000, "score": 78, "qualified": True, "change": 2.0,
+                "s1_signal": {"status": "CONFIRMED"}}
+    leader = dict(template, code="600001", sector="贵金属", s2_signal={"status": "CONFIRMED"})
+    below_vwap = dict(template, code="600002", sector="油气", traded_vwap=10.19, score=98)
+    observed = dict(template, code="600003", sector="能源", s1_signal=None, score=92)
+    vetoed = dict(template, code="600004", sector="机器人", hard_veto=True, score=100)
+    extra = dict(template, code="600005", sector="软件", net_flow=-1000, score=70)
+    pushed = get_stage_pushed_stocks({"regime": "防守", "stocks": [below_vwap, vetoed, observed, leader, extra]}, "confirm")
+    assert [s["code"] for s in pushed] == ["600001", "600002", "600003"]
+    assert [s["watch_only"] for s in pushed] == [False, True, True]
+    account = {"cash": 100000, "total_assets": 100000, "positions": [], "closed_trades": []}
+    assert not execute_stage_buys(account, pushed[1:], "confirm", today_str="2026-11-26", regime="防守")
+    assert execute_stage_buys(account, pushed, "confirm", today_str="2026-11-26", regime="防守")[0]["code"] == "600001"

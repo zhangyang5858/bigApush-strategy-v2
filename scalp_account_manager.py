@@ -22,7 +22,7 @@
 import os
 import json
 from datetime import datetime
-from scalp_decision_engine import n, clamp
+from scalp_decision_engine import n, clamp, intraday_entry_block
 
 ACCOUNT_FILE = "data/scalp_account.json"
 INITIAL_CAPITAL = 100000.00
@@ -384,9 +384,8 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
       * 中性: 上限 3 只 (75% 仓位，保留 25% 现金防御)
       * 防守: 上限 2 只 (50% 仓位，强制保留 50% 现金避险)
     - P2: 时段配额与买入门槛再平衡
-      * 防守期: 09:31 instant 仅买评分 >= 86.0 且 net_flow >= 2e7 的极强龙头；09:38 confirm 配额 1 只
-      * 中性期: 09:31 instant 门槛提升至评分 >= 82.0
-      * 进攻期: 维持标准门槛与配额
+      * 09:31 按开盘承接、量比及分档净流入检查，09:40 检查开盘价与真实成交均价承接
+      * 观察候选不参与开仓，09:40 防守期配额 1 只
     - target_pos_ratio: 单只标的分配总资产的 25%（约 2.5 万元）
     - max_stock_price: 10万小资金单价过滤门槛 (默认 80 元)，避免单手过大造成资金闲置
     """
@@ -413,8 +412,6 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
         stage_limit = 1  # 防守期开盘承接降为 1 只
 
     # 3. 阶段质量门槛校准 (适配未封板标的真实得分分布，避免 86 分虚高门槛误杀冲板真龙)
-    min_instant_score = 71.5 if regime == "防守" else 69.0 if regime == "中性" else 65.0
-    min_instant_net_flow = 1.5e7 if regime == "防守" else 8e6 if regime == "中性" else 0.0
     min_confirm_score = 68.0 if regime == "防守" else 65.0 if regime == "中性" else 60.0
 
     existing_codes = {p["code"] for p in account.get("positions", [])}
@@ -452,7 +449,6 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
         stop_loss = n(stock.get("stop_loss") or (open_price * 0.98))
         strategy_tag = stock.get("strategy_tag", "🎯 综合短线")
         score = n(stock.get("score") or 0.0)
-        net_flow = n(stock.get("net_flow") or 0.0)
 
         if code in existing_codes:
             continue
@@ -461,7 +457,8 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
             continue
         if push_price <= 0:
             continue
-        if stock.get("is_zt"):
+        if (stock.get("is_zt") or stock.get("watch_only") or stock.get("hard_veto")
+                or stock.get("signal_stage") == "INVALIDATED"):
             continue
 
         # 【防核按钮风控】：超短系统全面剔除 300/301(创业板) 与 688(科创板) 20cm 个股，仅做 60/00 主板
@@ -476,20 +473,13 @@ def execute_stage_buys(account, pushed_stocks, stage="auction", today_str=None, 
                 print(f"  🛡️ [冲高回落拦截] {code} {name} 现价￥{push_price:.2f} 较盘中高点￥{high_price:.2f} 回撤 {pullback_ratio*100:.2f}% (>1.8%)，冲高受阻放弃买入")
                 continue
 
-        # P2: 极速秒板 (09:31:30) 弱势环境防诱多门槛校验
-        if stage == "instant":
-            if score < min_instant_score:
-                print(f"  🛡️ [{regime}行情·秒板拦截] {code} {name} (评分 {score:.1f} < 门槛 {min_instant_score:.1f})，跳过以防开盘冲高诱多回落")
-                continue
-            # 开盘90秒内若价格较开盘价强势拉升 >= 2.0%，即使东财主力净流入字段尚未刷新也放行
-            intraday_surge = ((push_price - open_price) / open_price) if open_price > 0 else 0.0
-            if net_flow < min_instant_net_flow and intraday_surge < 0.02:
-                print(f"  🛡️ [{regime}行情·秒板拦截] {code} {name} (主力净流入 {net_flow/1e4:.0f}万 < 门槛 {min_instant_net_flow/1e4:.0f}万 且拉升动能不足)，跳过")
-                continue
-        elif stage in ["confirm", "settle"]:
-            if score < min_confirm_score:
-                print(f"  🛡️ [{regime}行情·承接拦截] {code} {name} (评分 {score:.1f} < 门槛 {min_confirm_score:.1f})，跳过边缘标的")
-                continue
+        block = intraday_entry_block(stock, stage, regime)
+        if block:
+            print(f"  🛡️ [{regime}行情·入场拦截] {code} {name}，{block}")
+            continue
+        if stage == "settle" and score < min_confirm_score:
+            print(f"  🛡️ [{regime}行情·承接拦截] {code} {name} (评分 {score:.1f} < 门槛 {min_confirm_score:.1f})")
+            continue
 
         # 10万小资金高价股过滤：若单价过高，买1手占资不均，买2手超额，跳过以避免大量闲置资金
         if max_stock_price and push_price > max_stock_price:

@@ -69,6 +69,11 @@ def save_stage_push_record(stage, pushed_stocks, res=None, date_str=None, force=
             "is_zt": bool(s.get("is_zt", False)),
             "is_leader": bool(s.get("is_leader", False)),
             "sector": s.get("sector", "其他"),
+            "watch_only": bool(s.get("watch_only")),
+            "entry_block_reason": s.get("entry_block_reason"),
+            "vol_ratio": s.get("vol_ratio"),
+            "net_flow": s.get("net_flow"),
+            "traded_vwap": s.get("traded_vwap"),
         })
 
     payload = {

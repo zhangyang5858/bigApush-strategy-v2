@@ -45,6 +45,7 @@ def test_scalp_account_manager_instant_allocation():
             "change": 1.9,
             "score": 85.0,
             "net_flow": 15000000,
+            "vol_ratio": 1.8,
             "strategy_id": "S1",
             "strategy_tag": "⚡ S1 极速秒板",
             "support_price": 10.00,
@@ -59,6 +60,7 @@ def test_scalp_account_manager_instant_allocation():
             "change": 1.2,
             "score": 82.0,
             "net_flow": 15000000,
+            "vol_ratio": 1.8,
             "strategy_id": "S2",
             "strategy_tag": "👑 S2 连板接力",
             "support_price": 8.30,
@@ -85,7 +87,7 @@ def test_oct9_replay_selects_winner_and_blocks_pullback_loser():
     """
     复盘 2026-10-09 真实场景测试：
     1. 09:26 竞价阶段：即便旧仓有 2 只标记了 pre_market_stop=True，也应预释放名额买入排名第1的 002805 丰元股份
-    2. 09:31:30 秒板阶段：防守模式下 72.7 分且强势拉升的 002805 丰元股份不应被 86 分虚高门槛拦截
+    2. 09:31:30 秒板阶段：防守模式下 72.7 分且有放量和资金承接的标的可开仓
     3. 09:38 承接阶段：冲高至 22.80 后回落到 22.25 (回撤 > 1.8%) 的 603906 龙蟠科技应被冲高回落过滤器拦截
     """
     # 场景 A: 09:26 竞价阶段，2只旧仓均已标记 pre_market_stop=True，现金充足
@@ -120,7 +122,7 @@ def test_oct9_replay_selects_winner_and_blocks_pullback_loser():
         "closed_trades": []
     }
     instant_pushed = [
-        {"code": "002805", "name": "丰元股份", "push_price": 19.23, "open_price": 18.56, "pre_close": 17.67, "high": 19.30, "score": 72.7, "strategy_tag": "S1 竞价首板 (竞价入选)", "is_zt": False},
+        {"code": "002805", "name": "丰元股份", "push_price": 19.23, "open_price": 18.56, "pre_close": 17.67, "high": 19.30, "score": 72.7, "vol_ratio": 2.2, "net_flow": 16000000, "strategy_tag": "S1 竞价首板 (竞价入选)", "is_zt": False},
         {"code": "603906", "name": "龙蟠科技", "push_price": 22.34, "open_price": 21.60, "pre_close": 20.94, "high": 22.80, "score": 70.1, "strategy_tag": "S1 竞价首板 (竞价入选)", "is_zt": False},
     ]
     buys_instant = execute_stage_buys(

@@ -518,6 +518,7 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
 
         hold_diff = (cur_price / open_price - 1) if open_price > 0 else 0
         trend_diff = cur_chg - auction_chg
+        traded_vwap = amt / (total_vol * 100) if amt > 0 and total_vol > 0 else None
         vwap_est = (open_price + cur_price) / 2.0
         vwap_diff = (cur_price / vwap_est - 1) * 100 if vwap_est > 0 else 0
 
@@ -717,6 +718,8 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
             "score": round(final_score, 1),
             "auction_score": round(auction_score, 1),
             "confirm_score": round(confirm_score, 1) if is_confirm_stage else None,
+            "vol_ratio": vol_ratio,
+            "traded_vwap": traded_vwap,
             "vwap_diff": round(vwap_diff, 2),
             "grade": grade,
             "qualified": is_qualified,
@@ -767,6 +770,45 @@ def analyze_scalp_market_v2(raw_stocks=None, stage="auction", is_demo=False, min
     }
 
 
+def intraday_entry_block(stock, stage, regime):
+    """Why a 09:31 or 09:40 candidate is observation-only, if any."""
+    if stage not in ("instant", "confirm"):
+        return None
+
+    price = n(stock.get("push_price") or stock.get("price"))
+    opening = n(stock.get("open_price"))
+    high = n(stock.get("high") or stock.get("highest_price"))
+    score = n(stock.get("score"))
+    flow = n(stock.get("net_flow"))
+    volume_ratio = n(stock.get("vol_ratio") or stock.get("vr"))
+    gain_from_open = (price - opening) / opening if opening > 0 else 0.0
+    if price <= 0 or opening <= 0:
+        return "开盘价或参考价缺失"
+    if high > price and (high - price) / high > 0.018:
+        return "较盘中高点回落超过1.8%"
+
+    if stage == "instant":
+        min_score = {"进攻": 65.0, "中性": 69.0, "防守": 71.5}.get(regime, 71.5)
+        min_flow = {"进攻": 5e6, "中性": 8e6, "防守": 1.5e7}.get(regime, 1.5e7)
+        if round(gain_from_open, 6) < 0.01:
+            return "较开盘价涨幅不足1%"
+        if volume_ratio < 1.5:
+            return "量比缺失或不足1.5"
+        if flow < min_flow:
+            return f"主力净流入不足{min_flow / 1e4:.0f}万元"
+    else:
+        min_score = {"进攻": 60.0, "中性": 65.0, "防守": 68.0}.get(regime, 68.0)
+        traded_vwap = n(stock.get("traded_vwap"))
+        if price <= opening or traded_vwap <= 0 or price < traded_vwap:
+            return "未站稳开盘价和实际成交均价"
+        if volume_ratio < 1.3:
+            return "量比缺失或不足1.3"
+        if flow <= 0:
+            return "主力净流入未转正"
+
+    return f"评分低于{min_score:.1f}" if score < min_score else None
+
+
 def get_stage_pushed_stocks(analysis_res, stage="auction"):
     """
     获取指定时段真正推荐上榜的个股列表（按 S1~S4 策略独立规则筛选 + 内部按 Line 67 得分倒序）
@@ -776,7 +818,7 @@ def get_stage_pushed_stocks(analysis_res, stage="auction"):
 
     def is_buyable_unsealed(s):
         """判断标的是否为未封死、可即时买入/挂单的个股"""
-        if s.get("is_zt"):
+        if s.get("is_zt") or s.get("hard_veto") or s.get("signal_stage") == "INVALIDATED":
             return False
         code = str(s.get("code") or "")
         # 【防核按钮优化】：禁止推荐 20cm 创业板/科创板标的
@@ -793,12 +835,11 @@ def get_stage_pushed_stocks(analysis_res, stage="auction"):
         return True
 
     buyable_qualified = [s for s in stocks if s.get("qualified") and is_buyable_unsealed(s)]
-    buyable_all = [s for s in stocks if is_buyable_unsealed(s)]
 
     # 四大策略池按策略独立提取（不混淆策略条件）
     s1_candidates = [
         s for s in buyable_qualified
-        if s.get("s1_signal") and s["s1_signal"].get("status") in (["CONFIRMED", "WATCHING"] if stage == "auction" else ["CONFIRMED"])
+        if s.get("s1_signal") and s["s1_signal"].get("status") in (["CONFIRMED", "WATCHING"] if stage in ("auction", "instant") else ["CONFIRMED"])
     ]
     s2_candidates = [
         s for s in buyable_qualified
@@ -839,66 +880,48 @@ def get_stage_pushed_stocks(analysis_res, stage="auction"):
     }
     analysis_res["strategy_groups"] = strategy_groups
 
-    pushed_list = []
-    if stage == "auction":
-        # 09:26 竞价初筛：S1 竞价入选 TOP2 + S2 龙头候选 TOP2
-        pushed_list.extend(strategy_groups["S1"][:2])
-        pushed_list.extend(strategy_groups["S2"][:2])
-    elif stage == "instant":
-        # 09:31:00 极速秒板：S1 开盘确认优先 TOP2 + S2 极速先锋 TOP1
-        pushed_list.extend(strategy_groups["S1"][:2])
-        pushed_list.extend(strategy_groups["S2"][:1])
-    elif stage == "confirm":
-        # 09:40:00 弱转强反包冲板：S1 开盘冲板 TOP2 + S2 弱转强龙头 TOP2
-        pushed_list.extend(strategy_groups["S1"][:2])
-        pushed_list.extend(strategy_groups["S2"][:2])
-        if strategy_groups["S3"]: pushed_list.extend(strategy_groups["S3"][:1])
-        if strategy_groups["S4"]: pushed_list.extend(strategy_groups["S4"][:1])
-    elif stage == "settle":
-        # 09:50:00 换手大龙回封：S2 主线真龙回封 TOP2 + S1 稳健确认 TOP1
-        pushed_list.extend(strategy_groups["S2"][:2])
-        pushed_list.extend(strategy_groups["S1"][:1])
-        if strategy_groups["S3"]: pushed_list.extend(strategy_groups["S3"][:1])
-        if strategy_groups["S4"]: pushed_list.extend(strategy_groups["S4"][:1])
-    elif stage == "afternoon":
-        # 14:30 尾盘观察备用：S3 涨停回调低吸确认 TOP2 + S4 量价突破回踩确认 TOP2
-        pushed_list.extend(strategy_groups["S3"][:2])
-        pushed_list.extend(strategy_groups["S4"][:2])
-        if not pushed_list:
-            pushed_list.extend(strategy_groups["S2"][:2])
-
-    # 去重处理与同板块先锋身位排他（同一行业仅保留排名最靠前的先锋龙头，坚决屏蔽后排跟风）
-    seen_codes = set()
-    seen_sectors = set()
-    final_pushed = []
-    for s in pushed_list:
-        if s["code"] in seen_codes:
+    candidates_by_stage = {
+        "auction": (s1_candidates, s2_candidates),
+        "instant": (s1_candidates, s2_candidates),
+        "confirm": (s2_candidates, s1_candidates, s4_candidates, s3_candidates),
+        "settle": (s2_candidates, s1_candidates, s3_candidates, s4_candidates),
+        "afternoon": (s3_candidates, s4_candidates, s2_candidates),
+    }
+    primary = [stock for group in candidates_by_stage.get(stage, ()) for stock in group]
+    primary_codes = {stock["code"] for stock in primary}
+    qualified_by_score = sorted(buyable_qualified, key=s_rank_key, reverse=True)
+    regime = analysis_res.get("regime", "中性")
+    trade_candidates, watch_candidates = [], []
+    classified_codes = set()
+    for stock in primary + qualified_by_score:
+        code = stock["code"]
+        if code in classified_codes:
             continue
-        sec = s.get("sector") or ""
-        if sec and sec not in ["其他", "--", "综合"]:
-            if sec in seen_sectors:
-                # 同板块已有先锋龙一入选，屏蔽同板块后排跟风标的
-                continue
-            seen_sectors.add(sec)
-        seen_codes.add(s["code"])
-        final_pushed.append(s)
+        classified_codes.add(code)
+        if stage == "afternoon":
+            block = "尾盘观察"
+        elif regime == "退潮防守":
+            block = "退潮防守暂停开仓"
+        elif code not in primary_codes:
+            block = "未达到本时点战法确认"
+        else:
+            block = intraday_entry_block(stock, stage, regime)
+        candidate = {**stock, "watch_only": bool(block), "entry_block_reason": block}
+        (watch_candidates if block else trade_candidates).append(candidate)
 
-    if not final_pushed:
-        # 兜底避免空榜（依然遵循板块排他原则）
-        for s in (buyable_qualified or buyable_all):
-            if s["code"] in seen_codes:
+    # 优先保留可执行候选。观察候选可补位，行业硬风控和模拟开仓仍单独检查。
+    selected = []
+    sectors = set()
+    for stock in trade_candidates + sorted(watch_candidates, key=s_rank_key, reverse=True):
+        sector = stock.get("sector")
+        if sector and sector not in ("其他", "--", "综合"):
+            if sector in sectors:
                 continue
-            sec = s.get("sector") or ""
-            if sec and sec not in ["其他", "--", "综合"] and sec in seen_sectors:
-                continue
-            seen_codes.add(s["code"])
-            if sec:
-                seen_sectors.add(sec)
-            final_pushed.append(s)
-            if len(final_pushed) >= 3:
-                break
-
-    return final_pushed
+            sectors.add(sector)
+        selected.append(stock)
+        if len(selected) == 3:
+            break
+    return selected
 
 
 def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None, sell_actions=None, buy_records=None, account_data=None):
@@ -1078,11 +1101,12 @@ def build_scalp_feishu_card_v2(analysis_res, stage="auction", pushed_stocks=None
             seal_badge = f" | {s['seal_tag']}" if s.get("seal_tag") else ""
             seal_line = f"\n> 封板评级: **{s['seal_desc']}**" if s.get("seal_desc") else ""
 
+            eligibility = f"\n> 👀 仅观察：{s['entry_block_reason']}" if s.get("watch_only") else ""
             stock_md_list.append(
                 f"🟢 **{s['code']} {s['name']}** (现价: **￥{s['price']:.2f}** | {s['change']:+.2f}%){leader_tag}\n"
                 f"> 战法: **`{s.get('strategy_tag')}`** | 评级: **{grade_badge}**{seal_badge}\n"
                 f"> 行业: {sec_tag} | {flow_tag}{seal_line}\n"
-                f"> 核心依据: {reasons_str}{buy_info_str}\n"
+                f"> 核心依据: {reasons_str}{buy_info_str}{eligibility}\n"
                 f"> 🚨 **风控失效线**: {veto_tips}"
             )
 

@@ -160,6 +160,8 @@ def run_scalp_push(stage="auction", is_demo=False, force=False):
         text_lines.append("🎯 【今日选股推荐】")
         for s in pushed_stocks:
             text_lines.append(f"🟢 {s['code']} {s['name']} (￥{s['price']:.2f} {s['change']:+.2f}%) - {s['grade']}级 {s['score']}分")
+            if s.get("watch_only"):
+                text_lines.append(f"   仅观察：{s['entry_block_reason']}")
             text_lines.append(f"   战法: {s['strategy_tag']} | 买入参考: ￥{s['push_price']:.2f} | 止损: ￥{s['stop_loss']:.2f}")
 
         return notifier.send_text("\n".join(text_lines))
